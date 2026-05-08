@@ -1,16 +1,7 @@
 cd /data3/zengjian/DocVisRAG$
 
+#基于docker文件构建模型
 docker build -t docvisrag:cu124 .
-
-docker run --gpus all --ipc=host --network=host -it --rm \
-  -v /data3/zengjian/DocVisRAG:/workspace/DocVisRAG \
-  -v /data3/zengjian/.cache:/root/.cache \
-  -w /workspace/DocVisRAG \
-  -e HF_HOME=/root/.cache/huggingface \
-  -e HUGGINGFACE_HUB_CACHE=/root/.cache/huggingface/hub \
-  -e TRANSFORMERS_CACHE=/root/.cache/huggingface/transformers \
-  docvisrag:cu124
-
 
 # 删下载缓存
 docker builder prune -f
@@ -18,7 +9,51 @@ docker builder prune -f
 # 退出
 exit
 
+# 启动docker --gpus all  --gpus '"device=4,5"'
+docker run --gpus '"device=4,5"' --ipc=host --network=host -it --rm \
+  -v /data3/zengjian/DocVisRAG:/workspace/DocVisRAG \
+  -v /data3/zengjian/.cache:/root/.cache \
+  -w /workspace/DocVisRAG \
+  -e HF_HOME=/root/.cache/huggingface \
+  -e HF_HUB_CACHE=/root/.cache/huggingface/hub \
+  -e TRANSFORMERS_CACHE=/root/.cache/huggingface/hub \
+  -e HF_ENDPOINT=https://hf-mirror.com \
+  docvisrag:cu124
+
+
+# 启动后必要配置
+# 配置hf镜像（已经配置好）
+export HF_ENDPOINT=https://hf-mirror.com
+
+# 查缓存路径
+env | grep -E "HF_HOME|HF_HUB_CACHE|HUGGINGFACE_HUB_CACHE|TRANSFORMERS_CACHE|HF_ENDPOINT"
+
 # 配置nvcc
 export PATH=/usr/local/cuda-12.4/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda-12.4/lib64:$PATH
 nvcc -V
+
+
+# 阶段1
+python scripts/vlm_qa.py \
+  --image data/samples/test_stage1.png \
+  --question "请概括这张图片的主要内容。" \
+  --max-new-tokens 1024
+
+python scripts/vlm_qa.py \
+  --image data/samples/1444.jpg \
+  --question "请说明这张图片的画了什么。" \
+  --max-new-tokens 1024 \
+  --model-id Qwen/Qwen3-VL-4B-Instruct
+
+python scripts/vlm_qa.py \
+  --image data/samples/DeepSeekMath.pdf \
+  --question "请概括这个文档的主要内容。" \
+  --max-new-tokens 1024
+
+# 删除额外缓存
+rm -rf \
+    /root/.cache/huggingface/models--Qwen--Qwen2.5-VL-3B-Instruct \
+    /root/.cache/huggingface/models--Qwen--Qwen3-VL-4B-Instruct \
+    /root/.cache/huggingface/transformers/models--Qwen--Qwen2.5-VL-3B-Instruct \
+    /root/.cache/huggingface/transformers/models--Qwen--Qwen3-VL-4B-Instruct 
