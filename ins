@@ -1,0 +1,24 @@
+cd /data3/zengjian/DocVisRAG$
+
+docker build -t docvisrag:cu124 .
+
+docker run --gpus all --ipc=host --network=host -it --rm \
+  -v /data3/zengjian/DocVisRAG:/workspace/DocVisRAG \
+  -v /data3/zengjian/.cache:/root/.cache \
+  -w /workspace/DocVisRAG \
+  -e HF_HOME=/root/.cache/huggingface \
+  -e HUGGINGFACE_HUB_CACHE=/root/.cache/huggingface/hub \
+  -e TRANSFORMERS_CACHE=/root/.cache/huggingface/transformers \
+  docvisrag:cu124
+
+
+# 删下载缓存
+docker builder prune -f
+
+# 退出
+exit
+
+# 配置nvcc
+export PATH=/usr/local/cuda-12.4/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-12.4/lib64:$PATH
+nvcc -V

@@ -1,0 +1,6 @@
+model_id: "Qwen/Qwen2.5-VL-3B-Instruct"
+data_dir: "data"
+output_dir: "data/outputs"
+index_dir: "data/indexes"
+device: "cuda"
+top_k: 3

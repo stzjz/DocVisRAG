@@ -1,0 +1,34 @@
+# core
+accelerate>=1.6.0
+bitsandbytes>=0.45.0
+qwen-vl-utils[decord]>=0.0.8
+transformers>=4.49.0,<5.0.0
+
+# document processing
+pymupdf>=1.24.0
+pdf2image>=1.17.0
+pillow>=10.0.0
+opencv-python-headless>=4.9.0
+pytesseract>=0.3.10
+
+# OCR: 先用 CPU，避免第一阶段卡在 Paddle GPU 兼容性上
+numpy==1.26.4
+paddlepaddle==2.6.2
+paddleocr==2.8.1
+
+# retrieval
+sentence-transformers>=3.0.0
+faiss-cpu>=1.8.0
+rank-bm25>=0.2.2
+
+# app and utils
+gradio>=4.44.0
+fastapi>=0.111.0
+uvicorn>=0.30.0
+typer>=0.12.0
+rich>=13.7.0
+pydantic>=2.7.0
+orjson>=3.10.0
+tqdm>=4.66.0
+pandas>=2.2.0
+scikit-learn>=1.4.0
