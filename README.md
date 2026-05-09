@@ -1,6 +1,6 @@
 # DocVisRAG
 
-当前阶段：**阶段 5 - 轻量多模态页面索引**
+当前阶段：**阶段 6 - 端到端多模态 RAG 问答**
 
 ## 项目简介
 DocVisRAG 是一个面向复杂 PDF、扫描件、PPT 截图等文档的多模态文档问答系统。  
@@ -106,10 +106,36 @@ python scripts/hybrid_search.py \
 - `ocr_text_preview`
 - `score`
 
+## 阶段 6：端到端多模态 RAG 问答
+
+输入用户问题后，系统会自动：
+1. 从 hybrid index 检索 top-k 页面；
+2. 读取候选页面图像、页面摘要、OCR 文本；
+3. 交给 VLM 生成带引用页码的答案。
+
+```bash
+python scripts/doc_qa.py \
+  --index-dir data/indexes/demo_hybrid \
+  --question "第 2 节的主要结论是什么？" \
+  --top-k 3
+```
+
+可选参数：
+- `--model-id`
+- `--load-in-4bit`
+- `--max-new-tokens`
+
+输出包含：
+- `答案：`
+- `依据：`
+- `引用：`
+- `不确定性：`
+
+其中引用按“第 X 页”格式输出。
+
 ## 当前阶段不包含
 - ColPali 接入
 - Web UI
-- 最终问答生成
 
 ## 注意
 - 不要把模型权重提交进仓库。

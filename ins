@@ -126,3 +126,37 @@ python scripts/hybrid_search.py \
   --index-dir data/indexes/demo_hybrid \
   --question "这个文档里有多少张图片？" \
   --top-k 3
+
+# 另一个文档
+python scripts/build_page_summaries.py \
+  --manifest data/outputs/stage2_pdf_pages/manifest.json \
+  --out data/outputs/stage2_pdf_pages/page_summaries.jsonl
+
+python scripts/build_hybrid_index.py \
+  --manifest data/outputs/stage2_pdf_pages/manifest.json \
+  --ocr data/outputs/stage2_pdf_pages/ocr.jsonl \
+  --summaries data/outputs/stage2_pdf_pages/page_summaries.jsonl \
+  --index-dir data/indexes/stage2_pdf_pages_hybrid
+
+python scripts/hybrid_search.py \
+  --index-dir data/indexes/stage2_pdf_pages_hybrid \
+  --question "图表展示了什么趋势？" \
+  --top-k 3
+python scripts/hybrid_search.py \
+  --index-dir data/indexes/stage2_pdf_pages_hybrid \
+  --question "这个文档里有多少张图片？" \
+  --top-k 3
+
+
+
+
+# 阶段 6：端到端多模态 RAG 问答
+python scripts/doc_qa.py \
+  --index-dir data/indexes/demo_hybrid \
+  --question "这份文档主要讲了什么？" \
+  --top-k 3
+
+python scripts/doc_qa.py \
+  --index-dir data/indexes/stage2_pdf_pages_hybrid \
+  --question "这份文档主要讲了什么？" \
+  --top-k 3

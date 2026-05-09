@@ -186,17 +186,7 @@ class QwenVLClient:
         if not image_file.is_file():
             raise FileNotFoundError(f"Path is not a file: {image_file}")
 
-        try:
-            from qwen_vl_utils import process_vision_info
-        except Exception as exc:  # noqa: BLE001
-            raise RuntimeError(
-                "Failed to import qwen_vl_utils.process_vision_info. "
-                "Please install qwen-vl-utils."
-            ) from exc
-
         image_uri = str(image_file.resolve())
-        self._load_model()
-
         messages = [
             {
                 "role": "user",
@@ -206,7 +196,39 @@ class QwenVLClient:
                 ],
             }
         ]
+        return self._answer_messages(messages, max_new_tokens=max_new_tokens)
 
+    def answer_images(
+        self,
+        image_paths: list[str],
+        question: str,
+        max_new_tokens: int = 512,
+    ) -> str:
+        if not image_paths:
+            raise ValueError("image_paths must be a non-empty list.")
+        if not question or not question.strip():
+            raise ValueError("question must be a non-empty string.")
+
+        content = []
+        for p in image_paths:
+            image_file = Path(p).expanduser()
+            if not image_file.exists() or not image_file.is_file():
+                raise FileNotFoundError(f"Image file does not exist: {image_file}")
+            content.append({"type": "image", "image": str(image_file.resolve())})
+        content.append({"type": "text", "text": question.strip()})
+        messages = [{"role": "user", "content": content}]
+        return self._answer_messages(messages, max_new_tokens=max_new_tokens)
+
+    def _answer_messages(self, messages: list[dict], max_new_tokens: int = 512) -> str:
+        try:
+            from qwen_vl_utils import process_vision_info
+        except Exception as exc:  # noqa: BLE001
+            raise RuntimeError(
+                "Failed to import qwen_vl_utils.process_vision_info. "
+                "Please install qwen-vl-utils."
+            ) from exc
+
+        self._load_model()
         LOGGER.info("Preparing multimodal inputs...")
         prompt_text = self.processor.apply_chat_template(
             messages,
@@ -214,7 +236,6 @@ class QwenVLClient:
             add_generation_prompt=True,
         )
         image_inputs, video_inputs = process_vision_info(messages)
-
         inputs = self.processor(
             text=[prompt_text],
             images=image_inputs,
