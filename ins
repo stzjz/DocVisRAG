@@ -47,6 +47,13 @@ python scripts/vlm_qa.py \
   --model-id Qwen/Qwen3-VL-4B-Instruct
 
 python scripts/vlm_qa.py \
+  --image data/samples/小圆.jpg \
+  --question "请说明这张图片的画了什么，上面的人是谁？" \
+  --max-new-tokens 1024 \
+  --model-id Qwen/Qwen2.5-VL-7B-Instruct
+
+--model-id Qwen/Qwen2.5-VL-7B-Instruct
+python scripts/vlm_qa.py \
   --image data/samples/DeepSeekMath.pdf \
   --question "请概括这个文档的主要内容。" \
   --max-new-tokens 1024
@@ -57,3 +64,13 @@ rm -rf \
     /root/.cache/huggingface/models--Qwen--Qwen3-VL-4B-Instruct \
     /root/.cache/huggingface/transformers/models--Qwen--Qwen2.5-VL-3B-Instruct \
     /root/.cache/huggingface/transformers/models--Qwen--Qwen3-VL-4B-Instruct 
+
+# 阶段2 
+python scripts/ingest_render.py \
+  --input data/samples/小圆.jpg \
+  --output data/outputs/demo_image_pages
+
+python scripts/ingest_render.py \
+  --input data/samples/开题报告.pdf \
+  --output data/outputs/demo_pages \
+  --dpi 180
