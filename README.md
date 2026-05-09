@@ -1,6 +1,6 @@
 # DocVisRAG
 
-当前阶段：**阶段 2 - 文档摄入与页面渲染**
+当前阶段：**阶段 3 - 页面级 VLM 文档问答**
 
 ## 项目简介
 DocVisRAG 是一个面向复杂 PDF、扫描件、PPT 截图等文档的多模态 RAG 问答系统。  
@@ -87,8 +87,31 @@ python scripts/ingest_render.py \
 ## 当前阶段不包含
 - OCR
 - RAG 检索与向量库
-- 问答流程集成
 - Web UI
+
+## 阶段 3：页面级问答
+
+基于阶段 2 产出的 `manifest.json` 和页面图像，针对指定页提问。
+
+### 命令
+```bash
+python scripts/page_qa.py \
+  --manifest data/outputs/demo_pages/manifest.json \
+  --page 1 \
+  --question "这一页主要讲了什么？"
+```
+
+可选参数：
+- `--model-id`
+- `--load-in-4bit`
+- `--max-new-tokens`
+
+输出固定包含：
+- `答案：`
+- `引用：第 X 页`
+
+说明：
+- 本阶段不做自动检索页面，只回答你指定的页码。
 
 ## 注意
 - 不要把模型权重提交进仓库。

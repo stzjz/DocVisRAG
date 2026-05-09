@@ -5,7 +5,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import List
 
-import fitz
 from PIL import Image
 
 
@@ -38,6 +37,11 @@ def make_doc_id(input_path: str) -> str:
 
 
 def render_pdf_to_images(pdf_path: str, output_dir: str, dpi: int = 180) -> List[PageImage]:
+    try:
+        import fitz
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError("PyMuPDF (fitz) is required for PDF rendering but is not available.") from exc
+
     if dpi <= 0:
         raise ValueError(f"dpi must be positive, got {dpi}.")
 
