@@ -92,7 +92,7 @@ python scripts/page_qa.py \
   --page 1 \
   --question "这一页主要讲了什么？"
 
-  # 阶段4：OCR 与纯文本检索基线
+# 阶段4：OCR 与纯文本检索基线
 
   python scripts/run_ocr.py \
   --manifest data/outputs/demo_pages/manifest.json \
@@ -106,3 +106,23 @@ python scripts/text_search.py \
   --index-dir data/indexes/demo_text \
   --question "本文档的主要内容是什么？" \
   --top-k 5
+
+# 阶段5：轻量多模态页面索引建立
+python scripts/build_page_summaries.py \
+  --manifest data/outputs/demo_pages/manifest.json \
+  --out data/outputs/demo_pages/page_summaries.jsonl
+
+python scripts/build_hybrid_index.py \
+  --manifest data/outputs/demo_pages/manifest.json \
+  --ocr data/outputs/demo_pages/ocr.jsonl \
+  --summaries data/outputs/demo_pages/page_summaries.jsonl \
+  --index-dir data/indexes/demo_hybrid
+
+python scripts/hybrid_search.py \
+  --index-dir data/indexes/demo_hybrid \
+  --question "图表展示了什么趋势？" \
+  --top-k 3
+python scripts/hybrid_search.py \
+  --index-dir data/indexes/demo_hybrid \
+  --question "这个文档里有多少张图片？" \
+  --top-k 3

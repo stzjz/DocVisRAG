@@ -8,6 +8,7 @@ from .render import (
     save_manifest,
 )
 from .ocr import OCRBlock, run_ocr_on_image, run_ocr_on_manifest
+from .page_summary import build_page_summaries, summarize_page_with_vlm
 
 __all__ = [
     "PageImage",
@@ -20,4 +21,6 @@ __all__ = [
     "load_manifest",
     "run_ocr_on_image",
     "run_ocr_on_manifest",
+    "summarize_page_with_vlm",
+    "build_page_summaries",
 ]
