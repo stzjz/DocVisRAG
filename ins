@@ -76,7 +76,7 @@ python scripts/ingest_render.py \
   --output data/outputs/demo_pages \
   --dpi 180
 
-# 阶段3：实现针对特定页面问问题的脚本
+# 阶段3：实现针对选定页面问问题的脚本pages_qa.py
 python scripts/page_qa.py \
   --manifest data/outputs/demo_pages/manifest.json \
   --page 5 \
@@ -91,3 +91,18 @@ python scripts/page_qa.py \
   --manifest data/outputs/stage2_image_pages/manifest.json \
   --page 1 \
   --question "这一页主要讲了什么？"
+
+  # 阶段4：OCR 与纯文本检索基线
+
+  python scripts/run_ocr.py \
+  --manifest data/outputs/demo_pages/manifest.json \
+  --out data/outputs/demo_pages/ocr.jsonl
+
+python scripts/build_text_index.py \
+  --ocr data/outputs/demo_pages/ocr.jsonl \
+  --index-dir data/indexes/demo_text
+
+python scripts/text_search.py \
+  --index-dir data/indexes/demo_text \
+  --question "本文档的主要内容是什么？" \
+  --top-k 5
