@@ -1,3 +1,4 @@
+﻿import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -51,37 +52,52 @@ class DocQAEngine:
 
     @staticmethod
     def _extract_section(text: str, section_name: str) -> str:
-        marker = f"{section_name}："
-        start = text.find(marker)
+        if not text:
+            return ""
+        markers = [f"{section_name}：", f"{section_name}:"]
+        start = -1
+        marker_len = 0
+        for marker in markers:
+            pos = text.find(marker)
+            if pos >= 0:
+                start = pos
+                marker_len = len(marker)
+                break
         if start < 0:
             return ""
-        start += len(marker)
-        tail = text[start:]
-        for next_marker in ["\n依据：", "\n引用：", "\n不确定性："]:
-            pos = tail.find(next_marker)
+
+        tail = text[start + marker_len :]
+        next_keys = ["\n答案：", "\n依据：", "\n引用：", "\n不确定性：", "\n答案:", "\n依据:", "\n引用:", "\n不确定性:"]
+        cut = len(tail)
+        for key in next_keys:
+            pos = tail.find(key)
             if pos >= 0:
-                return tail[:pos].strip()
-        return tail.strip()
+                cut = min(cut, pos)
+        return tail[:cut].strip()
 
     @staticmethod
     def _parse_citations(citation_text: str) -> List[str]:
-        cites = []
-        for part in citation_text.replace("，", ",").split(","):
-            c = part.strip()
-            if not c:
-                continue
-            if not c.startswith("第"):
-                continue
-            if "页" not in c:
-                continue
-            cites.append(c)
-        return sorted(set(cites))
+        if not citation_text:
+            return []
+        matches = re.findall(r"第\s*\d+\s*页", citation_text)
+        if not matches:
+            return []
+        # keep order and deduplicate
+        seen = set()
+        ordered: List[str] = []
+        for c in matches:
+            norm = re.sub(r"\s+", " ", c).strip()
+            if norm not in seen:
+                seen.add(norm)
+                ordered.append(norm)
+        return ordered
 
     def _build_prompt(self, question: str, evidence: List[Dict]) -> str:
         lines = [
+            "你是文档问答助手。",
             "你只能依据给定页面图像、页面摘要和 OCR 文本回答。",
             "如果证据不足，回答“文档中未找到明确依据”。",
-            "必须输出以下格式：",
+            "必须输出：",
             "答案：",
             "依据：",
             "引用：",
@@ -90,12 +106,12 @@ class DocQAEngine:
             "",
             f"用户问题：{question.strip()}",
             "",
-            "候选页面证据如下：",
+            "候选证据：",
         ]
         for i, row in enumerate(evidence, start=1):
             lines.extend(
                 [
-                    f"[候选页 {i}] 第 {row['page_index']} 页",
+                    f"[证据 {i}] 第 {row['page_index']} 页",
                     f"页面摘要：{row.get('summary', '')}",
                     f"OCR文本：{row.get('ocr_text_preview', '')}",
                     f"检索分数：{row.get('score', 0.0):.4f}",
@@ -115,7 +131,7 @@ class DocQAEngine:
                 answer="文档中未找到明确依据",
                 evidence=[],
                 citations=[],
-                uncertainty="未检索到相关页面",
+                uncertainty="检索阶段未找到候选页面",
             )
 
         evidence: List[Dict] = []
@@ -141,8 +157,8 @@ class DocQAEngine:
         citations = self._parse_citations(citation_text)
 
         if not citations:
-            fallback = [f"第 {int(x['page_index'])} 页" for x in evidence]
-            citations = sorted(set(fallback))
+            citations = [f"第 {int(x['page_index'])} 页" for x in evidence]
+            citations = list(dict.fromkeys(citations))
 
         return QAResult(
             question=question,
@@ -159,5 +175,5 @@ class DocQAEngine:
                 for x in evidence
             ],
             citations=citations,
-            uncertainty=uncertainty_text or "无",
+            uncertainty=uncertainty_text or "未说明",
         )

@@ -1,4 +1,4 @@
-import json
+﻿import json
 import logging
 from pathlib import Path
 from typing import Dict
@@ -21,8 +21,7 @@ SUMMARY_PROMPT = (
 
 
 def _normalize_summary(text: str) -> str:
-    summary = text.strip()
-    # Keep the summary concise to align with the 100-200 character target.
+    summary = (text or "").strip()
     if len(summary) > 220:
         summary = summary[:200].rstrip()
     return summary
@@ -51,7 +50,7 @@ def _resolve_manifest_image(manifest_path: str, image_path: str) -> Path:
 def summarize_page_with_vlm(image_path: str, page_index: int, model_id: str | None = None) -> str:
     model = model_id or "Qwen/Qwen2.5-VL-3B-Instruct"
     client = QwenVLClient(model_id=model)
-    question = f"{SUMMARY_PROMPT}\n当前页码：第 {page_index} 页。"
+    question = f"{SUMMARY_PROMPT}\n当前是第 {page_index} 页。"
     summary = client.answer_image(image_path=image_path, question=question, max_new_tokens=320)
     return _normalize_summary(summary)
 
@@ -67,7 +66,7 @@ def build_page_summaries(manifest_path: str, output_jsonl: str, model_id: str | 
     with out_file.open("w", encoding="utf-8") as f:
         for page in pages:
             image_path = _resolve_manifest_image(manifest_path, page.image_path)
-            question = f"{SUMMARY_PROMPT}\n当前页码：第 {page.page_index} 页。"
+            question = f"{SUMMARY_PROMPT}\n当前是第 {page.page_index} 页。"
             summary = client.answer_image(
                 image_path=str(image_path),
                 question=question,

@@ -10,7 +10,7 @@ docker builder prune -f
 exit
 
 # 启动docker --gpus all  --gpus '"device=4,5"'
-docker run --gpus '"device=4,5"' --ipc=host --network=host -it --rm \
+docker run --gpus '"device=0,1"' --ipc=host --network=host -it --rm \
   -v /data3/zengjian/DocVisRAG:/workspace/DocVisRAG \
   -v /data3/zengjian/.cache:/root/.cache \
   -w /workspace/DocVisRAG \

@@ -1,4 +1,4 @@
-import json
+﻿import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -104,17 +104,19 @@ class HybridPageIndex:
 
         page_texts: List[str] = []
         metadata: List[Dict[str, Any]] = []
+
         for i, page in enumerate(pages):
             key = self._key(page.doc_id, page.page_index)
             summary = str(summary_map.get(key, {}).get("summary", "")).strip()
             ocr_text = " ".join(ocr_by_page.get(key, []))
             ocr_preview = ocr_text[:300]
+
             combined = (
                 f"页面摘要：{summary}\n"
                 f"页面OCR：{ocr_text}"
             ).strip()
             if not combined:
-                combined = f"页面 {page.page_index}"
+                combined = f"第 {page.page_index} 页"
 
             page_texts.append(combined)
             metadata.append(
@@ -141,10 +143,12 @@ class HybridPageIndex:
 
         out_dir = Path(index_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
+
         faiss.write_index(index, str(out_dir / "index.faiss"))
         with (out_dir / "metadata.jsonl").open("w", encoding="utf-8") as f:
             for row in metadata:
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
+
         cfg = _HybridConfig(
             model_name=model_name,
             dimension=dim,

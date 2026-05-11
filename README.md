@@ -139,3 +139,23 @@ python scripts/doc_qa.py \
 
 ## 注意
 - 不要把模型权重提交进仓库。
+
+## 阶段 7：Gradio Demo
+
+运行：
+
+```bash
+python app.py
+```
+
+启动后打开：
+
+```text
+http://localhost:7860
+```
+
+Demo 功能：
+- 上传 PDF/PNG/JPG/JPEG/WEBP。
+- 点击“构建索引”自动执行：文档渲染 -> OCR -> 页面摘要 -> Hybrid 索引。
+- 输入问题并点击“提问”，返回答案、依据、引用页码和不确定性。
+- 页面过多时，Demo 默认只处理前 10 页并在日志提示。

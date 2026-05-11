@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import json
 import sys
 from pathlib import Path
@@ -39,13 +39,13 @@ def main() -> int:
 
     print("答案：")
     print(result.answer)
+
     if result.evidence:
         print("依据：")
         for i, ev in enumerate(result.evidence, start=1):
             print(
                 f"[{i}] 第 {ev['page_index']} 页 "
-                f"score={ev['score']:.4f} "
-                f"image={ev['image_path']}"
+                f"score={ev['score']:.4f} image={ev['image_path']}"
             )
             print(f"summary={ev['summary']}")
             print(f"ocr_text_preview={ev['ocr_text_preview']}")
@@ -53,7 +53,7 @@ def main() -> int:
         print("依据：无")
 
     print("引用：")
-    print("，".join(result.citations) if result.citations else "无")
+    print("; ".join(result.citations) if result.citations else "无")
     print("不确定性：")
     print(result.uncertainty or "无")
     print("结构化结果：")

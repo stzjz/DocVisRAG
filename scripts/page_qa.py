@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import sys
 from pathlib import Path
 
@@ -39,7 +39,7 @@ def main() -> int:
     print("答案：")
     print(result["answer"])
     print(f"引用：{result['citation']}")
-    print(f"页面图像：{result['image_path']}")
+    print(f"图片：{result['image_path']}")
     return 0
 
 

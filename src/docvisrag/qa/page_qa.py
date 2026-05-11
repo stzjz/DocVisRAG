@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 from typing import Dict, Optional
 
 from src.docvisrag.ingest import load_manifest
@@ -6,7 +6,7 @@ from src.docvisrag.vlm import QwenVLClient
 
 
 class PageQAEngine:
-    def __init__(self, model_id: Optional[str] = None, load_in_4bit: bool = False):
+    def __init__(self, model_id: Optional[str] = None, load_in_4bit: bool = False) -> None:
         self.model_id = model_id or "Qwen/Qwen2.5-VL-3B-Instruct"
         self.load_in_4bit = load_in_4bit
         self.max_new_tokens = 512
@@ -21,9 +21,9 @@ class PageQAEngine:
             return img
 
         manifest_file = Path(manifest_path).expanduser().resolve()
-        candidate_from_manifest_parent = manifest_file.parent / img
+        candidate_from_manifest_parent = (manifest_file.parent / img).resolve()
         if candidate_from_manifest_parent.exists():
-            return candidate_from_manifest_parent.resolve()
+            return candidate_from_manifest_parent
 
         candidate_from_cwd = (Path.cwd() / img).resolve()
         if candidate_from_cwd.exists():
@@ -62,9 +62,13 @@ class PageQAEngine:
         resolved_image = self._resolve_page_image(manifest_path, selected.image_path)
         citation = f"第 {page} 页"
         prompt = (
-            "请仅基于当前页面图像回答问题，不要使用页面外信息。\n"
+            "你必须严格基于当前页面图像回答问题，不要编造。\n"
+            "请输出：\n"
+            "答案：<你的回答>\n"
+            f"引用：{citation}\n"
             f"问题：{question.strip()}"
         )
+
         answer_text = self.vlm.answer_image(
             image_path=str(resolved_image),
             question=prompt,
