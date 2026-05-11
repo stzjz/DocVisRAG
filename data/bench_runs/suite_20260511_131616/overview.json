@@ -1,0 +1,18 @@
+{
+  "suite_name": "suite_20260511_131616",
+  "suite_dir": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616",
+  "total": 1,
+  "success": 1,
+  "failed": [],
+  "runs": [
+    {
+      "name": "docvqa_small",
+      "run_dir": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small",
+      "success": true,
+      "retrieval_eval": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small/results/eval_retrieval.json",
+      "qa_predictions": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small/results/predictions.jsonl",
+      "qa_summary": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small/results/predictions.summary.json",
+      "error_analysis": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small/reports/error_analysis.md"
+    }
+  ]
+}

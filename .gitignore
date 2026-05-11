@@ -8,6 +8,7 @@ env/
 .cache/
 data/indexes/
 data/outputs/
+data/bench/
 
 # OS/IDE
 .DS_Store

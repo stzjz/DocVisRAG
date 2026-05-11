@@ -1,0 +1,25 @@
+{
+  "name": "docvqa_small",
+  "benchmark": null,
+  "dataset_id": "pixparse/docvqa-single-page-questions",
+  "split": "validation",
+  "run_dir": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small",
+  "retrieval_eval": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small/results/eval_retrieval.json",
+  "qa_predictions": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small/results/predictions.jsonl",
+  "qa_summary": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small/results/predictions.summary.json",
+  "error_analysis": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small/reports/error_analysis.md",
+  "qa_success": true,
+  "retrieval_overall": {
+    "num_questions": 100,
+    "recall@1": 0.25,
+    "recall@3": 0.48,
+    "recall@5": 0.55,
+    "mrr": 0.37
+  },
+  "qa_overall": {
+    "num_questions": 100,
+    "em": 0.16,
+    "f1": 0.2456461954225112,
+    "anls": 0.2341155135340248
+  }
+}

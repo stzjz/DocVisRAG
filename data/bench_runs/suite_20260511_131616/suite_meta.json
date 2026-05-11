@@ -1,0 +1,41 @@
+{
+  "created_at": "2026-05-11T13:16:16.508140",
+  "suite_name": "suite_20260511_131616",
+  "num_benchmarks": 1,
+  "args": {
+    "manifest": "data/bench/docvqa_small/manifest.json",
+    "questions": "data/bench/docvqa_small/questions.jsonl",
+    "name": "docvqa_small",
+    "batch_config": null,
+    "out_root": "data/bench_runs",
+    "suite_name": null,
+    "index_model_name": "BAAI/bge-small-zh-v1.5",
+    "summary_model_id": null,
+    "qa_model_id": null,
+    "qa_load_in_4bit": false,
+    "qa_top_k": 3,
+    "qa_max_new_tokens": 512,
+    "qa_limit": null,
+    "skip_qa": false,
+    "retrieval_top_k": 5,
+    "auto_prepare_missing": true,
+    "force_prepare": false,
+    "auto_prepare_out_root": "data/bench",
+    "auto_prepare_dataset_id": null,
+    "auto_prepare_split": null,
+    "auto_prepare_limit": null,
+    "auto_prepare_streaming": false,
+    "archive": false
+  },
+  "benchmarks": [
+    {
+      "name": "docvqa_small",
+      "manifest": "data/bench/docvqa_small/manifest.json",
+      "questions": "data/bench/docvqa_small/questions.jsonl",
+      "benchmark": null,
+      "dataset_id": null,
+      "split": null,
+      "prepare_limit": null
+    }
+  ]
+}

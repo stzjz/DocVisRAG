@@ -1,0 +1,22 @@
+﻿{
+  "benchmarks": [
+    {
+      "name": "docvqa",
+      "benchmark": "docvqa",
+      "split": "validation",
+      "prepare_limit": 200
+    },
+    {
+      "name": "chartvqa",
+      "benchmark": "chartvqa",
+      "split": "val",
+      "prepare_limit": 200
+    },
+    {
+      "name": "textvqa",
+      "benchmark": "textvqa",
+      "split": "validation",
+      "prepare_limit": 200
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "num_questions": 100,
+  "em": 0.16,
+  "f1": 0.2456461954225112,
+  "anls": 0.2341155135340248,
+  "recall@3": 0.48,
+  "questions": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small/inputs/questions.jsonl",
+  "index_dir": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small/intermediate/hybrid_index",
+  "predictions": "/workspace/DocVisRAG/data/bench_runs/suite_20260511_131616/docvqa_small/results/predictions.jsonl"
+}

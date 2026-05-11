@@ -1,0 +1,210 @@
+[
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:ffbg0227_2.png",
+    "page_index": 1,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000001.png",
+    "width": 1786,
+    "height": 2285
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:ffhx0227_1.png",
+    "page_index": 2,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000002.png",
+    "width": 1168,
+    "height": 738
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:ffjw0228_11.png",
+    "page_index": 3,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000003.png",
+    "width": 1736,
+    "height": 2308
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fgbd0079_4.png",
+    "page_index": 4,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000004.png",
+    "width": 1695,
+    "height": 2167
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fgbd0079_7.png",
+    "page_index": 5,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000005.png",
+    "width": 1695,
+    "height": 2167
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fgfl0228_4.png",
+    "page_index": 6,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000006.png",
+    "width": 2483,
+    "height": 3509
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fggn0226_48.png",
+    "page_index": 7,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000007.png",
+    "width": 1700,
+    "height": 2200
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fggn0226_77.png",
+    "page_index": 8,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000008.png",
+    "width": 1700,
+    "height": 2200
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fgkw0228_4.png",
+    "page_index": 9,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000009.png",
+    "width": 1789,
+    "height": 2384
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fglc0003_1.png",
+    "page_index": 10,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000010.png",
+    "width": 1692,
+    "height": 2245
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fgmx0225_5.png",
+    "page_index": 11,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000011.png",
+    "width": 1700,
+    "height": 2201
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fgvc0225_9.png",
+    "page_index": 12,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000012.png",
+    "width": 2209,
+    "height": 1711
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fgvh0227_91.png",
+    "page_index": 13,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000013.png",
+    "width": 1790,
+    "height": 2285
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fgxh0227_5.png",
+    "page_index": 14,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000014.png",
+    "width": 1186,
+    "height": 738
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fgyh0227_1.png",
+    "page_index": 15,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000015.png",
+    "width": 812,
+    "height": 1206
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fhcn0226_2.png",
+    "page_index": 16,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000016.png",
+    "width": 1700,
+    "height": 2235
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fhjc0228_2.png",
+    "page_index": 17,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000017.png",
+    "width": 1712,
+    "height": 2252
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fhng0227_16.png",
+    "page_index": 18,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000018.png",
+    "width": 1784,
+    "height": 1178
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fhnw0228_1.png",
+    "page_index": 19,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000019.png",
+    "width": 1614,
+    "height": 1643
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fhwc0228_12.png",
+    "page_index": 20,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000020.png",
+    "width": 1768,
+    "height": 2262
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fhxn0226_2.png",
+    "page_index": 21,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000021.png",
+    "width": 2200,
+    "height": 1700
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fjyn0081_24.png",
+    "page_index": 22,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000022.png",
+    "width": 2167,
+    "height": 1695
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fkgv0228_1.png",
+    "page_index": 23,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000023.png",
+    "width": 1741,
+    "height": 2240
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fkmj0226_6.png",
+    "page_index": 24,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000024.png",
+    "width": 1715,
+    "height": 2211
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fkpj0226_2.png",
+    "page_index": 25,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000025.png",
+    "width": 1632,
+    "height": 2174
+  },
+  {
+    "doc_id": "docvqa-validation",
+    "source_path": "huggingface://pixparse/docvqa-single-page-questions/validation/meta_image:fkxn0226_14.png",
+    "page_index": 26,
+    "image_path": "/workspace/DocVisRAG/data/bench/docvqa_small/images/page_000026.png",
+    "width": 2000,
+    "height": 1500
+  }
+]
