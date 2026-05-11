@@ -1,4 +1,4 @@
-﻿import datetime as dt
+import datetime as dt
 import shutil
 import traceback
 import uuid
@@ -9,7 +9,7 @@ import gradio as gr
 
 from src.docvisrag.ingest import build_page_summaries, ingest_document, run_ocr_on_manifest, save_manifest
 from src.docvisrag.qa import DocQAEngine
-from src.docvisrag.retrieve import HybridPageIndex
+from src.docvisrag.retrieve import HybridPageIndex, VisualPageIndex
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -50,10 +50,12 @@ def _copy_uploaded_file(uploaded_path: str, dst_dir: Path) -> Path:
 
 def _session_paths(session_id: str) -> Dict[str, Path]:
     output_dir = OUTPUT_ROOT / session_id
-    index_dir = INDEX_ROOT / session_id
+    hybrid_index_dir = INDEX_ROOT / session_id
+    visual_index_dir = hybrid_index_dir / "visual_index"
     return {
         "output_dir": output_dir,
-        "index_dir": index_dir,
+        "hybrid_index_dir": hybrid_index_dir,
+        "visual_index_dir": visual_index_dir,
         "manifest": output_dir / "manifest.json",
         "ocr": output_dir / "ocr.jsonl",
         "summaries": output_dir / "page_summaries.jsonl",
@@ -136,21 +138,35 @@ def build_index(uploaded_file: str, dpi: int, state: Dict[str, Any]) -> Tuple[Di
         build_page_summaries(str(paths["manifest"]), str(paths["summaries"]))
         status_lines.append(f"页面摘要已完成：{paths['summaries']}")
 
-        index = HybridPageIndex()
-        index.build(
+        hybrid = HybridPageIndex()
+        hybrid.build(
             manifest_path=str(paths["manifest"]),
             ocr_jsonl=str(paths["ocr"]),
             summary_jsonl=str(paths["summaries"]),
-            index_dir=str(paths["index_dir"]),
+            index_dir=str(paths["hybrid_index_dir"]),
         )
-        status_lines.append(f"Hybrid 索引构建完成：{paths['index_dir']}")
+        status_lines.append(f"Hybrid 索引构建完成：{paths['hybrid_index_dir']}")
+
+        visual_ready = False
+        try:
+            visual = VisualPageIndex()
+            visual.build(
+                manifest_path=str(paths["manifest"]),
+                index_dir=str(paths["visual_index_dir"]),
+            )
+            status_lines.append(f"Visual 索引构建完成：{paths['visual_index_dir']}")
+            visual_ready = True
+        except Exception as exc:  # noqa: BLE001
+            status_lines.append(f"Visual 索引构建跳过（可选增强）：{exc}")
 
         new_state = {
             "ready": True,
             "session_id": session_id,
             "source_file": str(source_file),
             "output_dir": str(paths["output_dir"]),
-            "index_dir": str(paths["index_dir"]),
+            "index_dir": str(paths["hybrid_index_dir"]),
+            "visual_index_dir": str(paths["visual_index_dir"]),
+            "visual_ready": visual_ready,
             "manifest_path": str(paths["manifest"]),
             "page_count": len(pages),
         }
@@ -163,7 +179,9 @@ def build_index(uploaded_file: str, dpi: int, state: Dict[str, Any]) -> Tuple[Di
             "ready": False,
             "session_id": session_id,
             "output_dir": str(paths["output_dir"]),
-            "index_dir": str(paths["index_dir"]),
+            "index_dir": str(paths["hybrid_index_dir"]),
+            "visual_index_dir": str(paths["visual_index_dir"]),
+            "visual_ready": False,
         }
         return fail_state, "\n".join(status_lines + [f"[ERROR] {err}", trace])
 
@@ -171,6 +189,7 @@ def build_index(uploaded_file: str, dpi: int, state: Dict[str, Any]) -> Tuple[Di
 def ask_question(
     question: str,
     top_k: int,
+    retriever_type: str,
     state: Dict[str, Any],
 ) -> Tuple[str, str, List[Tuple[str, str]]]:
     if not state or not state.get("ready"):
@@ -178,10 +197,20 @@ def ask_question(
     if not question or not question.strip():
         return "请输入问题。", "", []
 
+    retriever_type = (retriever_type or "hybrid").strip().lower()
+    if retriever_type in {"visual", "fusion"} and not state.get("visual_ready", False):
+        return (
+            "当前 session 未构建 visual index。请先安装 byaldi/ColPali 相关依赖并重新点击“构建索引”。",
+            "",
+            [],
+        )
+
     try:
         engine = DocQAEngine(
             index_dir=str(state["index_dir"]),
             top_k=int(top_k),
+            retriever_type=retriever_type,
+            visual_index_dir=str(state.get("visual_index_dir", "")) if state.get("visual_index_dir") else None,
         )
         result = engine.answer(question.strip())
 
@@ -207,7 +236,7 @@ def ask_question(
 
 def build_demo() -> gr.Blocks:
     with gr.Blocks(title="DocVisRAG Demo") as demo:
-        gr.Markdown("## DocVisRAG 阶段 7 Demo")
+        gr.Markdown("## DocVisRAG Demo")
         gr.Markdown("上传 PDF/图片，构建索引后提问，查看答案与检索页面预览。")
 
         session_state = gr.State({"ready": False})
@@ -225,6 +254,11 @@ def build_demo() -> gr.Blocks:
 
         with gr.Row():
             question_input = gr.Textbox(label="问题", placeholder="请输入你的问题")
+            retriever_dropdown = gr.Dropdown(
+                label="Retriever",
+                choices=["hybrid", "visual", "fusion"],
+                value="hybrid",
+            )
             topk_slider = gr.Slider(label="top_k", minimum=1, maximum=5, step=1, value=3)
             ask_btn = gr.Button("提问", variant="primary")
 
@@ -240,7 +274,7 @@ def build_demo() -> gr.Blocks:
 
         ask_btn.click(
             fn=ask_question,
-            inputs=[question_input, topk_slider, session_state],
+            inputs=[question_input, topk_slider, retriever_dropdown, session_state],
             outputs=[answer_output, evidence_output, gallery_output],
         )
 

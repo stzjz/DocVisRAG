@@ -14,6 +14,17 @@ from src.docvisrag.qa import DocQAEngine
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="End-to-end multimodal DocQA from hybrid index.")
     parser.add_argument("--index-dir", required=True, help="Hybrid index directory.")
+    parser.add_argument(
+        "--retriever-type",
+        default="hybrid",
+        choices=["hybrid", "visual", "fusion"],
+        help="Retriever type: hybrid (default), visual, or fusion.",
+    )
+    parser.add_argument(
+        "--visual-index-dir",
+        default=None,
+        help="Optional visual index directory. Required for visual/fusion when it cannot be inferred.",
+    )
     parser.add_argument("--question", required=True, help="User question.")
     parser.add_argument("--top-k", type=int, default=3, help="Top-k pages for retrieval.")
     parser.add_argument("--model-id", default=None, help="Optional VLM model id override.")
@@ -30,6 +41,8 @@ def main() -> int:
             model_id=args.model_id,
             top_k=args.top_k,
             load_in_4bit=args.load_in_4bit,
+            retriever_type=args.retriever_type,
+            visual_index_dir=args.visual_index_dir,
         )
         engine.max_new_tokens = args.max_new_tokens
         result = engine.answer(args.question)
@@ -63,3 +76,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

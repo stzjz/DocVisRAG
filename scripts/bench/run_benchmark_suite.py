@@ -56,6 +56,11 @@ def _write_json(path: Path, payload: Any) -> None:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
+def _write_markdown(path: Path, lines: List[str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
+
+
 def _normalize_jsonl_to_utf8_no_bom(src: Path, dst: Path) -> None:
     text = src.read_text(encoding="utf-8-sig")
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -66,19 +71,25 @@ def _run_cmd(cmd: List[str], log_file: Path) -> None:
     log_file.parent.mkdir(parents=True, exist_ok=True)
     with log_file.open("a", encoding="utf-8") as logf:
         logf.write("\n$ " + " ".join(cmd) + "\n")
-        proc = subprocess.run(
+        proc = subprocess.Popen(
             cmd,
             cwd=str(PROJECT_ROOT),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            check=False,
+            bufsize=1,
         )
-        if proc.stdout:
-            logf.write(proc.stdout)
-            print(proc.stdout, end="")
-        if proc.returncode != 0:
-            raise RuntimeError(f"Command failed ({proc.returncode}): {' '.join(cmd)}")
+        if proc.stdout is None:
+            raise RuntimeError(f"Command failed to start stdout stream: {' '.join(cmd)}")
+
+        for line in proc.stdout:
+            logf.write(line)
+            print(line, end="")
+
+        proc.stdout.close()
+        return_code = proc.wait()
+        if return_code != 0:
+            raise RuntimeError(f"Command failed ({return_code}): {' '.join(cmd)}")
 
 
 def _canonical_benchmark(value: Optional[str]) -> Optional[str]:
@@ -236,13 +247,14 @@ def _load_bench_specs(args: argparse.Namespace) -> List[BenchSpec]:
         if not args.name:
             raise ValueError("Provide --manifest/--questions or at least --name for auto prepare.")
 
-        benchmark = _canonical_benchmark(args.name)
+        requested_name = args.name.strip().lower()
+        benchmark = _canonical_benchmark(requested_name)
         if benchmark is None:
             raise ValueError(
                 "For auto prepare single-run, --name must be one of: docvqa, chartqa/chartvqa, textvqa."
             )
 
-        root = Path(args.auto_prepare_out_root).expanduser().resolve() / benchmark
+        root = Path(args.auto_prepare_out_root).expanduser().resolve() / requested_name
         return [
             BenchSpec(
                 name=args.name,
@@ -275,6 +287,38 @@ def _load_prepare_meta(questions_src: Path) -> Dict[str, Any]:
         return _read_json(meta_path)
     except Exception:  # noqa: BLE001
         return {}
+
+
+def _write_run_dataset_format(run_dir: Path, run_meta: Dict[str, Any]) -> None:
+    lines = [
+        "# Dataset Format",
+        "",
+        f"- benchmark: `{run_meta.get('benchmark') or ''}`",
+        f"- dataset_id: `{run_meta.get('dataset_id') or ''}`",
+        f"- split: `{run_meta.get('split') or ''}`",
+        "",
+        "## Input Schema",
+        "",
+        "### manifest.json",
+        "- JSON array, one item per page.",
+        "- Fields: `doc_id`, `source_path`, `page_index`(1-based), `image_path`, `width`, `height`.",
+        "",
+        "### questions.jsonl",
+        "- JSONL, one item per question.",
+        "- Fields: `id`, `doc_path`, `question`, `answer`, `evidence_pages`(1-based int list), `type`.",
+        "",
+        "## Output Schema",
+        "",
+        "### results/eval_retrieval.json",
+        "- Overall retrieval metrics and per-question details.",
+        "",
+        "### results/predictions.jsonl",
+        "- QA predictions, citations, and evidence page info.",
+        "",
+        "### summary.json",
+        "- Run summary with benchmark metadata and aggregated metrics.",
+    ]
+    _write_markdown(run_dir / "dataset_format.md", lines)
 
 
 def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: Path) -> RunResult:
@@ -311,16 +355,19 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
         "benchmark": spec.benchmark,
         "dataset_id": prepare_meta.get("dataset_id", spec.dataset_id),
         "split": prepare_meta.get("split", spec.split),
+        "retriever_type": args.retriever_type,
         "created_at": datetime.now().isoformat(),
         "source_manifest": str(manifest_src),
         "source_questions": str(questions_src),
         "args": vars(args),
     }
     _write_json(run_dir / "run_meta.json", run_meta)
+    _write_run_dataset_format(run_dir, run_meta)
 
     ocr_jsonl = inter_dir / "ocr.jsonl"
     summaries_jsonl = inter_dir / "page_summaries.jsonl"
     index_dir = inter_dir / "hybrid_index"
+    visual_index_dir = inter_dir / "visual_index"
 
     retrieval_json = results_dir / "eval_retrieval.json"
     predictions_jsonl = results_dir / "predictions.jsonl"
@@ -362,21 +409,36 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
         log_file,
     )
 
-    _run_cmd(
-        [
+    if args.retriever_type in {"visual", "fusion"}:
+        cmd_visual = [
             sys.executable,
-            "scripts/eval/eval_retrieval.py",
-            "--questions",
-            str(questions_copy),
+            "scripts/retrieve/build_visual_index.py",
+            "--manifest",
+            str(manifest_src),
             "--index-dir",
-            str(index_dir),
-            "--out",
-            str(retrieval_json),
-            "--top-k",
-            str(args.retrieval_top_k),
-        ],
-        log_file,
-    )
+            str(visual_index_dir),
+        ]
+        if args.visual_model_id:
+            cmd_visual += ["--model-id", args.visual_model_id]
+        _run_cmd(cmd_visual, log_file)
+
+    cmd_eval_retrieval = [
+        sys.executable,
+        "scripts/eval/eval_retrieval.py",
+        "--questions",
+        str(questions_copy),
+        "--index-dir",
+        str(index_dir),
+        "--retriever-type",
+        str(args.retriever_type),
+        "--out",
+        str(retrieval_json),
+        "--top-k",
+        str(args.retrieval_top_k),
+    ]
+    if args.retriever_type in {"visual", "fusion"}:
+        cmd_eval_retrieval += ["--visual-index-dir", str(visual_index_dir)]
+    _run_cmd(cmd_eval_retrieval, log_file)
 
     qa_success = True
     if not args.skip_qa:
@@ -387,6 +449,8 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
             str(questions_copy),
             "--index-dir",
             str(index_dir),
+            "--retriever-type",
+            str(args.retriever_type),
             "--out",
             str(predictions_jsonl),
             "--top-k",
@@ -394,6 +458,8 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
             "--max-new-tokens",
             str(args.qa_max_new_tokens),
         ]
+        if args.retriever_type in {"visual", "fusion"}:
+            cmd_qa += ["--visual-index-dir", str(visual_index_dir)]
         if args.qa_limit is not None:
             cmd_qa += ["--limit", str(args.qa_limit)]
         if args.qa_model_id:
@@ -487,7 +553,36 @@ def _write_suite_benchmarks_md(suite_dir: Path) -> None:
             f"{run_dir.name} | {s.get('benchmark','')} | {s.get('dataset_id','')} | {s.get('split','')} | {s.get('qa_success','')} |"
         )
 
-    (suite_dir / "benchmarks.md").write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
+    _write_markdown(suite_dir / "benchmarks.md", lines)
+
+
+def _write_suite_format_readme(suite_dir: Path) -> None:
+    lines = [
+        "# Suite Output Format",
+        "",
+        "## Directory Layout",
+        "",
+        "```text",
+        "suite_xxx/",
+        "  benchmarks.md",
+        "  overview.json",
+        "  suite_meta.json",
+        "  <run_name>/",
+        "    dataset_format.md",
+        "    inputs/",
+        "    intermediate/",
+        "    results/",
+        "    reports/",
+        "    logs/",
+        "    run_meta.json",
+        "    summary.json",
+        "```",
+        "",
+        "## Notes",
+        "- Archive is NOT generated by default. Add `--archive` only when needed.",
+        "- Auto-prepare outputs benchmark files into `data/bench/<name>/...` for single-run mode.",
+    ]
+    _write_markdown(suite_dir / "README.md", lines)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -506,6 +601,17 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser.add_argument("--index-model-name", default="BAAI/bge-small-zh-v1.5")
     parser.add_argument("--summary-model-id", default=None)
+    parser.add_argument(
+        "--retriever-type",
+        default="hybrid",
+        choices=["hybrid", "visual", "fusion"],
+        help="Retriever type used for retrieval/QA evaluation in benchmark suite.",
+    )
+    parser.add_argument(
+        "--visual-model-id",
+        default=None,
+        help="Optional visual retriever model id for building visual index.",
+    )
 
     parser.add_argument("--qa-model-id", default=None)
     parser.add_argument("--qa-load-in-4bit", action="store_true")
@@ -576,6 +682,7 @@ def main() -> int:
     }
     _write_json(suite_dir / "overview.json", overview)
     _write_suite_benchmarks_md(suite_dir)
+    _write_suite_format_readme(suite_dir)
 
     archive_path = None
     if args.archive:
@@ -594,3 +701,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

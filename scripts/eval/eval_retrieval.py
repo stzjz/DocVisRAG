@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 import json
 import sys
 from collections import defaultdict
@@ -12,7 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.docvisrag.eval import mrr, recall_at_k
-from src.docvisrag.retrieve import HybridPageIndex
+from src.docvisrag.retrieve import HybridPageIndex, VisualPageIndex, reciprocal_rank_fusion
 
 
 def _load_questions(path: str) -> List[Dict[str, Any]]:
@@ -42,10 +42,36 @@ def _avg(values: List[float]) -> float:
     return float(mean(values)) if values else 0.0
 
 
+def _resolve_visual_index_dir(index_dir: str, visual_index_dir: str | None) -> str:
+    if visual_index_dir:
+        path = Path(visual_index_dir).expanduser().resolve()
+        if not path.exists():
+            raise FileNotFoundError(f"visual-index-dir not found: {path}")
+        return str(path)
+    default_path = Path(index_dir).expanduser().resolve().parent / "visual_index"
+    if default_path.exists():
+        return str(default_path)
+    raise FileNotFoundError(
+        "visual index directory not found. "
+        "Please pass --visual-index-dir for visual/fusion retrieval evaluation."
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Evaluate retrieval quality on questions JSONL.")
     parser.add_argument("--questions", required=True, help="Path to questions jsonl")
     parser.add_argument("--index-dir", required=True, help="Hybrid index directory")
+    parser.add_argument(
+        "--retriever-type",
+        default="hybrid",
+        choices=["hybrid", "visual", "fusion"],
+        help="Retriever type for evaluation.",
+    )
+    parser.add_argument(
+        "--visual-index-dir",
+        default=None,
+        help="Optional visual index directory for visual/fusion mode.",
+    )
     parser.add_argument("--out", required=True, help="Output JSON path")
     parser.add_argument("--top-k", type=int, default=5, help="Retrieval top-k (default: 5)")
     return parser
@@ -56,7 +82,12 @@ def main() -> int:
 
     try:
         questions = _load_questions(args.questions)
-        index = HybridPageIndex.load(args.index_dir)
+        retriever_type = (args.retriever_type or "hybrid").strip().lower()
+        hybrid = HybridPageIndex.load(args.index_dir) if retriever_type in {"hybrid", "fusion"} else None
+        visual = None
+        if retriever_type in {"visual", "fusion"}:
+            visual_dir = _resolve_visual_index_dir(args.index_dir, args.visual_index_dir)
+            visual = VisualPageIndex.load(visual_dir)
     except Exception as exc:  # noqa: BLE001
         print(f"[ERROR] Init retrieval evaluation failed: {exc}")
         return 1
@@ -80,7 +111,17 @@ def main() -> int:
             continue
 
         try:
-            results = index.search(question, top_k=max(5, args.top_k))
+            if retriever_type == "hybrid":
+                assert hybrid is not None
+                results = hybrid.search(question, top_k=max(5, args.top_k))
+            elif retriever_type == "visual":
+                assert visual is not None
+                results = visual.search(question, top_k=max(5, args.top_k))
+            else:
+                assert hybrid is not None and visual is not None
+                h = hybrid.search(question, top_k=max(10, args.top_k * 2))
+                v = visual.search(question, top_k=max(10, args.top_k * 2))
+                results = reciprocal_rank_fusion(h, v, top_k=max(5, args.top_k))
         except Exception as exc:  # noqa: BLE001
             print(f"[WARN] Retrieval failed for {qid}: {exc}")
             continue
@@ -134,6 +175,8 @@ def main() -> int:
     payload = {
         "questions_file": str(Path(args.questions).as_posix()),
         "index_dir": str(Path(args.index_dir).as_posix()),
+        "retriever_type": retriever_type,
+        "visual_index_dir": str(args.visual_index_dir) if args.visual_index_dir else None,
         "overall": overall,
         "by_type": by_type,
         "details": details,
@@ -145,6 +188,7 @@ def main() -> int:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
     print("[OK] Retrieval evaluation completed.")
+    print(f"- retriever_type: {retriever_type}")
     print(f"- questions: {len(details)}")
     print(
         "- overall: "

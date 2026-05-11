@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 from src.docvisrag.ingest.render import load_manifest
+from src.docvisrag.retrieve.base import BaseRetriever
 
 
 @dataclass
@@ -16,7 +17,7 @@ class _HybridConfig:
     num_pages: int
 
 
-class HybridPageIndex:
+class HybridPageIndex(BaseRetriever):
     def __init__(self) -> None:
         self.model_name: Optional[str] = None
         self.index: Any = None

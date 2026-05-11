@@ -219,3 +219,29 @@ python scripts/bench/run_benchmark_suite.py \
   --out-root data/bench_runs
 
 
+
+# -----------------------------
+# Stage 9 (optional): visual retriever + fusion
+# -----------------------------
+python scripts/retrieve/build_visual_index.py \
+  --manifest data/outputs/demo_pages/manifest.json \
+  --index-dir data/indexes/demo_visual
+
+python scripts/retrieve/visual_search.py \
+  --index-dir data/indexes/demo_visual \
+  --question " 图表展示了什么趋势？\ \
+ --top-k 3
+
+python scripts/qa/doc_qa.py \
+ --index-dir data/indexes/demo_hybrid \
+ --visual-index-dir data/indexes/demo_visual \
+ --retriever-type fusion \
+ --question \第 2 节的主要结论是什么？\ \
+ --top-k 3
+
+python scripts/bench/run_benchmark_suite.py \
+ --name docvqa_small \
+ --manifest data/bench/docvqa_small/manifest.json \
+ --questions data/bench/docvqa_small/questions.jsonl \
+ --out-root data/bench_runs \
+ --retriever-type fusion

@@ -61,6 +61,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Evaluate DocQA answer quality (EM/F1/ANLS).")
     parser.add_argument("--questions", required=True, help="Path to questions jsonl")
     parser.add_argument("--index-dir", required=True, help="Hybrid index directory")
+    parser.add_argument(
+        "--retriever-type",
+        default="hybrid",
+        choices=["hybrid", "visual", "fusion"],
+        help="Retriever type for DocQA.",
+    )
+    parser.add_argument(
+        "--visual-index-dir",
+        default=None,
+        help="Optional visual index directory for visual/fusion mode.",
+    )
     parser.add_argument("--out", required=True, help="Output predictions jsonl path")
     parser.add_argument("--limit", type=int, default=None, help="Evaluate only first N samples")
     parser.add_argument("--top-k", type=int, default=3, help="Top-k pages for DocQA retrieval")
@@ -92,6 +103,8 @@ def main() -> int:
             model_id=args.model_id,
             top_k=args.top_k,
             load_in_4bit=args.load_in_4bit,
+            retriever_type=args.retriever_type,
+            visual_index_dir=args.visual_index_dir,
         )
         engine.max_new_tokens = args.max_new_tokens
     except Exception as exc:  # noqa: BLE001
@@ -162,6 +175,7 @@ def main() -> int:
 
     summary = {
         "num_questions": count,
+        "retriever_type": args.retriever_type,
         "em": _avg(ems),
         "f1": _avg(f1s),
         "anls": _avg(anls_scores),
@@ -185,3 +199,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

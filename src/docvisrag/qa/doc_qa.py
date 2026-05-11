@@ -1,9 +1,13 @@
 ﻿import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
-from src.docvisrag.retrieve import HybridPageIndex
+from src.docvisrag.retrieve import (
+    HybridPageIndex,
+    VisualPageIndex,
+    reciprocal_rank_fusion,
+)
 from src.docvisrag.vlm import QwenVLClient
 
 
@@ -23,17 +27,107 @@ class DocQAEngine:
         model_id: str | None = None,
         top_k: int = 3,
         load_in_4bit: bool = False,
+        retriever_type: str = "hybrid",
+        visual_index_dir: str | None = None,
     ) -> None:
         if top_k <= 0:
             raise ValueError(f"top_k must be > 0, got {top_k}")
+        retriever_type = (retriever_type or "hybrid").strip().lower()
+        if retriever_type not in {"hybrid", "visual", "fusion"}:
+            raise ValueError(
+                f"retriever_type must be one of hybrid/visual/fusion, got: {retriever_type}"
+            )
         self.index_dir = index_dir
         self.top_k = top_k
         self.max_new_tokens = 512
-        self.index = HybridPageIndex.load(index_dir)
+        self.retriever_type = retriever_type
+        self.visual_index_dir = visual_index_dir
+        self.hybrid_index: Optional[HybridPageIndex] = None
+        self.visual_index: Optional[VisualPageIndex] = None
+
+        if retriever_type == "hybrid":
+            self.hybrid_index = HybridPageIndex.load(index_dir)
+        elif retriever_type == "visual":
+            vdir = self._resolve_visual_index_dir(index_dir=index_dir, visual_index_dir=visual_index_dir)
+            self.visual_index = VisualPageIndex.load(vdir)
+        else:
+            self.hybrid_index = HybridPageIndex.load(index_dir)
+            vdir = self._resolve_visual_index_dir(index_dir=index_dir, visual_index_dir=visual_index_dir)
+            self.visual_index = VisualPageIndex.load(vdir)
+
         self.vlm = QwenVLClient(
             model_id=model_id or "Qwen/Qwen2.5-VL-3B-Instruct",
             load_in_4bit=load_in_4bit,
         )
+
+    @staticmethod
+    def _resolve_visual_index_dir(index_dir: str, visual_index_dir: str | None) -> str:
+        if visual_index_dir:
+            path = Path(visual_index_dir).expanduser().resolve()
+            if not path.exists():
+                raise FileNotFoundError(f"visual_index_dir not found: {path}")
+            return str(path)
+
+        base = Path(index_dir).expanduser().resolve()
+        candidates = [
+            base.parent / "visual_index",
+            base.parent / "hybrid_index" / ".." / "visual_index",
+        ]
+        for cand in candidates:
+            resolved = cand.resolve()
+            if resolved.exists():
+                return str(resolved)
+        raise FileNotFoundError(
+            "visual index directory not found. "
+            "Please pass visual_index_dir explicitly when retriever_type is visual/fusion."
+        )
+
+    @staticmethod
+    def _result_key(row: Dict) -> Tuple[str, int]:
+        return (str(row.get("image_path", "")), int(row.get("page_index", -1)))
+
+    @staticmethod
+    def _enrich_visual_results(
+        visual_results: List[Dict],
+        hybrid_results: List[Dict],
+    ) -> List[Dict]:
+        by_key = {DocQAEngine._result_key(x): x for x in hybrid_results}
+        enriched: List[Dict] = []
+        for row in visual_results:
+            out = dict(row)
+            key = DocQAEngine._result_key(out)
+            hrow = by_key.get(key)
+            if hrow:
+                out.setdefault("summary", hrow.get("summary", ""))
+                out.setdefault("ocr_text_preview", hrow.get("ocr_text_preview", ""))
+                out.setdefault("doc_id", hrow.get("doc_id", out.get("doc_id", "")))
+            else:
+                out.setdefault("summary", "")
+                out.setdefault("ocr_text_preview", "")
+            enriched.append(out)
+        return enriched
+
+    def _retrieve(self, question: str) -> List[Dict]:
+        if self.retriever_type == "hybrid":
+            assert self.hybrid_index is not None
+            return self.hybrid_index.search(question, top_k=self.top_k)
+
+        if self.retriever_type == "visual":
+            assert self.visual_index is not None
+            visual = self.visual_index.search(question, top_k=self.top_k)
+            hybrid_for_enrich: List[Dict] = []
+            if self.hybrid_index is not None:
+                try:
+                    hybrid_for_enrich = self.hybrid_index.search(question, top_k=max(self.top_k * 2, 10))
+                except Exception:
+                    hybrid_for_enrich = []
+            return self._enrich_visual_results(visual, hybrid_for_enrich)
+
+        assert self.hybrid_index is not None and self.visual_index is not None
+        hybrid = self.hybrid_index.search(question, top_k=max(self.top_k * 2, 10))
+        visual = self.visual_index.search(question, top_k=max(self.top_k * 2, 10))
+        visual = self._enrich_visual_results(visual, hybrid)
+        return reciprocal_rank_fusion(hybrid_results=hybrid, visual_results=visual, top_k=self.top_k)
 
     def _resolve_image_path(self, image_path: str) -> str:
         img = Path(image_path)
@@ -124,7 +218,7 @@ class DocQAEngine:
         if not question or not question.strip():
             raise ValueError("question must be non-empty.")
 
-        retrieved = self.index.search(question, top_k=self.top_k)
+        retrieved = self._retrieve(question)
         if not retrieved:
             return QAResult(
                 question=question,
