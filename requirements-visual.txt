@@ -1,0 +1,17 @@
+# Optional visual retrieval dependencies for ColPali / Byaldi path.
+# Locked to a tested combo to avoid PEFT runtime import errors.
+
+byaldi==0.0.7
+colpali-engine==0.3.15
+
+# Keep on 5.3.x line for colpali compatibility and avoid newer breaking changes.
+transformers==5.3.0
+
+# 0.18.1 provides _maybe_shard_state_dict_for_tp expected by this stack.
+peft==0.18.1
+
+accelerate>=1.0.0
+ml-dtypes>=0.5.0
+ninja>=1.11.0
+jsonlines>=4.0.0
+pytrec-eval-terrier>=0.5.6

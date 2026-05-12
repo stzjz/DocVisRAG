@@ -29,12 +29,33 @@ RUN ln -sf /usr/bin/python3.10 /usr/bin/python && \
 WORKDIR /workspace/DocVisRAG
 
 COPY requirements-base.txt /tmp/requirements-base.txt
+COPY requirements-visual.txt /tmp/requirements-visual.txt
 
 # CUDA 版 PyTorch 仍然用官方 PyTorch 源，不走清华 PyPI
 RUN python -m pip install --no-cache-dir \
     torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
     --index-url https://download.pytorch.org/whl/cu124
 
+# 基础依赖
 RUN python -m pip install --no-cache-dir -r /tmp/requirements-base.txt
+
+# 是否安装 ColPali / Byaldi 视觉检索依赖
+ARG INSTALL_VISUAL=false
+RUN if [ "$INSTALL_VISUAL" = "true" ]; then \
+      python -m pip install --no-cache-dir --upgrade -r /tmp/requirements-visual.txt; \
+    else \
+      echo "Skip optional visual retrieval dependencies."; \
+    fi
+
+# 打印关键版本，方便构建日志里排查依赖冲突
+RUN python - <<'PY'
+import importlib.metadata as md
+
+for pkg in ["torch", "transformers", "accelerate", "peft", "huggingface-hub", "byaldi", "colpali-engine"]:
+    try:
+        print(f"{pkg}: {md.version(pkg)}")
+    except Exception:
+        print(f"{pkg}: not installed")
+PY
 
 CMD ["/bin/bash"]

@@ -1,9 +1,10 @@
-# core
+# core model runtime
 accelerate>=1.6.0
 bitsandbytes>=0.45.0
 qwen-vl-utils[decord]>=0.0.8
-transformers>=4.52.0,<5.0.0
-peft==0.19.1
+transformers>=4.49.0,<5.0.0
+huggingface-hub>=0.25.0,<1.0.0
+safetensors>=0.4.0
 
 # document processing
 pymupdf>=1.24.0
@@ -12,7 +13,7 @@ pillow>=10.0.0
 opencv-python-headless>=4.9.0
 pytesseract>=0.3.10
 
-# OCR: 先用 CPU，避免第一阶段卡在 Paddle GPU 兼容性上
+# OCR: CPU first, avoid early Paddle GPU compatibility issues
 numpy==1.26.4
 paddlepaddle==2.6.2
 paddleocr==2.8.1
@@ -21,8 +22,10 @@ paddleocr==2.8.1
 sentence-transformers>=3.0.0
 faiss-cpu>=1.8.0
 rank-bm25>=0.2.2
-byaldi==0.0.7
-colpali-engine==0.3.15
+
+# evaluation
+datasets>=2.19.0
+jsonlines>=4.0.0
 
 # app and utils
 gradio>=4.44.0

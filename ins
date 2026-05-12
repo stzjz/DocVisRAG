@@ -3,6 +3,10 @@ cd /data3/zengjian/DocVisRAG
 #基于docker文件构建模型
 docker build -t docvisrag:cu124 .
 
+docker build \
+  --build-arg INSTALL_VISUAL=true \
+  -t docvisrag:visual_cu124 .
+
 # 删下载缓存
 docker builder prune -f
 
@@ -23,8 +27,17 @@ exit
   ; -e TRANSFORMERS_CACHE=/workspace/.cache/huggingface/hub \
   ; -e HF_ENDPOINT=https://hf-mirror.com \
   ; docvisrag:cu124 bash
+  ; docker run --gpus '"device=1"' --ipc=host --network=host -it --rm \
+  ; -v /data3/zengjian/DocVisRAG:/workspace/DocVisRAG \
+  ; -v /data3/zengjian/.cache:/root/.cache \
+  ; -w /workspace/DocVisRAG \
+  ; -e HF_HOME=/root/.cache/huggingface \
+  ; -e HF_HUB_CACHE=/root/.cache/huggingface/hub \
+  ; -e TRANSFORMERS_CACHE=/root/.cache/huggingface/hub \
+  ; -e HF_ENDPOINT=https://hf-mirror.com \
+  ; docvisrag:cu124
 
-docker run --gpus '"device=0,1"' --ipc=host --network=host -it --rm \
+docker run --gpus '"device=2"' --ipc=host --network=host -it --rm \
   -v /data3/zengjian/DocVisRAG:/workspace/DocVisRAG \
   -v /data3/zengjian/.cache:/root/.cache \
   -w /workspace/DocVisRAG \
@@ -32,7 +45,8 @@ docker run --gpus '"device=0,1"' --ipc=host --network=host -it --rm \
   -e HF_HUB_CACHE=/root/.cache/huggingface/hub \
   -e TRANSFORMERS_CACHE=/root/.cache/huggingface/hub \
   -e HF_ENDPOINT=https://hf-mirror.com \
-  docvisrag:cu124
+  docvisrag:visual_cu124
+
 
 
 # 启动后必要配置
