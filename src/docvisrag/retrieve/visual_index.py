@@ -47,6 +47,23 @@ class VisualPageIndex(BaseRetriever):
     @staticmethod
     def _require_byaldi() -> Any:
         try:
+            from peft.utils import save_and_load as peft_save_and_load
+        except Exception as exc:  # noqa: BLE001
+            raise RuntimeError(
+                "VisualPageIndex requires `peft` but import failed. "
+                "Please install/upgrade peft (recommended >= 0.18.2)."
+            ) from exc
+
+        if not hasattr(peft_save_and_load, "_maybe_shard_state_dict_for_tp"):
+            raise RuntimeError(
+                "Detected incompatible peft version for Byaldi/ColPali path: "
+                "missing `peft.utils.save_and_load._maybe_shard_state_dict_for_tp`.\n"
+                "Recommended fix:\n"
+                "  pip install -U \"peft>=0.18.2\" \"transformers>=4.52.0\" \"accelerate>=1.0.0\"\n"
+                "Then rebuild/restart your environment."
+            )
+
+        try:
             from byaldi import RAGMultiModalModel
         except Exception as exc:  # noqa: BLE001
             raise RuntimeError(

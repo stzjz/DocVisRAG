@@ -57,7 +57,24 @@ class QwenVLClient:
                 LOGGER.info("Cache candidate exists: %s", c)
 
     def _resolve_model_class(self, model_ref: str, local_only: bool = False) -> Any:
-        from transformers import AutoModelForVision2Seq
+        auto_vlm_cls = None
+        auto_vlm_err = None
+        try:
+            from transformers import AutoModelForVision2Seq
+
+            auto_vlm_cls = AutoModelForVision2Seq
+        except Exception as exc_v2s:  # noqa: BLE001
+            auto_vlm_err = exc_v2s
+            try:
+                # transformers v5 migration: AutoModelForVision2Seq -> AutoModelForImageTextToText
+                from transformers import AutoModelForImageTextToText
+
+                auto_vlm_cls = AutoModelForImageTextToText
+            except Exception as exc_imgtxt:  # noqa: BLE001
+                raise RuntimeError(
+                    "Neither AutoModelForVision2Seq (v4) nor AutoModelForImageTextToText (v5) "
+                    "is available in current transformers."
+                ) from exc_imgtxt
 
         model_type = ""
         try:
@@ -72,7 +89,7 @@ class QwenVLClient:
         # Qwen3-VL should not be loaded with Qwen2.5-VL class.
         if "qwen3_vl" in model_type or "Qwen3-VL" in model_ref:
             LOGGER.info("Using AutoModelForVision2Seq for Qwen3-VL.")
-            return AutoModelForVision2Seq
+            return auto_vlm_cls
 
         try:
             from transformers import Qwen2_5_VLForConditionalGeneration
@@ -80,8 +97,11 @@ class QwenVLClient:
             LOGGER.info("Using Qwen2_5_VLForConditionalGeneration.")
             return Qwen2_5_VLForConditionalGeneration
         except Exception:  # noqa: BLE001
-            LOGGER.info("Falling back to AutoModelForVision2Seq.")
-            return AutoModelForVision2Seq
+            if auto_vlm_err is not None:
+                LOGGER.info("Falling back to generic Auto VLM class (v5 compatible path).")
+            else:
+                LOGGER.info("Falling back to AutoModelForVision2Seq.")
+            return auto_vlm_cls
 
     def _build_model_kwargs(self) -> dict:
         kwargs = {
