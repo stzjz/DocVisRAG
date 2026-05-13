@@ -2,12 +2,19 @@ import datetime as dt
 import shutil
 import traceback
 import uuid
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import gradio as gr
 
-from src.docvisrag.ingest import build_page_summaries, ingest_document, run_ocr_on_manifest, save_manifest
+from src.docvisrag.ingest import (
+    build_page_summaries,
+    ingest_document,
+    resolve_ocr_backend,
+    run_ocr_on_manifest,
+    save_manifest,
+)
 from src.docvisrag.qa import DocQAEngine
 from src.docvisrag.retrieve import HybridPageIndex, VisualPageIndex
 
@@ -16,6 +23,14 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 OUTPUT_ROOT = PROJECT_ROOT / "data" / "outputs"
 INDEX_ROOT = PROJECT_ROOT / "data" / "indexes"
 MAX_DEMO_PAGES = 10
+
+
+@dataclass
+class BuildOptions:
+    dpi: int
+    load_in_4bit: bool
+    max_pages: int
+    ocr_backend: str
 
 
 def _new_session_id() -> str:
@@ -27,14 +42,16 @@ def _new_session_id() -> str:
 def _friendly_model_error(err_text: str) -> str:
     lower = (err_text or "").lower()
     if "failed to load vlm model" in lower or "failed to load qwen" in lower:
-        return (
-            "模型加载失败，常见原因：\n"
-            "1) 模型未下载且当前网络不可用；\n"
-            "2) 显存不足；\n"
-            "3) transformers 版本不支持该模型；\n"
-            "4) model id 配置错误。\n"
-            f"\n原始错误：{err_text}"
-        )
+        tips = [
+            "模型加载失败，常见原因：",
+            "1) 模型未下载且当前网络不可用；",
+            "2) 显存不足；",
+            "3) transformers 版本不支持该模型；",
+            "4) model id 配置错误。",
+        ]
+        if "local_files_only" in lower or "local disk and outgoing traffic has been disabled" in lower:
+            tips.append("5) 当前处于本地缓存/离线模式，但缓存里还没有对应模型。")
+        return "\n".join(tips + ["", f"原始错误：{err_text}"])
     return err_text
 
 
@@ -60,6 +77,23 @@ def _session_paths(session_id: str) -> Dict[str, Path]:
         "ocr": output_dir / "ocr.jsonl",
         "summaries": output_dir / "page_summaries.jsonl",
     }
+
+
+def _normalize_build_options(dpi: int, load_in_4bit: bool, max_pages: int, ocr_backend: str) -> BuildOptions:
+    dpi_value = int(dpi)
+    if dpi_value <= 0:
+        raise ValueError(f"DPI must be positive, got {dpi_value}.")
+
+    max_pages_value = int(max_pages)
+    if max_pages_value <= 0:
+        raise ValueError(f"max_pages must be positive, got {max_pages_value}.")
+
+    return BuildOptions(
+        dpi=dpi_value,
+        load_in_4bit=bool(load_in_4bit),
+        max_pages=max_pages_value,
+        ocr_backend=resolve_ocr_backend(ocr_backend),
+    )
 
 
 def _format_evidence_text(result: Any) -> str:
@@ -100,7 +134,14 @@ def _gallery_from_evidence(evidence: List[Dict[str, Any]]) -> List[Tuple[str, st
     return items
 
 
-def build_index(uploaded_file: str, dpi: int, state: Dict[str, Any]) -> Tuple[Dict[str, Any], str]:
+def build_index(
+    uploaded_file: str,
+    dpi: int,
+    load_in_4bit: bool,
+    max_pages: int,
+    ocr_backend: str,
+    state: Dict[str, Any],
+) -> Tuple[Dict[str, Any], str]:
     if not uploaded_file:
         return state, "请先上传 PDF 或图片，再点击“构建索引”。"
 
@@ -109,33 +150,45 @@ def build_index(uploaded_file: str, dpi: int, state: Dict[str, Any]) -> Tuple[Di
     status_lines = [f"开始构建，会话：{session_id}"]
 
     try:
+        options = _normalize_build_options(dpi, load_in_4bit, max_pages, ocr_backend)
         source_file = _copy_uploaded_file(uploaded_file, paths["output_dir"] / "source")
         status_lines.append(f"已复制上传文件：{source_file}")
 
         pages = ingest_document(
             input_path=str(source_file),
             output_dir=str(paths["output_dir"]),
-            dpi=int(dpi),
+            dpi=options.dpi,
         )
         status_lines.append(f"文档渲染完成，共 {len(pages)} 页")
 
-        if len(pages) > MAX_DEMO_PAGES:
-            dropped = pages[MAX_DEMO_PAGES:]
-            pages = pages[:MAX_DEMO_PAGES]
+        if len(pages) > options.max_pages:
+            dropped = pages[options.max_pages:]
+            pages = pages[:options.max_pages]
             for p in dropped:
                 try:
                     Path(p.image_path).unlink(missing_ok=True)
                 except Exception:
                     pass
-            status_lines.append(f"PDF 页数较多，Demo 仅处理前 {MAX_DEMO_PAGES} 页。")
+            status_lines.append(f"PDF 页数较多，Demo 仅处理前 {options.max_pages} 页。")
 
         save_manifest(pages, str(paths["manifest"]))
         status_lines.append(f"manifest 已保存：{paths['manifest']}")
 
-        run_ocr_on_manifest(str(paths["manifest"]), str(paths["ocr"]))
-        status_lines.append(f"OCR 已完成：{paths['ocr']}")
+        ocr_summary = run_ocr_on_manifest(
+            str(paths["manifest"]),
+            str(paths["ocr"]),
+            backend=options.ocr_backend,
+        )
+        status_lines.append(
+            f"OCR 已完成：{paths['ocr']} | backend={ocr_summary['backend']} | "
+            f"pages={ocr_summary['num_pages']} | blocks={ocr_summary['total_blocks']}"
+        )
 
-        build_page_summaries(str(paths["manifest"]), str(paths["summaries"]))
+        build_page_summaries(
+            str(paths["manifest"]),
+            str(paths["summaries"]),
+            load_in_4bit=options.load_in_4bit,
+        )
         status_lines.append(f"页面摘要已完成：{paths['summaries']}")
 
         hybrid = HybridPageIndex()
@@ -169,6 +222,9 @@ def build_index(uploaded_file: str, dpi: int, state: Dict[str, Any]) -> Tuple[Di
             "visual_ready": visual_ready,
             "manifest_path": str(paths["manifest"]),
             "page_count": len(pages),
+            "load_in_4bit": options.load_in_4bit,
+            "ocr_backend": options.ocr_backend,
+            "max_pages": options.max_pages,
         }
         return new_state, "\n".join(status_lines)
 
@@ -209,6 +265,7 @@ def ask_question(
         engine = DocQAEngine(
             index_dir=str(state["index_dir"]),
             top_k=int(top_k),
+            load_in_4bit=bool(state.get("load_in_4bit", False)),
             retriever_type=retriever_type,
             visual_index_dir=str(state.get("visual_index_dir", "")) if state.get("visual_index_dir") else None,
         )
@@ -248,6 +305,13 @@ def build_demo() -> gr.Blocks:
                 file_types=[".pdf", ".png", ".jpg", ".jpeg", ".webp"],
             )
             dpi_input = gr.Number(label="DPI", value=180, precision=0)
+            load_in_4bit_input = gr.Checkbox(label="4bit 量化", value=False)
+            max_pages_input = gr.Slider(label="Max Pages", minimum=1, maximum=30, step=1, value=10)
+            ocr_backend_input = gr.Dropdown(
+                label="OCR Backend",
+                choices=["auto", "paddle", "tesseract"],
+                value="auto",
+            )
             build_btn = gr.Button("构建索引", variant="primary")
 
         build_status = gr.Textbox(label="构建日志", lines=12)
@@ -268,7 +332,7 @@ def build_demo() -> gr.Blocks:
 
         build_btn.click(
             fn=build_index,
-            inputs=[file_input, dpi_input, session_state],
+            inputs=[file_input, dpi_input, load_in_4bit_input, max_pages_input, ocr_backend_input, session_state],
             outputs=[session_state, build_status],
         )
 

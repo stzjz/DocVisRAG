@@ -1,15 +1,17 @@
 import json
 import logging
+import os
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from src.docvisrag.ingest.render import load_manifest
 
 
 LOGGER = logging.getLogger(__name__)
+VALID_OCR_BACKENDS = {"auto", "paddle", "tesseract"}
 
 
 @dataclass
@@ -125,10 +127,35 @@ def _ocr_with_tesseract(image_path: str, page_index: int, doc_id: str) -> List[O
     return blocks
 
 
-def run_ocr_on_image(image_path: str, page_index: int, doc_id: str) -> List[OCRBlock]:
+def resolve_ocr_backend(backend: str | None = None) -> str:
+    value = (backend or os.getenv("DOCVISRAG_OCR_BACKEND", "auto")).strip().lower()
+    if value not in VALID_OCR_BACKENDS:
+        allowed = ", ".join(sorted(VALID_OCR_BACKENDS))
+        raise ValueError(f"Invalid OCR backend: {value}. Supported: {allowed}")
+    return value
+
+
+def run_ocr_on_image(
+    image_path: str,
+    page_index: int,
+    doc_id: str,
+    backend: str | None = None,
+) -> List[OCRBlock]:
     image_file = Path(image_path).expanduser()
     if not image_file.exists():
         raise FileNotFoundError(f"Image file not found for OCR: {image_file}")
+
+    resolved_backend = resolve_ocr_backend(backend)
+
+    if resolved_backend == "tesseract":
+        blocks = _ocr_with_tesseract(str(image_file), page_index=page_index, doc_id=doc_id)
+        LOGGER.info("Page %s OCR by pytesseract: %s blocks", page_index, len(blocks))
+        return blocks
+
+    if resolved_backend == "paddle":
+        blocks = _ocr_with_paddle(str(image_file), page_index=page_index, doc_id=doc_id)
+        LOGGER.info("Page %s OCR by PaddleOCR: %s blocks", page_index, len(blocks))
+        return blocks
 
     try:
         blocks = _ocr_with_paddle(str(image_file), page_index=page_index, doc_id=doc_id)
@@ -161,20 +188,31 @@ def _resolve_manifest_image(manifest_path: str, image_path: str) -> Path:
     )
 
 
-def run_ocr_on_manifest(manifest_path: str, output_jsonl: str) -> None:
+def run_ocr_on_manifest(
+    manifest_path: str,
+    output_jsonl: str,
+    backend: str | None = None,
+) -> Dict[str, object]:
     pages = load_manifest(manifest_path)
     out_file = Path(output_jsonl)
     out_file.parent.mkdir(parents=True, exist_ok=True)
+    resolved_backend = resolve_ocr_backend(backend)
 
     total_blocks = 0
+    failed_pages: List[int] = []
     with out_file.open("w", encoding="utf-8") as f:
         for page in pages:
             image_path = _resolve_manifest_image(manifest_path, page.image_path)
-            blocks = run_ocr_on_image(
-                image_path=str(image_path),
-                page_index=page.page_index,
-                doc_id=page.doc_id,
-            )
+            try:
+                blocks = run_ocr_on_image(
+                    image_path=str(image_path),
+                    page_index=page.page_index,
+                    doc_id=page.doc_id,
+                    backend=resolved_backend,
+                )
+            except Exception:
+                failed_pages.append(int(page.page_index))
+                raise
             kept = 0
             for block in blocks:
                 if not block.text.strip():
@@ -185,3 +223,10 @@ def run_ocr_on_manifest(manifest_path: str, output_jsonl: str) -> None:
             LOGGER.info("Page %s saved OCR blocks: %s", page.page_index, kept)
 
     LOGGER.info("OCR completed. Total saved blocks: %s. Output: %s", total_blocks, out_file)
+    return {
+        "backend": resolved_backend,
+        "num_pages": len(pages),
+        "total_blocks": total_blocks,
+        "failed_pages": failed_pages,
+        "output_path": str(out_file),
+    }
