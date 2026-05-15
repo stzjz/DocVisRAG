@@ -34,6 +34,7 @@ class BuildOptions:
     load_in_4bit: bool
     max_pages: int
     ocr_backend: str
+    visual_mode: str
 
 
 def _new_session_id() -> str:
@@ -97,7 +98,20 @@ def _write_json(path: Path, payload: Dict[str, Any]) -> None:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
-def _normalize_build_options(dpi: int, load_in_4bit: bool, max_pages: int, ocr_backend: str) -> BuildOptions:
+def _normalize_visual_mode(visual_mode: str | None) -> str:
+    value = (visual_mode or "required").strip().lower()
+    if value not in {"required", "auto", "skip"}:
+        raise ValueError(f"visual_mode must be one of required/auto/skip, got {value}.")
+    return value
+
+
+def _normalize_build_options(
+    dpi: int,
+    load_in_4bit: bool,
+    max_pages: int,
+    ocr_backend: str,
+    visual_mode: str,
+) -> BuildOptions:
     dpi_value = int(dpi)
     if dpi_value <= 0:
         raise ValueError(f"DPI must be positive, got {dpi_value}.")
@@ -111,6 +125,7 @@ def _normalize_build_options(dpi: int, load_in_4bit: bool, max_pages: int, ocr_b
         load_in_4bit=bool(load_in_4bit),
         max_pages=max_pages_value,
         ocr_backend=resolve_ocr_backend(ocr_backend),
+        visual_mode=_normalize_visual_mode(visual_mode),
     )
 
 
@@ -263,6 +278,7 @@ def build_index(
     load_in_4bit: bool,
     max_pages: int,
     ocr_backend: str,
+    visual_mode: str,
     state: Dict[str, Any],
 ) -> Tuple[Dict[str, Any], str]:
     if not uploaded_file:
@@ -275,7 +291,7 @@ def build_index(
     stage_times: Dict[str, float] = {}
 
     try:
-        options = _normalize_build_options(dpi, load_in_4bit, max_pages, ocr_backend)
+        options = _normalize_build_options(dpi, load_in_4bit, max_pages, ocr_backend, visual_mode)
         build_config = {
             "session_id": session_id,
             "started_at": dt.datetime.now().isoformat(timespec="seconds"),
@@ -283,6 +299,7 @@ def build_index(
             "load_in_4bit": options.load_in_4bit,
             "max_pages": options.max_pages,
             "ocr_backend": options.ocr_backend,
+            "visual_mode": options.visual_mode,
         }
 
         stage_start = time.perf_counter()
@@ -347,21 +364,35 @@ def build_index(
         status_lines.append(f"Hybrid 索引构建完成：{paths['hybrid_index_dir']}（{_format_seconds(stage_times['hybrid_index'])}）")
 
         visual_ready = False
+        visual_error = ""
         stage_start = time.perf_counter()
-        try:
-            visual = VisualPageIndex()
-            visual.build(
-                manifest_path=str(paths["manifest"]),
-                index_dir=str(paths["visual_index_dir"]),
-            )
+        if options.visual_mode == "skip":
             stage_times["visual_index"] = _elapsed_seconds(stage_start)
-            status_lines.append(f"Visual 索引构建完成：{paths['visual_index_dir']}（{_format_seconds(stage_times['visual_index'])}）")
-            visual_ready = True
-        except Exception as exc:  # noqa: BLE001
-            stage_times["visual_index"] = _elapsed_seconds(stage_start)
-            status_lines.append(
-                f"Visual 索引构建跳过（可选增强，{_format_seconds(stage_times['visual_index'])}）：{exc}"
-            )
+            status_lines.append(f"Visual 索引构建已按配置跳过（{_format_seconds(stage_times['visual_index'])}）")
+        else:
+            try:
+                visual = VisualPageIndex()
+                visual.build(
+                    manifest_path=str(paths["manifest"]),
+                    index_dir=str(paths["visual_index_dir"]),
+                )
+                stage_times["visual_index"] = _elapsed_seconds(stage_start)
+                status_lines.append(
+                    f"Visual/ColPali 索引构建完成：{paths['visual_index_dir']}（{_format_seconds(stage_times['visual_index'])}）"
+                )
+                visual_ready = True
+            except Exception as exc:  # noqa: BLE001
+                visual_error = str(exc)
+                stage_times["visual_index"] = _elapsed_seconds(stage_start)
+                if options.visual_mode == "required":
+                    raise RuntimeError(
+                        "Visual/ColPali index build is required but failed. "
+                        "To run hybrid-only, set Visual Build Mode to auto or skip.\n"
+                        f"Original error: {exc}"
+                    ) from exc
+                status_lines.append(
+                    f"Visual/ColPali 索引构建失败，已降级保留 hybrid（{_format_seconds(stage_times['visual_index'])}）：{exc}"
+                )
 
         total_elapsed = _elapsed_seconds(total_start)
         meta = {
@@ -379,6 +410,7 @@ def build_index(
             },
             "ocr_summary": ocr_summary,
             "visual_ready": visual_ready,
+            "visual_error": visual_error,
             "stage_times_seconds": stage_times,
             "total_time_seconds": total_elapsed,
             "completed_at": dt.datetime.now().isoformat(timespec="seconds"),
@@ -395,6 +427,7 @@ def build_index(
             "index_dir": str(paths["hybrid_index_dir"]),
             "visual_index_dir": str(paths["visual_index_dir"]),
             "visual_ready": visual_ready,
+            "visual_error": visual_error,
             "manifest_path": str(paths["manifest"]),
             "ocr_path": str(paths["ocr"]),
             "summary_path": str(paths["summaries"]),
@@ -403,6 +436,7 @@ def build_index(
             "load_in_4bit": options.load_in_4bit,
             "ocr_backend": options.ocr_backend,
             "max_pages": options.max_pages,
+            "visual_mode": options.visual_mode,
             "stage_times_seconds": stage_times,
             "total_time_seconds": total_elapsed,
         }
@@ -435,11 +469,14 @@ def ask_question(
 
     retriever_type = (retriever_type or "hybrid").strip().lower()
     if retriever_type in {"visual", "fusion"} and not state.get("visual_ready", False):
-        return (
-            "当前 session 未构建 visual index。请先安装 byaldi/ColPali 相关依赖并重新点击“构建索引”。",
-            "",
-            [],
-        )
+        if retriever_type == "visual":
+            visual_error = str(state.get("visual_error", "")).strip()
+            message = "当前 session 未构建 visual index，无法使用纯 visual 检索。"
+            if visual_error:
+                message += f"\nVisual 构建错误：{visual_error}"
+            message += "\n可以切换到 fusion/hybrid，或安装 Byaldi/ColPali 依赖后重新构建。"
+            return message, "", []
+        retriever_type = "hybrid"
 
     try:
         engine = DocQAEngine(
@@ -454,6 +491,9 @@ def ask_question(
         answer_lines = [
             "答案：",
             result.answer,
+            "",
+            "实际检索器：",
+            retriever_type,
             "",
             "引用：",
             "; ".join(result.citations) if result.citations else "无",
@@ -497,6 +537,11 @@ def build_demo() -> gr.Blocks:
                 choices=["auto", "paddle", "tesseract"],
                 value="auto",
             )
+            visual_mode_input = gr.Dropdown(
+                label="Visual Build Mode",
+                choices=["required", "auto", "skip"],
+                value="required",
+            )
             build_btn = gr.Button("构建索引", variant="primary")
 
         build_status = gr.Textbox(label="构建日志", lines=12)
@@ -506,7 +551,7 @@ def build_demo() -> gr.Blocks:
             retriever_dropdown = gr.Dropdown(
                 label="Retriever",
                 choices=["hybrid", "visual", "fusion"],
-                value="hybrid",
+                value="fusion",
             )
             topk_slider = gr.Slider(label="top_k", minimum=1, maximum=5, step=1, value=3)
             ask_btn = gr.Button("提问", variant="primary")
@@ -517,7 +562,15 @@ def build_demo() -> gr.Blocks:
 
         build_btn.click(
             fn=build_index,
-            inputs=[file_input, dpi_input, load_in_4bit_input, max_pages_input, ocr_backend_input, session_state],
+            inputs=[
+                file_input,
+                dpi_input,
+                load_in_4bit_input,
+                max_pages_input,
+                ocr_backend_input,
+                visual_mode_input,
+                session_state,
+            ],
             outputs=[session_state, build_status],
         )
 

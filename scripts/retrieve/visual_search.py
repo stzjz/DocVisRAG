@@ -22,6 +22,12 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     try:
+        diag = VisualPageIndex.diagnostics()
+        if not diag.get("ready"):
+            print("[WARN] Visual dependency probe failed before search.")
+            print(f"- dependencies: {diag.get('dependencies')}")
+            print(f"- error: {diag.get('error')}")
+
         idx = VisualPageIndex.load(args.index_dir)
         results = idx.search(args.question, top_k=args.top_k)
     except Exception as exc:  # noqa: BLE001
