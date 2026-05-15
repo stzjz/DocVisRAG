@@ -1,7 +1,8 @@
-﻿import argparse
+import argparse
 import json
 import re
 import sys
+import time
 from pathlib import Path
 from statistics import mean
 from typing import Any, Dict, List
@@ -11,7 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.docvisrag.eval import exact_match, recall_at_k, simple_anls, token_f1
+from src.docvisrag.eval import citation_accuracy, exact_match, recall_at_k, simple_anls, token_f1
 from src.docvisrag.qa import DocQAEngine
 
 
@@ -118,6 +119,8 @@ def main() -> int:
     f1s: List[float] = []
     anls_scores: List[float] = []
     recall3: List[float] = []
+    citation_accs: List[float] = []
+    latencies: List[float] = []
 
     count = 0
     with out_path.open("w", encoding="utf-8") as f:
@@ -130,6 +133,7 @@ def main() -> int:
             if not question:
                 continue
 
+            start_time = time.perf_counter()
             try:
                 result = engine.answer(question)
                 pred_answer = result.answer
@@ -141,16 +145,20 @@ def main() -> int:
                 evidence_pages = []
                 citation_pages = []
                 row_error = str(exc)
+            latency_seconds = round(time.perf_counter() - start_time, 3)
 
             em = exact_match(pred_answer, gold_answer)
             f1 = token_f1(pred_answer, gold_answer)
             anls = simple_anls(pred_answer, gold_answer)
             r3 = recall_at_k(evidence_pages, gold_pages, 3) if gold_pages else 0.0
+            cite_acc = citation_accuracy(citation_pages, gold_pages) if gold_pages else 0.0
 
             ems.append(em)
             f1s.append(f1)
             anls_scores.append(anls)
             recall3.append(r3)
+            citation_accs.append(cite_acc)
+            latencies.append(latency_seconds)
 
             payload = {
                 "id": qid,
@@ -168,6 +176,8 @@ def main() -> int:
                 "f1": f1,
                 "anls": anls,
                 "recall@3": r3,
+                "citation_accuracy": cite_acc,
+                "latency_seconds": latency_seconds,
                 "error": row_error,
             }
             f.write(json.dumps(payload, ensure_ascii=False) + "\n")
@@ -180,6 +190,8 @@ def main() -> int:
         "f1": _avg(f1s),
         "anls": _avg(anls_scores),
         "recall@3": _avg(recall3),
+        "citation_accuracy": _avg(citation_accs),
+        "avg_latency_seconds": _avg(latencies),
         "questions": str(Path(args.questions).as_posix()),
         "index_dir": str(Path(args.index_dir).as_posix()),
         "predictions": str(out_path.as_posix()),
@@ -191,7 +203,11 @@ def main() -> int:
 
     print("[OK] QA evaluation completed.")
     print(f"- questions: {count}")
-    print(f"- EM={summary['em']:.4f} F1={summary['f1']:.4f} ANLS={summary['anls']:.4f}")
+    print(
+        f"- EM={summary['em']:.4f} F1={summary['f1']:.4f} "
+        f"ANLS={summary['anls']:.4f} CitationAcc={summary['citation_accuracy']:.4f} "
+        f"AvgLatency={summary['avg_latency_seconds']:.2f}s"
+    )
     print(f"- predictions: {out_path}")
     print(f"- summary: {summary_path}")
     return 0

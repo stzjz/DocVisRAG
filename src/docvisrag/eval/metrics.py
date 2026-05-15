@@ -103,3 +103,38 @@ def mrr(retrieved_pages: List[int], gold_pages: List[int]) -> float:
         if int(page) in gold:
             return 1.0 / rank
     return 0.0
+
+
+def ndcg_at_k(retrieved_pages: List[int], gold_pages: List[int], k: int) -> float:
+    if k <= 0:
+        raise ValueError(f"k must be > 0, got {k}")
+    gold = set(int(x) for x in gold_pages)
+    if not gold:
+        return 0.0
+
+    dcg = 0.0
+    seen = set()
+    for rank, page in enumerate(retrieved_pages[:k], start=1):
+        page = int(page)
+        if page in gold and page not in seen:
+            dcg += 1.0 / _log2(rank + 1)
+            seen.add(page)
+
+    ideal_hits = min(len(gold), k)
+    idcg = sum(1.0 / _log2(rank + 1) for rank in range(1, ideal_hits + 1))
+    return dcg / idcg if idcg > 0 else 0.0
+
+
+def citation_accuracy(citation_pages: List[int], gold_pages: List[int]) -> float:
+    gold = set(int(x) for x in gold_pages)
+    if not gold:
+        return 0.0
+    cited = set(int(x) for x in citation_pages)
+    return 1.0 if cited & gold else 0.0
+
+
+def _log2(value: int) -> float:
+    # Avoid importing math in older generated environments where imports are patched conservatively.
+    import math
+
+    return math.log2(value)

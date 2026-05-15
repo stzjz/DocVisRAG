@@ -1,5 +1,7 @@
 import datetime as dt
+import json
 import shutil
+import time
 import traceback
 import uuid
 from dataclasses import dataclass
@@ -7,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import gradio as gr
+from PIL import Image, ImageDraw
 
 from src.docvisrag.ingest import (
     build_page_summaries,
@@ -76,7 +79,22 @@ def _session_paths(session_id: str) -> Dict[str, Path]:
         "manifest": output_dir / "manifest.json",
         "ocr": output_dir / "ocr.jsonl",
         "summaries": output_dir / "page_summaries.jsonl",
+        "build_meta": output_dir / "build_meta.json",
     }
+
+
+def _elapsed_seconds(start_time: float) -> float:
+    return round(time.perf_counter() - start_time, 3)
+
+
+def _format_seconds(seconds: float) -> str:
+    return f"{seconds:.2f}s"
+
+
+def _write_json(path: Path, payload: Dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
 def _normalize_build_options(dpi: int, load_in_4bit: bool, max_pages: int, ocr_backend: str) -> BuildOptions:
@@ -121,6 +139,111 @@ def _format_evidence_text(result: Any) -> str:
     return "\n".join(lines)
 
 
+def _tokenize_query(text: str) -> List[str]:
+    value = "".join(ch.lower() if ch.isalnum() else " " for ch in (text or ""))
+    tokens = [tok for tok in value.split() if len(tok) >= 2]
+    if tokens:
+        return tokens
+    compact = "".join(ch for ch in value if not ch.isspace())
+    return [compact] if compact else []
+
+
+def _load_ocr_blocks_by_page(ocr_jsonl: str | None) -> Dict[int, List[Dict[str, Any]]]:
+    if not ocr_jsonl:
+        return {}
+
+    path = Path(ocr_jsonl).expanduser()
+    if not path.exists():
+        return {}
+
+    blocks: Dict[int, List[Dict[str, Any]]] = {}
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            page_index = int(row.get("page_index", -1))
+            if page_index < 0:
+                continue
+            blocks.setdefault(page_index, []).append(row)
+    return blocks
+
+
+def _select_relevant_blocks(
+    blocks: List[Dict[str, Any]],
+    query_tokens: List[str],
+    max_blocks: int = 18,
+) -> List[Dict[str, Any]]:
+    if not blocks:
+        return []
+
+    scored: List[Tuple[int, Dict[str, Any]]] = []
+    for block in blocks:
+        text = str(block.get("text", "")).lower()
+        score = sum(1 for tok in query_tokens if tok and tok in text)
+        if score > 0:
+            scored.append((score, block))
+
+    if scored:
+        scored.sort(key=lambda item: item[0], reverse=True)
+        return [block for _, block in scored[:max_blocks]]
+
+    return blocks[:max_blocks]
+
+
+def _draw_highlighted_evidence(
+    evidence: List[Dict[str, Any]],
+    question: str,
+    ocr_jsonl: str | None,
+    output_dir: str | None,
+) -> List[Tuple[str, str]]:
+    blocks_by_page = _load_ocr_blocks_by_page(ocr_jsonl)
+    if not blocks_by_page or not output_dir:
+        return _gallery_from_evidence(evidence)
+
+    highlight_dir = Path(output_dir) / "evidence_highlights"
+    highlight_dir.mkdir(parents=True, exist_ok=True)
+    query_tokens = _tokenize_query(question)
+    items: List[Tuple[str, str]] = []
+
+    for rank, ev in enumerate(evidence, start=1):
+        image_path = str(ev.get("image_path", "")).strip()
+        if not image_path:
+            continue
+
+        page_index = int(ev.get("page_index", -1))
+        selected_blocks = _select_relevant_blocks(blocks_by_page.get(page_index, []), query_tokens)
+        score = float(ev.get("score", 0.0))
+        caption = f"第 {page_index} 页 | score={score:.4f}"
+
+        if not selected_blocks:
+            items.append((image_path, caption))
+            continue
+
+        try:
+            with Image.open(image_path) as img:
+                canvas = img.convert("RGB")
+            draw = ImageDraw.Draw(canvas, "RGBA")
+            for block in selected_blocks:
+                bbox = block.get("bbox", [])
+                if len(bbox) != 4:
+                    continue
+                x0, y0, x1, y1 = [float(x) for x in bbox]
+                draw.rectangle([x0, y0, x1, y1], fill=(255, 214, 64, 82), outline=(230, 128, 0, 230), width=3)
+
+            out_path = highlight_dir / f"rank_{rank}_page_{page_index}.png"
+            canvas.save(out_path)
+            items.append((str(out_path), f"{caption} | highlighted={len(selected_blocks)}"))
+        except Exception:
+            items.append((image_path, caption))
+
+    return items
+
+
 def _gallery_from_evidence(evidence: List[Dict[str, Any]]) -> List[Tuple[str, str]]:
     items: List[Tuple[str, str]] = []
     for ev in evidence:
@@ -148,18 +271,34 @@ def build_index(
     session_id = _new_session_id()
     paths = _session_paths(session_id)
     status_lines = [f"开始构建，会话：{session_id}"]
+    total_start = time.perf_counter()
+    stage_times: Dict[str, float] = {}
 
     try:
         options = _normalize_build_options(dpi, load_in_4bit, max_pages, ocr_backend)
-        source_file = _copy_uploaded_file(uploaded_file, paths["output_dir"] / "source")
-        status_lines.append(f"已复制上传文件：{source_file}")
+        build_config = {
+            "session_id": session_id,
+            "started_at": dt.datetime.now().isoformat(timespec="seconds"),
+            "dpi": options.dpi,
+            "load_in_4bit": options.load_in_4bit,
+            "max_pages": options.max_pages,
+            "ocr_backend": options.ocr_backend,
+        }
 
+        stage_start = time.perf_counter()
+        source_file = _copy_uploaded_file(uploaded_file, paths["output_dir"] / "source")
+        stage_times["copy_source"] = _elapsed_seconds(stage_start)
+        status_lines.append(f"已复制上传文件：{source_file}（{_format_seconds(stage_times['copy_source'])}）")
+
+        stage_start = time.perf_counter()
         pages = ingest_document(
             input_path=str(source_file),
             output_dir=str(paths["output_dir"]),
             dpi=options.dpi,
         )
-        status_lines.append(f"文档渲染完成，共 {len(pages)} 页")
+        rendered_pages = len(pages)
+        stage_times["render"] = _elapsed_seconds(stage_start)
+        status_lines.append(f"文档渲染完成，共 {rendered_pages} 页（{_format_seconds(stage_times['render'])}）")
 
         if len(pages) > options.max_pages:
             dropped = pages[options.max_pages:]
@@ -174,23 +313,29 @@ def build_index(
         save_manifest(pages, str(paths["manifest"]))
         status_lines.append(f"manifest 已保存：{paths['manifest']}")
 
+        stage_start = time.perf_counter()
         ocr_summary = run_ocr_on_manifest(
             str(paths["manifest"]),
             str(paths["ocr"]),
             backend=options.ocr_backend,
         )
+        stage_times["ocr"] = _elapsed_seconds(stage_start)
         status_lines.append(
             f"OCR 已完成：{paths['ocr']} | backend={ocr_summary['backend']} | "
-            f"pages={ocr_summary['num_pages']} | blocks={ocr_summary['total_blocks']}"
+            f"pages={ocr_summary['num_pages']} | blocks={ocr_summary['total_blocks']} "
+            f"（{_format_seconds(stage_times['ocr'])}）"
         )
 
+        stage_start = time.perf_counter()
         build_page_summaries(
             str(paths["manifest"]),
             str(paths["summaries"]),
             load_in_4bit=options.load_in_4bit,
         )
-        status_lines.append(f"页面摘要已完成：{paths['summaries']}")
+        stage_times["page_summaries"] = _elapsed_seconds(stage_start)
+        status_lines.append(f"页面摘要已完成：{paths['summaries']}（{_format_seconds(stage_times['page_summaries'])}）")
 
+        stage_start = time.perf_counter()
         hybrid = HybridPageIndex()
         hybrid.build(
             manifest_path=str(paths["manifest"]),
@@ -198,19 +343,49 @@ def build_index(
             summary_jsonl=str(paths["summaries"]),
             index_dir=str(paths["hybrid_index_dir"]),
         )
-        status_lines.append(f"Hybrid 索引构建完成：{paths['hybrid_index_dir']}")
+        stage_times["hybrid_index"] = _elapsed_seconds(stage_start)
+        status_lines.append(f"Hybrid 索引构建完成：{paths['hybrid_index_dir']}（{_format_seconds(stage_times['hybrid_index'])}）")
 
         visual_ready = False
+        stage_start = time.perf_counter()
         try:
             visual = VisualPageIndex()
             visual.build(
                 manifest_path=str(paths["manifest"]),
                 index_dir=str(paths["visual_index_dir"]),
             )
-            status_lines.append(f"Visual 索引构建完成：{paths['visual_index_dir']}")
+            stage_times["visual_index"] = _elapsed_seconds(stage_start)
+            status_lines.append(f"Visual 索引构建完成：{paths['visual_index_dir']}（{_format_seconds(stage_times['visual_index'])}）")
             visual_ready = True
         except Exception as exc:  # noqa: BLE001
-            status_lines.append(f"Visual 索引构建跳过（可选增强）：{exc}")
+            stage_times["visual_index"] = _elapsed_seconds(stage_start)
+            status_lines.append(
+                f"Visual 索引构建跳过（可选增强，{_format_seconds(stage_times['visual_index'])}）：{exc}"
+            )
+
+        total_elapsed = _elapsed_seconds(total_start)
+        meta = {
+            "config": build_config,
+            "source_file": str(source_file),
+            "rendered_pages": rendered_pages,
+            "indexed_pages": len(pages),
+            "paths": {
+                "output_dir": str(paths["output_dir"]),
+                "manifest": str(paths["manifest"]),
+                "ocr": str(paths["ocr"]),
+                "summaries": str(paths["summaries"]),
+                "hybrid_index_dir": str(paths["hybrid_index_dir"]),
+                "visual_index_dir": str(paths["visual_index_dir"]),
+            },
+            "ocr_summary": ocr_summary,
+            "visual_ready": visual_ready,
+            "stage_times_seconds": stage_times,
+            "total_time_seconds": total_elapsed,
+            "completed_at": dt.datetime.now().isoformat(timespec="seconds"),
+        }
+        _write_json(paths["build_meta"], meta)
+        status_lines.append(f"构建元数据已保存：{paths['build_meta']}")
+        status_lines.append(f"总耗时：{_format_seconds(total_elapsed)}")
 
         new_state = {
             "ready": True,
@@ -221,10 +396,15 @@ def build_index(
             "visual_index_dir": str(paths["visual_index_dir"]),
             "visual_ready": visual_ready,
             "manifest_path": str(paths["manifest"]),
+            "ocr_path": str(paths["ocr"]),
+            "summary_path": str(paths["summaries"]),
+            "build_meta_path": str(paths["build_meta"]),
             "page_count": len(pages),
             "load_in_4bit": options.load_in_4bit,
             "ocr_backend": options.ocr_backend,
             "max_pages": options.max_pages,
+            "stage_times_seconds": stage_times,
+            "total_time_seconds": total_elapsed,
         }
         return new_state, "\n".join(status_lines)
 
@@ -283,7 +463,12 @@ def ask_question(
         ]
         answer_text = "\n".join(answer_lines)
         evidence_text = _format_evidence_text(result)
-        gallery_items = _gallery_from_evidence(result.evidence)
+        gallery_items = _draw_highlighted_evidence(
+            evidence=result.evidence,
+            question=question.strip(),
+            ocr_jsonl=str(state.get("ocr_path", "")),
+            output_dir=str(state.get("output_dir", "")),
+        )
         return answer_text, evidence_text, gallery_items
 
     except Exception as exc:  # noqa: BLE001
@@ -328,7 +513,7 @@ def build_demo() -> gr.Blocks:
 
         answer_output = gr.Textbox(label="答案", lines=8)
         evidence_output = gr.Textbox(label="检索证据", lines=16)
-        gallery_output = gr.Gallery(label="检索页面预览", columns=3, height=360)
+        gallery_output = gr.Gallery(label="检索页面预览（含 OCR 证据高亮）", columns=3, height=360)
 
         build_btn.click(
             fn=build_index,

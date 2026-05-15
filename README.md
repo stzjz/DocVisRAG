@@ -168,7 +168,9 @@ Demo 支持：
 - 上传 PDF/PNG/JPG/JPEG/WEBP
 - 一键构建索引（渲染 -> OCR -> 摘要 -> 索引）
 - 提问并显示答案、证据、页码引用与页面预览
-- 页面过多时默认仅处理前 10 页
+- 可设置 4bit 量化、OCR 后端和 Demo 最大处理页数
+- 构建日志会输出阶段耗时，并在 session 输出目录保存 `build_meta.json`
+- 问答结果会尽量基于 OCR bbox 生成证据高亮页面预览
 - 检索器可切换 `hybrid / visual / fusion`
 
 ## 阶段 8：评测脚本
@@ -210,6 +212,7 @@ python scripts/eval/eval_retrieval.py \
   --retriever-type hybrid \
   --out data/outputs/eval_retrieval.json
 ```
+输出包含：`Recall@1/3/5`、`MRR`、`NDCG@5`，并按问题类型给出分组指标。
 
 ### 8.3 问答评测（EM/F1/ANLS）
 ```bash
@@ -220,6 +223,7 @@ python scripts/eval/eval_qa.py \
   --out data/outputs/predictions.jsonl \
   --limit 10
 ```
+输出包含：`EM`、`F1`、`ANLS`、`Recall@3`、`Citation Accuracy` 和平均响应时间。
 
 ### 8.4 错误分析
 ```bash
