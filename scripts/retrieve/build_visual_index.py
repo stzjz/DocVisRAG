@@ -25,6 +25,12 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     try:
+        diag = VisualPageIndex.diagnostics()
+        if not diag.get("ready"):
+            print("[WARN] Visual dependency probe failed before build.")
+            print(f"- dependencies: {diag.get('dependencies')}")
+            print(f"- error: {diag.get('error')}")
+
         idx = VisualPageIndex()
         idx.build(
             manifest_path=args.manifest,

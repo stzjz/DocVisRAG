@@ -102,11 +102,14 @@ def main() -> int:
 
     bucket: Dict[str, List[Dict[str, Any]]] = {k: [] for k in CATEGORIES}
     ems, f1s, anls_list = [], [], []
+    citation_accs, latencies = [], []
 
     for row in rows:
         ems.append(float(row.get("em", 0.0)))
         f1s.append(float(row.get("f1", 0.0)))
         anls_list.append(float(row.get("anls", 0.0)))
+        citation_accs.append(float(row.get("citation_accuracy", 0.0)))
+        latencies.append(float(row.get("latency_seconds", 0.0)))
 
         category = _guess_category(row)
         if category:
@@ -120,6 +123,8 @@ def main() -> int:
     lines.append(f"- EM: {_avg(ems):.4f}")
     lines.append(f"- F1: {_avg(f1s):.4f}")
     lines.append(f"- ANLS: {_avg(anls_list):.4f}")
+    lines.append(f"- Citation Accuracy: {_avg(citation_accs):.4f}")
+    lines.append(f"- Avg Latency: {_avg(latencies):.2f}s")
     lines.append("")
 
     lines.append("## Category Summary")
