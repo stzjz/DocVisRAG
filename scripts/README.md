@@ -9,6 +9,6 @@ Scripts are organized by function:
 - bench
 
 Run from project root, e.g.:
-`ash
+```bash
 python scripts/env/check_env.py
-`
+```

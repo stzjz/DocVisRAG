@@ -2,15 +2,15 @@
 
 ## Purpose
 - Build/search text and hybrid indexes.
-- Optional stage-9 visual index and visual search.
+- Build/search visual indexes for the default fusion retrieval path.
 
 ## Scripts
 - `build_text_index.py`
 - `text_search.py`
 - `build_hybrid_index.py`
 - `hybrid_search.py`
-- `build_visual_index.py` (optional enhancement)
-- `visual_search.py` (optional enhancement)
+- `build_visual_index.py`
+- `visual_search.py`
 
 ## Usage
 ```bash
@@ -25,5 +25,6 @@ python scripts/retrieve/visual_search.py --index-dir data/indexes/demo_visual --
 ```
 
 ## Notes
-- Visual retrieval depends on optional libraries (Byaldi/ColPali related).
-- If visual dependencies are unavailable, hybrid retrieval is unaffected.
+- Visual retrieval depends on Byaldi/ColPali related libraries.
+- The Dockerfile installs visual dependencies by default. For a lightweight hybrid-only image, build with `--build-arg INSTALL_VISUAL=false`.
+- If visual dependencies are unavailable, hybrid retrieval still works, but `visual` and full `fusion` evaluation cannot run.

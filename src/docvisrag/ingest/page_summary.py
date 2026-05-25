@@ -1,4 +1,4 @@
-﻿import json
+import json
 import logging
 from pathlib import Path
 from typing import Dict
@@ -47,21 +47,31 @@ def _resolve_manifest_image(manifest_path: str, image_path: str) -> Path:
     )
 
 
-def summarize_page_with_vlm(image_path: str, page_index: int, model_id: str | None = None) -> str:
+def summarize_page_with_vlm(
+    image_path: str,
+    page_index: int,
+    model_id: str | None = None,
+    load_in_4bit: bool = False,
+) -> str:
     model = model_id or "Qwen/Qwen2.5-VL-3B-Instruct"
-    client = QwenVLClient(model_id=model)
+    client = QwenVLClient(model_id=model, load_in_4bit=load_in_4bit)
     question = f"{SUMMARY_PROMPT}\n当前是第 {page_index} 页。"
     summary = client.answer_image(image_path=image_path, question=question, max_new_tokens=320)
     return _normalize_summary(summary)
 
 
-def build_page_summaries(manifest_path: str, output_jsonl: str, model_id: str | None = None) -> None:
+def build_page_summaries(
+    manifest_path: str,
+    output_jsonl: str,
+    model_id: str | None = None,
+    load_in_4bit: bool = False,
+) -> None:
     pages = load_manifest(manifest_path)
     out_file = Path(output_jsonl)
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     model = model_id or "Qwen/Qwen2.5-VL-3B-Instruct"
-    client = QwenVLClient(model_id=model)
+    client = QwenVLClient(model_id=model, load_in_4bit=load_in_4bit)
 
     with out_file.open("w", encoding="utf-8") as f:
         for page in pages:

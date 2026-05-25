@@ -16,6 +16,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--manifest", required=True, help="Path to manifest.json")
     parser.add_argument("--out", required=True, help="Output summary jsonl path")
     parser.add_argument("--model-id", default=None, help="Optional VLM model id override")
+    parser.add_argument("--load-in-4bit", action="store_true", help="Enable 4-bit loading for VLM")
     return parser
 
 
@@ -23,7 +24,12 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
     args = build_parser().parse_args()
     try:
-        build_page_summaries(args.manifest, args.out, model_id=args.model_id)
+        build_page_summaries(
+            args.manifest,
+            args.out,
+            model_id=args.model_id,
+            load_in_4bit=args.load_in_4bit,
+        )
     except Exception as exc:  # noqa: BLE001
         print(f"[ERROR] Build page summaries failed: {exc}")
         return 1

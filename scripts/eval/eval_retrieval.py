@@ -11,8 +11,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.docvisrag.eval import mrr, recall_at_k
-from src.docvisrag.retrieve import HybridPageIndex, VisualPageIndex, reciprocal_rank_fusion
+from src.docvisrag.eval import mrr, ndcg_at_k, recall_at_k
+from src.docvisrag.retrieve import HybridPageIndex, TextIndex, VisualPageIndex, reciprocal_rank_fusion
 
 
 def _load_questions(path: str) -> List[Dict[str, Any]]:
@@ -64,8 +64,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--retriever-type",
         default="hybrid",
-        choices=["hybrid", "visual", "fusion"],
-        help="Retriever type for evaluation.",
+        choices=["hybrid", "visual", "fusion", "text"],
+        help="Retriever type for evaluation: hybrid/visual/fusion/text.",
     )
     parser.add_argument(
         "--visual-index-dir",
@@ -85,9 +85,12 @@ def main() -> int:
         retriever_type = (args.retriever_type or "hybrid").strip().lower()
         hybrid = HybridPageIndex.load(args.index_dir) if retriever_type in {"hybrid", "fusion"} else None
         visual = None
+        text_index = None
         if retriever_type in {"visual", "fusion"}:
             visual_dir = _resolve_visual_index_dir(args.index_dir, args.visual_index_dir)
             visual = VisualPageIndex.load(visual_dir)
+        if retriever_type == "text":
+            text_index = TextIndex.load(args.index_dir)
     except Exception as exc:  # noqa: BLE001
         print(f"[ERROR] Init retrieval evaluation failed: {exc}")
         return 1
@@ -98,7 +101,7 @@ def main() -> int:
 
     details: List[Dict[str, Any]] = []
     group_metrics: Dict[str, Dict[str, List[float]]] = defaultdict(
-        lambda: {"r1": [], "r3": [], "r5": [], "mrr": []}
+        lambda: {"r1": [], "r3": [], "r5": [], "mrr": [], "ndcg5": []}
     )
 
     for q in questions:
@@ -117,6 +120,17 @@ def main() -> int:
             elif retriever_type == "visual":
                 assert visual is not None
                 results = visual.search(question, top_k=max(5, args.top_k))
+            elif retriever_type == "text":
+                assert text_index is not None
+                chunks = text_index.search(question, top_k=max(5, args.top_k))
+                # deduplicate page indices from text chunks
+                seen_pages: set = set()
+                results = []
+                for c in chunks:
+                    page = int(c.get("page_index", -1))
+                    if page > 0 and page not in seen_pages:
+                        seen_pages.add(page)
+                        results.append({"page_index": page, "score": c.get("score", 0.0)})
             else:
                 assert hybrid is not None and visual is not None
                 h = hybrid.search(question, top_k=max(10, args.top_k * 2))
@@ -131,6 +145,7 @@ def main() -> int:
         r3 = recall_at_k(retrieved_pages, gold_pages, 3)
         r5 = recall_at_k(retrieved_pages, gold_pages, 5)
         rr = mrr(retrieved_pages, gold_pages)
+        ndcg5 = ndcg_at_k(retrieved_pages, gold_pages, 5)
 
         row = {
             "id": qid,
@@ -142,6 +157,7 @@ def main() -> int:
             "recall@3": r3,
             "recall@5": r5,
             "mrr": rr,
+            "ndcg@5": ndcg5,
         }
         details.append(row)
 
@@ -149,6 +165,7 @@ def main() -> int:
         group_metrics[qtype]["r3"].append(r3)
         group_metrics[qtype]["r5"].append(r5)
         group_metrics[qtype]["mrr"].append(rr)
+        group_metrics[qtype]["ndcg5"].append(ndcg5)
 
     if not details:
         print("[ERROR] No question was evaluated.")
@@ -160,6 +177,7 @@ def main() -> int:
         "recall@3": _avg([x["recall@3"] for x in details]),
         "recall@5": _avg([x["recall@5"] for x in details]),
         "mrr": _avg([x["mrr"] for x in details]),
+        "ndcg@5": _avg([x["ndcg@5"] for x in details]),
     }
 
     by_type: Dict[str, Dict[str, float]] = {}
@@ -170,6 +188,7 @@ def main() -> int:
             "recall@3": _avg(m["r3"]),
             "recall@5": _avg(m["r5"]),
             "mrr": _avg(m["mrr"]),
+            "ndcg@5": _avg(m["ndcg5"]),
         }
 
     payload = {
@@ -195,7 +214,8 @@ def main() -> int:
         f"R@1={overall['recall@1']:.4f}, "
         f"R@3={overall['recall@3']:.4f}, "
         f"R@5={overall['recall@5']:.4f}, "
-        f"MRR={overall['mrr']:.4f}"
+        f"MRR={overall['mrr']:.4f}, "
+        f"NDCG@5={overall['ndcg@5']:.4f}"
     )
     print(f"- output: {out_path}")
     return 0

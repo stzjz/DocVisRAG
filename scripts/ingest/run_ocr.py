@@ -15,6 +15,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run OCR on rendered page images from manifest.")
     parser.add_argument("--manifest", required=True, help="Path to manifest.json")
     parser.add_argument("--out", required=True, help="Output OCR jsonl path")
+    parser.add_argument(
+        "--backend",
+        default="auto",
+        choices=["auto", "paddle", "tesseract"],
+        help="OCR backend: auto (default), paddle, or tesseract.",
+    )
     return parser
 
 
@@ -22,11 +28,14 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
     args = build_parser().parse_args()
     try:
-        run_ocr_on_manifest(args.manifest, args.out)
+        summary = run_ocr_on_manifest(args.manifest, args.out, backend=args.backend)
     except Exception as exc:  # noqa: BLE001
         print(f"[ERROR] OCR failed: {exc}")
         return 1
-    print(f"[OK] OCR output: {args.out}")
+    print(
+        f"[OK] OCR output: {args.out} | backend={summary['backend']} | "
+        f"pages={summary['num_pages']} | blocks={summary['total_blocks']}"
+    )
     return 0
 
 

@@ -48,6 +48,7 @@ class DocQAEngine:
         if retriever_type == "hybrid":
             self.hybrid_index = HybridPageIndex.load(index_dir)
         elif retriever_type == "visual":
+            self.hybrid_index = self._try_load_hybrid(index_dir)
             vdir = self._resolve_visual_index_dir(index_dir=index_dir, visual_index_dir=visual_index_dir)
             self.visual_index = VisualPageIndex.load(vdir)
         else:
@@ -59,6 +60,13 @@ class DocQAEngine:
             model_id=model_id or "Qwen/Qwen2.5-VL-3B-Instruct",
             load_in_4bit=load_in_4bit,
         )
+
+    @staticmethod
+    def _try_load_hybrid(index_dir: str) -> Optional[HybridPageIndex]:
+        try:
+            return HybridPageIndex.load(index_dir)
+        except Exception:
+            return None
 
     @staticmethod
     def _resolve_visual_index_dir(index_dir: str, visual_index_dir: str | None) -> str:
@@ -84,7 +92,7 @@ class DocQAEngine:
 
     @staticmethod
     def _result_key(row: Dict) -> Tuple[str, int]:
-        return (str(row.get("image_path", "")), int(row.get("page_index", -1)))
+        return (Path(str(row.get("image_path", ""))).name, int(row.get("page_index", -1)))
 
     @staticmethod
     def _enrich_visual_results(

@@ -239,30 +239,62 @@ class QwenVLClient:
         messages = [{"role": "user", "content": content}]
         return self._answer_messages(messages, max_new_tokens=max_new_tokens)
 
+    def answer_text(
+        self,
+        question: str,
+        max_new_tokens: int = 512,
+    ) -> str:
+        if not question or not question.strip():
+            raise ValueError("question must be a non-empty string.")
+
+        messages = [
+            {"role": "user", "content": [{"type": "text", "text": question.strip()}]}
+        ]
+        return self._answer_messages(messages, max_new_tokens=max_new_tokens)
+
+    @staticmethod
+    def _has_vision_content(messages: list[dict]) -> bool:
+        for msg in messages:
+            for block in msg.get("content", []):
+                if isinstance(block, dict) and block.get("type") in {"image", "video"}:
+                    return True
+        return False
+
     def _answer_messages(self, messages: list[dict], max_new_tokens: int = 512) -> str:
-        try:
-            from qwen_vl_utils import process_vision_info
-        except Exception as exc:  # noqa: BLE001
-            raise RuntimeError(
-                "Failed to import qwen_vl_utils.process_vision_info. "
-                "Please install qwen-vl-utils."
-            ) from exc
+        has_vision = self._has_vision_content(messages)
+
+        if has_vision:
+            try:
+                from qwen_vl_utils import process_vision_info
+            except Exception as exc:  # noqa: BLE001
+                raise RuntimeError(
+                    "Failed to import qwen_vl_utils.process_vision_info. "
+                    "Please install qwen-vl-utils."
+                ) from exc
 
         self._load_model()
-        LOGGER.info("Preparing multimodal inputs...")
+        LOGGER.info("Preparing inputs...")
         prompt_text = self.processor.apply_chat_template(
             messages,
             tokenize=False,
             add_generation_prompt=True,
         )
-        image_inputs, video_inputs = process_vision_info(messages)
-        inputs = self.processor(
-            text=[prompt_text],
-            images=image_inputs,
-            videos=video_inputs,
-            padding=True,
-            return_tensors="pt",
-        )
+
+        if has_vision:
+            image_inputs, video_inputs = process_vision_info(messages)
+            inputs = self.processor(
+                text=[prompt_text],
+                images=image_inputs,
+                videos=video_inputs,
+                padding=True,
+                return_tensors="pt",
+            )
+        else:
+            inputs = self.processor(
+                text=[prompt_text],
+                padding=True,
+                return_tensors="pt",
+            )
         inputs = inputs.to(self.model.device)
 
         LOGGER.info("Running generation...")

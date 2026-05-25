@@ -4,6 +4,7 @@
 - Retrieval evaluation
 - QA evaluation
 - Error analysis report generation
+- Metrics aligned with the proposal: Recall@K, MRR, NDCG@5, citation accuracy, and latency
 
 ## Scripts
 - `eval_retrieval.py`

@@ -39,8 +39,8 @@ RUN python -m pip install --no-cache-dir \
 # 基础依赖
 RUN python -m pip install --no-cache-dir -r /tmp/requirements-base.txt
 
-# 是否安装 ColPali / Byaldi 视觉检索依赖
-ARG INSTALL_VISUAL=false
+# 是否安装 ColPali / Byaldi 视觉检索依赖。默认安装，让 visual/fusion 成为主线能力。
+ARG INSTALL_VISUAL=true
 RUN if [ "$INSTALL_VISUAL" = "true" ]; then \
       python -m pip install --no-cache-dir --upgrade -r /tmp/requirements-visual.txt; \
     else \

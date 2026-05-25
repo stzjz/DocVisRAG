@@ -367,6 +367,7 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
     ocr_jsonl = inter_dir / "ocr.jsonl"
     summaries_jsonl = inter_dir / "page_summaries.jsonl"
     index_dir = inter_dir / "hybrid_index"
+    text_index_dir = inter_dir / "text_index"
     visual_index_dir = inter_dir / "visual_index"
 
     retrieval_json = results_dir / "eval_retrieval.json"
@@ -379,48 +380,67 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
         log_file,
     )
 
-    cmd_summary = [
-        sys.executable,
-        "scripts/ingest/build_page_summaries.py",
-        "--manifest",
-        str(manifest_src),
-        "--out",
-        str(summaries_jsonl),
-    ]
-    if args.summary_model_id:
-        cmd_summary += ["--model-id", args.summary_model_id]
-    _run_cmd(cmd_summary, log_file)
-
-    _run_cmd(
-        [
+    if args.retriever_type == "text":
+        # 纯文本基线：仅构建 text index，跳过摘要和 hybrid index
+        _run_cmd(
+            [
+                sys.executable,
+                "scripts/retrieve/build_text_index.py",
+                "--ocr",
+                str(ocr_jsonl),
+                "--index-dir",
+                str(text_index_dir),
+                "--model-name",
+                args.index_model_name,
+            ],
+            log_file,
+        )
+        eval_index_dir = str(text_index_dir)
+    else:
+        cmd_summary = [
             sys.executable,
-            "scripts/retrieve/build_hybrid_index.py",
+            "scripts/ingest/build_page_summaries.py",
             "--manifest",
             str(manifest_src),
-            "--ocr",
-            str(ocr_jsonl),
-            "--summaries",
+            "--out",
             str(summaries_jsonl),
-            "--index-dir",
-            str(index_dir),
-            "--model-name",
-            args.index_model_name,
-        ],
-        log_file,
-    )
-
-    if args.retriever_type in {"visual", "fusion"}:
-        cmd_visual = [
-            sys.executable,
-            "scripts/retrieve/build_visual_index.py",
-            "--manifest",
-            str(manifest_src),
-            "--index-dir",
-            str(visual_index_dir),
         ]
-        if args.visual_model_id:
-            cmd_visual += ["--model-id", args.visual_model_id]
-        _run_cmd(cmd_visual, log_file)
+        if args.summary_model_id:
+            cmd_summary += ["--model-id", args.summary_model_id]
+        _run_cmd(cmd_summary, log_file)
+
+        _run_cmd(
+            [
+                sys.executable,
+                "scripts/retrieve/build_hybrid_index.py",
+                "--manifest",
+                str(manifest_src),
+                "--ocr",
+                str(ocr_jsonl),
+                "--summaries",
+                str(summaries_jsonl),
+                "--index-dir",
+                str(index_dir),
+                "--model-name",
+                args.index_model_name,
+            ],
+            log_file,
+        )
+
+        if args.retriever_type in {"visual", "fusion"}:
+            cmd_visual = [
+                sys.executable,
+                "scripts/retrieve/build_visual_index.py",
+                "--manifest",
+                str(manifest_src),
+                "--index-dir",
+                str(visual_index_dir),
+            ]
+            if args.visual_model_id:
+                cmd_visual += ["--model-id", args.visual_model_id]
+            _run_cmd(cmd_visual, log_file)
+
+        eval_index_dir = str(index_dir)
 
     cmd_eval_retrieval = [
         sys.executable,
@@ -428,7 +448,7 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
         "--questions",
         str(questions_copy),
         "--index-dir",
-        str(index_dir),
+        eval_index_dir,
         "--retriever-type",
         str(args.retriever_type),
         "--out",
@@ -448,7 +468,7 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
             "--questions",
             str(questions_copy),
             "--index-dir",
-            str(index_dir),
+            eval_index_dir,
             "--retriever-type",
             str(args.retriever_type),
             "--out",
@@ -604,8 +624,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--retriever-type",
         default="hybrid",
-        choices=["hybrid", "visual", "fusion"],
-        help="Retriever type used for retrieval/QA evaluation in benchmark suite.",
+        choices=["hybrid", "visual", "fusion", "text"],
+        help="Retriever type used for retrieval/QA evaluation: hybrid/visual/fusion/text.",
     )
     parser.add_argument(
         "--visual-model-id",

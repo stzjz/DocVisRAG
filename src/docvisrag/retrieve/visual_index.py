@@ -1,6 +1,8 @@
 import json
 import shutil
+import traceback
 from dataclasses import dataclass
+from importlib import metadata as importlib_metadata
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -28,6 +30,31 @@ class VisualPageIndex(BaseRetriever):
         self.doc_id_to_meta: Dict[int, Dict[str, Any]] = {}
 
     @staticmethod
+    def dependency_report() -> Dict[str, str]:
+        report: Dict[str, str] = {}
+        for pkg in ["byaldi", "colpali-engine", "peft", "transformers", "accelerate", "torch"]:
+            try:
+                report[pkg] = importlib_metadata.version(pkg)
+            except importlib_metadata.PackageNotFoundError:
+                report[pkg] = "MISSING"
+        return report
+
+    @classmethod
+    def diagnostics(cls) -> Dict[str, Any]:
+        report: Dict[str, Any] = {
+            "backend": "byaldi",
+            "dependencies": cls.dependency_report(),
+            "ready": False,
+            "error": "",
+        }
+        try:
+            cls._require_byaldi()
+            report["ready"] = True
+        except Exception as exc:  # noqa: BLE001
+            report["error"] = str(exc)
+        return report
+
+    @staticmethod
     def _load_jsonl(path: Path) -> List[Dict[str, Any]]:
         rows: List[Dict[str, Any]] = []
         with path.open("r", encoding="utf-8") as f:
@@ -46,21 +73,25 @@ class VisualPageIndex(BaseRetriever):
 
     @staticmethod
     def _require_byaldi() -> Any:
+        deps = VisualPageIndex.dependency_report()
         try:
             from peft.utils import save_and_load as peft_save_and_load
         except Exception as exc:  # noqa: BLE001
             raise RuntimeError(
                 "VisualPageIndex requires `peft` but import failed. "
-                "Please install/upgrade peft (recommended >= 0.18.2)."
+                f"Detected dependency versions: {deps}. "
+                "Rebuild with visual dependencies, e.g. "
+                "`docker build --build-arg INSTALL_VISUAL=true -t docvisrag:cu124 .`"
             ) from exc
 
         if not hasattr(peft_save_and_load, "_maybe_shard_state_dict_for_tp"):
             raise RuntimeError(
                 "Detected incompatible peft version for Byaldi/ColPali path: "
                 "missing `peft.utils.save_and_load._maybe_shard_state_dict_for_tp`.\n"
+                f"Detected dependency versions: {deps}\n"
                 "Recommended fix:\n"
-                "  pip install -U \"peft>=0.18.2\" \"transformers>=4.52.0\" \"accelerate>=1.0.0\"\n"
-                "Then rebuild/restart your environment."
+                "  docker build --build-arg INSTALL_VISUAL=true -t docvisrag:cu124 .\n"
+                "or adjust requirements-visual.txt to a compatible Byaldi/ColPali stack."
             )
 
         try:
@@ -68,12 +99,39 @@ class VisualPageIndex(BaseRetriever):
         except Exception as exc:  # noqa: BLE001
             raise RuntimeError(
                 "VisualPageIndex requires optional visual retrieval dependency `byaldi`.\n"
+                f"Detected dependency versions: {deps}\n"
                 "Install suggestions:\n"
-                "1) pip install byaldi\n"
-                "2) verify model compatibility for ColPali/Byaldi\n"
-                "This optional feature does not affect hybrid index flow."
+                "1) rebuild with `docker build --build-arg INSTALL_VISUAL=true -t docvisrag:cu124 .`\n"
+                "2) verify model compatibility for ColPali/Byaldi."
             ) from exc
         return RAGMultiModalModel
+
+    @staticmethod
+    def _write_failure(index_dir: Path, exc: Exception) -> None:
+        index_dir.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "backend": "byaldi",
+            "ready": False,
+            "error": str(exc),
+            "traceback": traceback.format_exc(limit=3),
+            "dependencies": VisualPageIndex.dependency_report(),
+        }
+        with (index_dir / "visual_status.json").open("w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+
+    @staticmethod
+    def _write_success(index_dir: Path, cfg: _VisualConfig) -> None:
+        payload = {
+            "backend": cfg.backend,
+            "ready": True,
+            "model_id": cfg.model_id,
+            "index_name": cfg.index_name,
+            "index_root": cfg.index_root,
+            "num_pages": cfg.num_pages,
+            "dependencies": VisualPageIndex.dependency_report(),
+        }
+        with (index_dir / "visual_status.json").open("w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
 
     def _save_metadata(self, index_dir: Path, metadata: List[Dict[str, Any]]) -> None:
         with (index_dir / "metadata.jsonl").open("w", encoding="utf-8") as f:
@@ -91,8 +149,6 @@ class VisualPageIndex(BaseRetriever):
         index_dir: str,
         model_id: str = "vidore/colqwen2-v1.0",
     ) -> None:
-        RAGMultiModalModel = self._require_byaldi()
-
         manifest_file = Path(manifest_path).expanduser().resolve()
         if not manifest_file.exists():
             raise FileNotFoundError(f"Manifest not found: {manifest_file}")
@@ -103,6 +159,26 @@ class VisualPageIndex(BaseRetriever):
 
         out_dir = Path(index_dir).expanduser().resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            self._build_checked(
+                pages=pages,
+                manifest_file=manifest_file,
+                out_dir=out_dir,
+                model_id=model_id,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self._write_failure(out_dir, exc)
+            raise
+
+    def _build_checked(
+        self,
+        pages: List[Any],
+        manifest_file: Path,
+        out_dir: Path,
+        model_id: str,
+    ) -> None:
+        RAGMultiModalModel = self._require_byaldi()
 
         pages_dir = out_dir / "pages"
         pages_dir.mkdir(parents=True, exist_ok=True)
@@ -170,6 +246,7 @@ class VisualPageIndex(BaseRetriever):
         with (out_dir / "config.json").open("w", encoding="utf-8") as f:
             json.dump(cfg.__dict__, f, ensure_ascii=False, indent=2)
         self._save_metadata(out_dir, metadata)
+        self._write_success(out_dir, cfg)
 
         self.backend = cfg.backend
         self.model_id = cfg.model_id
