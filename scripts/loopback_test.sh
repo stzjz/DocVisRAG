@@ -15,6 +15,7 @@ QUESTION_TEXT="${QUESTION_TEXT:-请概括这个文档的主要内容。}"
 TOP_K="${TOP_K:-1}"
 MAX_NEW_TOKENS="${MAX_NEW_TOKENS:-128}"
 
+RUN_TEXT_BASELINE="${RUN_TEXT_BASELINE:-1}"
 RUN_VISUAL="${RUN_VISUAL:-1}"
 RUN_BENCHMARK="${RUN_BENCHMARK:-1}"
 RUN_DEMO="${RUN_DEMO:-1}"
@@ -45,6 +46,7 @@ HYBRID_INDEX_DIR="$INDEX_DIR/hybrid_index"
 VISUAL_INDEX_DIR="$INDEX_DIR/visual_index"
 BENCH_QUESTIONS_PATH="$RUN_DIR/loopback_questions.jsonl"
 SUITE_NAME="loopback_$(date +%Y%m%d_%H%M%S)"
+SUMMARY_REPORT_PATH="$RUN_DIR/summary.json"
 DEMO_PID=""
 
 log() {
@@ -79,6 +81,12 @@ run_step() {
   ) 2>&1 | tee "$log_file"
 }
 
+maybe_add_4bit_flag() {
+  if truthy "$LOAD_IN_4BIT"; then
+    printf '%s\n' "--load-in-4bit"
+  fi
+}
+
 cleanup() {
   if [[ -n "$DEMO_PID" ]]; then
     kill "$DEMO_PID" >/dev/null 2>&1 || true
@@ -100,6 +108,7 @@ log "Project dir: $PROJECT_DIR"
 log "Input: $INPUT_REL"
 log "Output root: $OUTPUT_ROOT_REL"
 log "Index root: $INDEX_ROOT_REL"
+log "Question: $QUESTION_TEXT"
 
 run_step env_check "$PYTHON_BIN" scripts/env/check_env.py
 if truthy "$RUN_ENV_VISUAL"; then
@@ -157,10 +166,28 @@ run_step text_search \
   --question "$QUESTION_TEXT" \
   --top-k "$TOP_K"
 
-summary_cmd=("$PYTHON_BIN" scripts/ingest/build_page_summaries.py --manifest "$OUTPUT_ROOT_REL/manifest.json" --out "$OUTPUT_ROOT_REL/page_summaries.jsonl")
-if truthy "$LOAD_IN_4BIT"; then
-  summary_cmd+=(--load-in-4bit)
+if truthy "$RUN_TEXT_BASELINE"; then
+  text_qa_cmd=(
+    "$PYTHON_BIN" scripts/qa/text_qa.py
+    --index-dir "$INDEX_ROOT_REL/text_index"
+    --question "$QUESTION_TEXT"
+    --top-k "$TOP_K"
+    --max-new-tokens "$MAX_NEW_TOKENS"
+  )
+  while IFS= read -r flag; do
+    text_qa_cmd+=("$flag")
+  done < <(maybe_add_4bit_flag)
+  run_step text_qa "${text_qa_cmd[@]}"
 fi
+
+summary_cmd=(
+  "$PYTHON_BIN" scripts/ingest/build_page_summaries.py
+  --manifest "$OUTPUT_ROOT_REL/manifest.json"
+  --out "$OUTPUT_ROOT_REL/page_summaries.jsonl"
+)
+while IFS= read -r flag; do
+  summary_cmd+=("$flag")
+done < <(maybe_add_4bit_flag)
 run_step build_page_summaries "${summary_cmd[@]}"
 
 run_step build_hybrid_index \
@@ -176,10 +203,16 @@ run_step hybrid_search \
   --question "$QUESTION_TEXT" \
   --top-k "$TOP_K"
 
-doc_qa_cmd=("$PYTHON_BIN" scripts/qa/doc_qa.py --index-dir "$INDEX_ROOT_REL/hybrid_index" --question "$QUESTION_TEXT" --top-k "$TOP_K" --max-new-tokens "$MAX_NEW_TOKENS")
-if truthy "$LOAD_IN_4BIT"; then
-  doc_qa_cmd+=(--load-in-4bit)
-fi
+doc_qa_cmd=(
+  "$PYTHON_BIN" scripts/qa/doc_qa.py
+  --index-dir "$INDEX_ROOT_REL/hybrid_index"
+  --question "$QUESTION_TEXT"
+  --top-k "$TOP_K"
+  --max-new-tokens "$MAX_NEW_TOKENS"
+)
+while IFS= read -r flag; do
+  doc_qa_cmd+=("$flag")
+done < <(maybe_add_4bit_flag)
 run_step doc_qa_hybrid "${doc_qa_cmd[@]}"
 
 run_step make_loopback_questions \
@@ -222,13 +255,31 @@ if truthy "$RUN_VISUAL"; then
     --top-k "$TOP_K"
     --max-new-tokens "$MAX_NEW_TOKENS"
   )
-  if truthy "$LOAD_IN_4BIT"; then
-    fusion_qa_cmd+=(--load-in-4bit)
-  fi
+  while IFS= read -r flag; do
+    fusion_qa_cmd+=("$flag")
+  done < <(maybe_add_4bit_flag)
   run_step doc_qa_fusion "${fusion_qa_cmd[@]}"
 fi
 
 if truthy "$RUN_BENCHMARK"; then
+  if truthy "$RUN_TEXT_BASELINE"; then
+    bench_text_cmd=(
+      "$PYTHON_BIN" scripts/bench/run_benchmark_suite.py
+      --suite-name "${SUITE_NAME}_text"
+      --name loopback_text
+      --manifest "$OUTPUT_ROOT_REL/manifest.json"
+      --questions "$OUTPUT_ROOT_REL/loopback_questions.jsonl"
+      --out-root "$BENCH_ROOT_REL"
+      --retriever-type text
+      --qa-top-k "$TOP_K"
+      --qa-max-new-tokens "$MAX_NEW_TOKENS"
+    )
+    if truthy "$LOAD_IN_4BIT"; then
+      bench_text_cmd+=(--qa-load-in-4bit)
+    fi
+    run_step bench_text "${bench_text_cmd[@]}"
+  fi
+
   bench_cmd=(
     "$PYTHON_BIN" scripts/bench/run_benchmark_suite.py
     --suite-name "$SUITE_NAME"
@@ -292,7 +343,63 @@ if truthy "$RUN_DEMO"; then
   DEMO_PID=""
 fi
 
+run_step write_summary \
+  "$PYTHON_BIN" -c "
+import json
+from pathlib import Path
+
+run_dir = Path('$RUN_DIR')
+bench_root = Path('$PROJECT_DIR/$BENCH_ROOT_REL')
+summary = {
+    'input': '$INPUT_REL',
+    'question': '$QUESTION_TEXT',
+    'output_root': str(run_dir),
+    'index_root': '$INDEX_ROOT_REL',
+    'top_k': int('$TOP_K'),
+    'max_new_tokens': int('$MAX_NEW_TOKENS'),
+    'run_text_baseline': '$RUN_TEXT_BASELINE' in {'1', 'true', 'TRUE', 'yes', 'YES', 'y', 'Y'},
+    'run_visual': '$RUN_VISUAL' in {'1', 'true', 'TRUE', 'yes', 'YES', 'y', 'Y'},
+    'run_benchmark': '$RUN_BENCHMARK' in {'1', 'true', 'TRUE', 'yes', 'YES', 'y', 'Y'},
+    'run_demo': '$RUN_DEMO' in {'1', 'true', 'TRUE', 'yes', 'YES', 'y', 'Y'},
+    'artifacts': {
+        'manifest': '$MANIFEST_PATH',
+        'ocr': '$OCR_PATH',
+        'layout': '$LAYOUT_PATH',
+        'layout_chunks': '$CHUNKS_PATH',
+        'summaries': '$SUMMARIES_PATH',
+        'text_index': '$TEXT_INDEX_DIR',
+        'layout_index': '$LAYOUT_INDEX_DIR',
+        'hybrid_index': '$HYBRID_INDEX_DIR',
+        'visual_index': '$VISUAL_INDEX_DIR',
+        'questions': '$BENCH_QUESTIONS_PATH',
+        'logs': '$LOG_ROOT',
+    },
+}
+
+metrics_targets = {
+    'text': bench_root / ('${SUITE_NAME}_text') / 'loopback_text' / 'summary.json',
+    'hybrid': bench_root / '$SUITE_NAME' / 'loopback_hybrid' / 'summary.json',
+    'fusion': bench_root / ('${SUITE_NAME}_fusion') / 'loopback_fusion' / 'summary.json',
+}
+
+benchmarks = {}
+for name, path in metrics_targets.items():
+    if path.exists():
+        payload = json.loads(path.read_text(encoding='utf-8'))
+        benchmarks[name] = {
+            'run_dir': payload.get('run_dir'),
+            'retrieval_overall': payload.get('retrieval_overall'),
+            'qa_overall': payload.get('qa_overall'),
+            'qa_success': payload.get('qa_success'),
+        }
+
+summary['benchmarks'] = benchmarks
+Path('$SUMMARY_REPORT_PATH').write_text(json.dumps(summary, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+print('$SUMMARY_REPORT_PATH')
+"
+
 log "Loopback validation completed"
 printf 'outputs: %s\n' "$RUN_DIR"
 printf 'indexes: %s\n' "$INDEX_DIR"
 printf 'logs: %s\n' "$LOG_ROOT"
+printf 'summary: %s\n' "$SUMMARY_REPORT_PATH"

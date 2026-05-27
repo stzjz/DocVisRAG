@@ -30,6 +30,20 @@ End-to-end loopback validation:
 bash scripts/loopback_test.sh
 ```
 
+Common overrides:
+
+```bash
+QUESTION_TEXT="请总结这页的核心结论" \
+INPUT_REL=data/samples/DeepSeekMath.pdf \
+RUN_TEXT_BASELINE=1 \
+RUN_VISUAL=1 \
+RUN_BENCHMARK=1 \
+bash scripts/loopback_test.sh
+```
+
+The loopback script also writes a compact run summary to
+`data/outputs/loopback_smoke/summary.json`.
+
 Run from project root, e.g.:
 ```bash
 python scripts/env/check_env.py
