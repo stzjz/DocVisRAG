@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 .venv/
 env/
+!scripts/env/
+!scripts/env/**
 
 # Caches
 .cache/

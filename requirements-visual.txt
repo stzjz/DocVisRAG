@@ -1,17 +1,20 @@
 # Optional visual retrieval dependencies for ColPali / Byaldi path.
-# Locked to a tested combo to avoid PEFT runtime import errors.
+#
+# This visual stack intentionally stays on the Transformers v4 line. Newer
+# colpali-engine 0.3.14+ moves to Transformers v5, but the v5 packages have
+# been less stable in this project environment.
 
 byaldi==0.0.7
-colpali-engine==0.3.15
+colpali-engine==0.3.13
 
-# Keep on 5.3.x line for colpali compatibility and avoid newer breaking changes.
-transformers==5.3.0
+transformers==4.57.6
 
-# 0.18.1 provides _maybe_shard_state_dict_for_tp expected by this stack.
-peft==0.18.1
+peft==0.17.1
 
-accelerate>=1.0.0
+sentence-transformers>=5.5.0,<6.0.0
+accelerate>=1.6.0,<1.9.0
 ml-dtypes>=0.5.0
+scipy==1.11.4
 ninja>=1.11.0
 jsonlines>=4.0.0
 pytrec-eval-terrier>=0.5.6

@@ -26,5 +26,5 @@ python scripts/retrieve/visual_search.py --index-dir data/indexes/demo_visual --
 
 ## Notes
 - Visual retrieval depends on Byaldi/ColPali related libraries.
-- The Dockerfile installs visual dependencies by default. For a lightweight hybrid-only image, build with `--build-arg INSTALL_VISUAL=false`.
+- In a virtualenv workflow, install `requirements-base.txt` first and add `requirements-visual.txt` only when you need visual/fusion retrieval.
 - If visual dependencies are unavailable, hybrid retrieval still works, but `visual` and full `fusion` evaluation cannot run.

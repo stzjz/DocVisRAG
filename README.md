@@ -84,38 +84,55 @@ DocVisRAG 是一个面向复杂 PDF、扫描件、PPT 截图等文档的多模�
 
 ---
 
-## 1. 环境与 Docker
+## 1. 环境与虚拟环境
 
-### 1.1 构建镜像
+推荐直接使用 `python -m venv` 安装和运行项目，不再依赖 Docker。
+
+### 1.1 系统依赖
+Ubuntu 22.04 上建议先安装：
+
 ```bash
-docker build -t docvisrag:cu124 .
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends \
+  poppler-utils tesseract-ocr tesseract-ocr-chi-sim \
+  libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 \
+  build-essential git curl wget ca-certificates
 ```
 
-默认镜像会安装 Byaldi/ColPali visual retrieval 依赖，让 `fusion` 成为 Demo 主线检索模式。
-如果只想构建轻量 hybrid 镜像，可使用：
+### 1.2 创建虚拟环境
 ```bash
-docker build --build-arg INSTALL_VISUAL=false -t docvisrag:cu124 .
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
+  --index-url https://download.pytorch.org/whl/cu124
+python -m pip install -r requirements-base.txt
 ```
 
-### 1.2 启动容器（推荐）
+阶段 9 的 visual / fusion 检索依赖可选安装：
+
 ```bash
-docker run --gpus '"device=0,1"' --ipc=host --network=host -it --rm \
-  -v /data3/zengjian/DocVisRAG:/workspace/DocVisRAG \
-  -v /data3/zengjian/.cache:/root/.cache \
-  -w /workspace/DocVisRAG \
-  -e HF_HOME=/root/.cache/huggingface \
-  -e HF_HUB_CACHE=/root/.cache/huggingface/hub \
-  -e TRANSFORMERS_CACHE=/root/.cache/huggingface/hub \
-  -e HF_ENDPOINT=https://hf-mirror.com \
-  docvisrag:cu124
+python -m pip install -r requirements-visual.txt
 ```
 
-### 1.3 启动后建议检查
+### 1.3 建议环境变量
 ```bash
+export HF_HOME="$PWD/.cache/huggingface"
+export HF_HUB_CACHE="$HF_HOME/hub"
+export TRANSFORMERS_CACHE="$HF_HUB_CACHE"
 export HF_ENDPOINT=https://hf-mirror.com
+```
+
+### 1.4 安装后建议检查
+```bash
 env | grep -E "HF_HOME|HF_HUB_CACHE|HUGGINGFACE_HUB_CACHE|TRANSFORMERS_CACHE|HF_ENDPOINT"
 python scripts/env/check_env.py
+python scripts/env/check_env.py --visual
 ```
+
+说明：
+- `python scripts/env/check_env.py --visual` 仅在安装了 `requirements-visual.txt` 后运行。
+- 当前固定的 relaxed visual 依赖栈里，`peft.tp_helper : NO` 可能是预期现象，不影响继续构建 visual index。
 
 ---
 
@@ -567,11 +584,14 @@ python scripts/bench/run_benchmark_suite.py \
 - `datasets` 是否安装
 - split 是否正确（可尝试 `--split train`）
 
-### Q3：为什么每次进入容器都要重新安装包
-`docker run --rm` 下，容器内临时 `pip install` 会在退出后丢失。
+### Q3：为什么推荐虚拟环境而不是 Docker
+当前项目主线已经支持直接使用 `python -m venv` 安装运行：
 
-建议：
-- 把依赖写入项目并 `docker build` 重建镜像。
+- 环境更轻，便于调试和增量安装
+- 本地缓存和模型目录更容易复用
+- 文档里的命令可以直接在仓库根目录执行
+
+如果你仍然需要容器化部署，可以保留 Dockerfile 作为可选方案，但开发、调试和实验默认推荐虚拟环境。
 
 ---
 

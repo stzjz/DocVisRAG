@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 import traceback
 from dataclasses import dataclass
@@ -85,14 +86,14 @@ class VisualPageIndex(BaseRetriever):
             ) from exc
 
         if not hasattr(peft_save_and_load, "_maybe_shard_state_dict_for_tp"):
-            raise RuntimeError(
-                "Detected incompatible peft version for Byaldi/ColPali path: "
-                "missing `peft.utils.save_and_load._maybe_shard_state_dict_for_tp`.\n"
-                f"Detected dependency versions: {deps}\n"
-                "Recommended fix:\n"
-                "  docker build --build-arg INSTALL_VISUAL=true -t docvisrag:cu124 .\n"
-                "or adjust requirements-visual.txt to a compatible Byaldi/ColPali stack."
-            )
+            if str(os.getenv("DOCVISRAG_STRICT_VISUAL_CHECK", "")).lower() in {"1", "true", "yes"}:
+                raise RuntimeError(
+                    "Detected incompatible peft version for Byaldi/ColPali path: "
+                    "missing `peft.utils.save_and_load._maybe_shard_state_dict_for_tp`.\n"
+                    f"Detected dependency versions: {deps}\n"
+                    "Set DOCVISRAG_STRICT_VISUAL_CHECK=0 to continue in relaxed mode, "
+                    "or adjust requirements-visual.txt to a compatible stack."
+                )
 
         try:
             from byaldi import RAGMultiModalModel

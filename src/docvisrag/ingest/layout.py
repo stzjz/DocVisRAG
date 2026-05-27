@@ -120,10 +120,21 @@ print(json.dumps(out, ensure_ascii=False))
             f"PP-Structure subprocess failed (code={proc.returncode}). stderr: {proc.stderr.strip()}"
         )
 
-    try:
-        raw_regions = json.loads(proc.stdout.strip() or "[]")
-    except json.JSONDecodeError as exc:
-        raise RuntimeError(f"PP-Structure returned invalid JSON: {proc.stdout}") from exc
+    stdout = proc.stdout.strip()
+    raw_regions: Any = None
+    if stdout:
+        # Paddle may print model-download progress before the JSON payload on first run.
+        for line in reversed(stdout.splitlines()):
+            candidate = line.strip()
+            if not candidate:
+                continue
+            try:
+                raw_regions = json.loads(candidate)
+                break
+            except json.JSONDecodeError:
+                continue
+    if raw_regions is None:
+        raise RuntimeError(f"PP-Structure returned invalid JSON: {proc.stdout}")
 
     if isinstance(raw_regions, dict) and "error" in raw_regions:
         raise RuntimeError(f"PP-Structure error: {raw_regions['error']}")
@@ -416,10 +427,29 @@ class LayoutAnalyzer:
                 r_bbox = region.get("bbox", [0, 0, 0, 0])
                 page_ocr = ocr_by_page.get(pi, [])
 
+                page_width = max(
+                    (
+                        max(float(v) for v in block.get("bbox", [0.0, 0.0, 0.0, 0.0])[0::2])
+                        for block in page_ocr
+                    ),
+                    default=1.0,
+                )
+                page_height = max(
+                    (
+                        max(float(v) for v in block.get("bbox", [0.0, 0.0, 0.0, 0.0])[1::2])
+                        for block in page_ocr
+                    ),
+                    default=1.0,
+                )
+
                 # collect OCR blocks that overlap with this region
                 assigned_texts: List[str] = []
                 for block in page_ocr:
-                    o_bbox = block.get("bbox", [0, 0, 0, 0])
+                    o_bbox = _normalize_bbox_to_unit(
+                        block.get("bbox", [0, 0, 0, 0]),
+                        width=page_width,
+                        height=page_height,
+                    )
                     if _iou(r_bbox, o_bbox) > 0.1:
                         assigned_texts.append(str(block.get("text", "")))
 
@@ -465,6 +495,30 @@ def _iou(bbox_a: list[float], bbox_b: list[float]) -> float:
     area_b = max(0.0, (bbox_b[2] - bbox_b[0]) * (bbox_b[3] - bbox_b[1]))
     union = area_a + area_b - inter
     return inter / union if union > 0 else 0.0
+
+
+def _normalize_bbox_to_unit(bbox: list[float], width: float, height: float) -> list[float]:
+    if len(bbox) != 4:
+        return [0.0, 0.0, 0.0, 0.0]
+
+    try:
+        coords = [float(v) for v in bbox]
+    except Exception:
+        return [0.0, 0.0, 0.0, 0.0]
+
+    # Layout regions are already normalized to 0-1. OCR boxes are pixel-space.
+    if max(coords) <= 1.0 and min(coords) >= 0.0:
+        return coords
+
+    x0, y0, x1, y1 = coords
+    width = max(float(width), 1.0)
+    height = max(float(height), 1.0)
+    return [
+        max(0.0, min(1.0, x0 / width)),
+        max(0.0, min(1.0, y0 / height)),
+        max(0.0, min(1.0, x1 / width)),
+        max(0.0, min(1.0, y1 / height)),
+    ]
 
 
 def load_layout_jsonl(path: str) -> List[LayoutRegion]:
