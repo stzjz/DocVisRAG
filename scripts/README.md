@@ -24,6 +24,12 @@ Optional stage-9 visual retrieval dependencies:
 python -m pip install -r requirements-visual.txt
 ```
 
+End-to-end loopback validation:
+
+```bash
+bash scripts/loopback_test.sh
+```
+
 Run from project root, e.g.:
 ```bash
 python scripts/env/check_env.py
