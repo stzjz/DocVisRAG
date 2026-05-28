@@ -3,6 +3,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from src.docvisrag.qa.citation_utils import (
+    build_figure_table_context_lines,
+    load_layout_context,
+    make_citation_instruction,
+    parse_citations,
+)
 from src.docvisrag.retrieve import (
     HybridPageIndex,
     VisualPageIndex,
@@ -29,6 +35,7 @@ class DocQAEngine:
         load_in_4bit: bool = False,
         retriever_type: str = "hybrid",
         visual_index_dir: str | None = None,
+        layout_jsonl: str | None = None,
     ) -> None:
         if top_k <= 0:
             raise ValueError(f"top_k must be > 0, got {top_k}")
@@ -60,6 +67,9 @@ class DocQAEngine:
             model_id=model_id or "Qwen/Qwen2.5-VL-3B-Instruct",
             load_in_4bit=load_in_4bit,
         )
+
+        # 加载版面分析数据用于图/表引用
+        self._layout_context = load_layout_context(layout_jsonl)
 
     @staticmethod
     def _try_load_hybrid(index_dir: str) -> Optional[HybridPageIndex]:
@@ -179,20 +189,11 @@ class DocQAEngine:
 
     @staticmethod
     def _parse_citations(citation_text: str) -> List[str]:
-        if not citation_text:
-            return []
-        matches = re.findall(r"第\s*\d+\s*页", citation_text)
-        if not matches:
-            return []
-        # keep order and deduplicate
-        seen = set()
-        ordered: List[str] = []
-        for c in matches:
-            norm = re.sub(r"\s+", " ", c).strip()
-            if norm not in seen:
-                seen.add(norm)
-                ordered.append(norm)
-        return ordered
+        """从 VLM 输出中提取所有引用（页码+图号+表号）。
+
+        复用 citation_utils.parse_citations 统一解析。
+        """
+        return parse_citations(citation_text)
 
     def _build_prompt(self, question: str, evidence: List[Dict]) -> str:
         lines = [
@@ -204,22 +205,28 @@ class DocQAEngine:
             "依据：",
             "引用：",
             "不确定性：",
-            "引用必须写成“第 X 页”。",
+            make_citation_instruction(),
             "",
             f"用户问题：{question.strip()}",
             "",
             "候选证据：",
         ]
         for i, row in enumerate(evidence, start=1):
-            lines.extend(
-                [
-                    f"[证据 {i}] 第 {row['page_index']} 页",
-                    f"页面摘要：{row.get('summary', '')}",
-                    f"OCR文本：{row.get('ocr_text_preview', '')}",
-                    f"检索分数：{row.get('score', 0.0):.4f}",
-                    "",
-                ]
+            page_idx = int(row.get("page_index", -1))
+            lines.append(f"[证据 {i}] 第 {page_idx} 页")
+            lines.append(f"页面摘要：{row.get('summary', '')}")
+            lines.append(f"OCR文本：{row.get('ocr_text_preview', '')}")
+
+            # 附加版面分析的图/表上下文
+            ft_lines = build_figure_table_context_lines(
+                page_index=page_idx,
+                context=self._layout_context,
             )
+            for ft_line in ft_lines:
+                lines.append(ft_line)
+
+            lines.append(f"检索分数：{row.get('score', 0.0):.4f}")
+            lines.append("")
         return "\n".join(lines).strip()
 
     def answer(self, question: str) -> QAResult:
@@ -259,8 +266,19 @@ class DocQAEngine:
         citations = self._parse_citations(citation_text)
 
         if not citations:
-            citations = [f"第 {int(x['page_index'])} 页" for x in evidence]
-            citations = list(dict.fromkeys(citations))
+            # 回退：从 evidence 生成页码引用
+            page_cites = [f"第 {int(x['page_index'])} 页" for x in evidence]
+            page_cites = list(dict.fromkeys(page_cites))
+            # 附加版面分析中的图/表标签
+            ft_cites: List[str] = []
+            for x in evidence:
+                pi = int(x.get("page_index", -1))
+                ctx = self._layout_context.get(pi, {})
+                for label, _ in ctx.get("figures", []):
+                    ft_cites.append(label)
+                for label, _ in ctx.get("tables", []):
+                    ft_cites.append(label)
+            citations = page_cites + list(dict.fromkeys(ft_cites))
 
         return QAResult(
             question=question,
