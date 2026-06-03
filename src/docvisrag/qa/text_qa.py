@@ -83,36 +83,79 @@ class TextDocQAEngine:
         """
         return parse_citations(citation_text)
 
+    @staticmethod
+    def _is_english(text: str) -> bool:
+        ascii_chars = sum(1 for c in text if c.isascii() and c.isalpha())
+        return ascii_chars > len(text) * 0.3
+
     def _build_prompt(self, question: str, chunks: List[Dict[str, Any]]) -> str:
-        lines = [
-            "你是文档问答助手。",
-            "你只能依据给定的 OCR 文本片段回答。",
-            "如果证据不足，回答“文档中未找到明确依据”。",
-            "必须输出：",
-            "答案：",
-            "依据：",
-            "引用：",
-            "不确定性：",
-            make_citation_instruction(),
-            "",
-            f"用户问题：{question.strip()}",
-            "",
-            "候选文本片段：",
-        ]
-        for i, chunk in enumerate(chunks, start=1):
-            page = chunk.get("page_index", -1)
-            text = chunk.get("text", "")
-            score = chunk.get("score", 0.0)
-            lines.append(f"[片段 {i}] 第 {page} 页 (分数: {score:.4f})")
-            lines.append(f"内容：{text}")
-            # 附加版面分析的图/表上下文
-            ft_lines = build_figure_table_context_lines(
-                page_index=int(page) if page is not None else -1,
-                context=self._layout_context,
-            )
-            for ft_line in ft_lines:
-                lines.append(ft_line)
-            lines.append("")
+        eng = self._is_english(question)
+
+        if eng:
+            lines = [
+                "You are a document QA assistant.",
+                "Answer questions based ONLY on the provided OCR text fragments.",
+                "If evidence is insufficient, answer: \"Not enough evidence.\"",
+                "",
+                "IMPORTANT: Provide a SHORT, CONCISE answer (1-5 words for factual questions).",
+                "If the question asks for a number, color, name, date, or single fact, just output that value.",
+                "",
+                "You MUST output in this format:",
+                "Answer: <your short answer>",
+                "Evidence: <source>",
+                "Citation: Page X",
+                "Uncertainty: <low|medium|high>",
+                make_citation_instruction(),
+                "",
+                f"Question: {question.strip()}",
+                "",
+                "Relevant text fragments:",
+            ]
+            for i, chunk in enumerate(chunks, start=1):
+                page = chunk.get("page_index", -1)
+                text = chunk.get("text", "")
+                score = chunk.get("score", 0.0)
+                lines.append(f"[Fragment {i}] Page {page} (score: {score:.4f})")
+                lines.append(f"Content: {text}")
+                ft_lines = build_figure_table_context_lines(
+                    page_index=int(page) if page is not None else -1,
+                    context=self._layout_context,
+                )
+                for ft_line in ft_lines:
+                    lines.append(ft_line)
+                lines.append("")
+        else:
+            lines = [
+                "你是文档问答助手。",
+                "你只能依据给定的 OCR 文本片段回答。",
+                "如果证据不足，回答'文档中未找到明确依据'。",
+                "",
+                "注意：请给出简短精炼的答案。事实性问题直接输出答案即可。",
+                "",
+                "必须输出：",
+                "答案：<简短答案>",
+                "依据：<证据来源>",
+                "引用：第 X 页",
+                "不确定性：<低|中|高>",
+                make_citation_instruction(),
+                "",
+                f"用户问题：{question.strip()}",
+                "",
+                "候选文本片段：",
+            ]
+            for i, chunk in enumerate(chunks, start=1):
+                page = chunk.get("page_index", -1)
+                text = chunk.get("text", "")
+                score = chunk.get("score", 0.0)
+                lines.append(f"[片段 {i}] 第 {page} 页 (分数: {score:.4f})")
+                lines.append(f"内容：{text}")
+                ft_lines = build_figure_table_context_lines(
+                    page_index=int(page) if page is not None else -1,
+                    context=self._layout_context,
+                )
+                for ft_line in ft_lines:
+                    lines.append(ft_line)
+                lines.append("")
         return "\n".join(lines).strip()
 
     def _retrieve(self, question: str) -> List[Dict[str, Any]]:

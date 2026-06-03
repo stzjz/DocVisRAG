@@ -53,8 +53,8 @@ def summarize_page_with_vlm(
     model_id: str | None = None,
     load_in_4bit: bool = False,
 ) -> str:
-    model = model_id or "Qwen/Qwen2.5-VL-3B-Instruct"
-    client = QwenVLClient(model_id=model, load_in_4bit=load_in_4bit)
+    model = model_id or "Qwen/Qwen2.5-VL-7B-Instruct"
+    client = QwenVLClient(model_id=model, load_in_4bit=load_in_4bit, max_pixels=1003520)
     question = f"{SUMMARY_PROMPT}\n当前是第 {page_index} 页。"
     summary = client.answer_image(image_path=image_path, question=question, max_new_tokens=320)
     return _normalize_summary(summary)
@@ -70,8 +70,8 @@ def build_page_summaries(
     out_file = Path(output_jsonl)
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
-    model = model_id or "Qwen/Qwen2.5-VL-3B-Instruct"
-    client = QwenVLClient(model_id=model, load_in_4bit=load_in_4bit)
+    model = model_id or "Qwen/Qwen2.5-VL-7B-Instruct"
+    client = QwenVLClient(model_id=model, load_in_4bit=load_in_4bit, max_pixels=1003520)
 
     with out_file.open("w", encoding="utf-8") as f:
         for page in pages:

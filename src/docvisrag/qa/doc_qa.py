@@ -64,7 +64,7 @@ class DocQAEngine:
             self.visual_index = VisualPageIndex.load(vdir)
 
         self.vlm = QwenVLClient(
-            model_id=model_id or "Qwen/Qwen2.5-VL-3B-Instruct",
+            model_id=model_id or "Qwen/Qwen2.5-VL-7B-Instruct",
             load_in_4bit=load_in_4bit,
         )
 
@@ -166,7 +166,11 @@ class DocQAEngine:
     def _extract_section(text: str, section_name: str) -> str:
         if not text:
             return ""
-        markers = [f"{section_name}：", f"{section_name}:"]
+        # Support both Chinese and English markers
+        markers = [
+            f"{section_name}：", f"{section_name}:",
+            f"{section_name} ",  # Space-separated English
+        ]
         start = -1
         marker_len = 0
         for marker in markers:
@@ -178,8 +182,13 @@ class DocQAEngine:
         if start < 0:
             return ""
 
-        tail = text[start + marker_len :]
-        next_keys = ["\n答案：", "\n依据：", "\n引用：", "\n不确定性：", "\n答案:", "\n依据:", "\n引用:", "\n不确定性:"]
+        tail = text[start + marker_len:]
+        next_keys = [
+            "\n答案：", "\n答案:", "\nAnswer:", "\nanswer:",
+            "\n依据：", "\n依据:", "\nEvidence:", "\nevidence:",
+            "\n引用：", "\n引用:", "\nCitation:", "\ncitation:",
+            "\n不确定性：", "\n不确定性:", "\nUncertainty:", "\nuncertainty:",
+        ]
         cut = len(tail)
         for key in next_keys:
             pos = tail.find(key)
@@ -195,38 +204,83 @@ class DocQAEngine:
         """
         return parse_citations(citation_text)
 
+    @staticmethod
+    def _is_english(text: str) -> bool:
+        """Detect if the question is primarily in English."""
+        ascii_chars = sum(1 for c in text if c.isascii() and c.isalpha())
+        return ascii_chars > len(text) * 0.3
+
     def _build_prompt(self, question: str, evidence: List[Dict]) -> str:
-        lines = [
-            "你是文档问答助手。",
-            "你只能依据给定页面图像、页面摘要和 OCR 文本回答。",
-            "如果证据不足，回答“文档中未找到明确依据”。",
-            "必须输出：",
-            "答案：",
-            "依据：",
-            "引用：",
-            "不确定性：",
-            make_citation_instruction(),
-            "",
-            f"用户问题：{question.strip()}",
-            "",
-            "候选证据：",
-        ]
-        for i, row in enumerate(evidence, start=1):
-            page_idx = int(row.get("page_index", -1))
-            lines.append(f"[证据 {i}] 第 {page_idx} 页")
-            lines.append(f"页面摘要：{row.get('summary', '')}")
-            lines.append(f"OCR文本：{row.get('ocr_text_preview', '')}")
+        eng = self._is_english(question)
 
-            # 附加版面分析的图/表上下文
-            ft_lines = build_figure_table_context_lines(
-                page_index=page_idx,
-                context=self._layout_context,
-            )
-            for ft_line in ft_lines:
-                lines.append(ft_line)
+        if eng:
+            lines = [
+                "You are a document QA assistant.",
+                "Answer questions based ONLY on the provided page images, summaries and OCR text.",
+                "If evidence is insufficient, answer: \"Not enough evidence in the document.\"",
+                "",
+                "IMPORTANT: Provide a SHORT, CONCISE answer (1-5 words for factual questions).",
+                "If the question asks for a number, color, name, date, or single fact, just output that value.",
+                "Do NOT output long explanations unless the question explicitly asks for one.",
+                "",
+                "You MUST output in this format:",
+                "Answer: <your short answer>",
+                "Evidence: <which page(s) support this>",
+                "Citation: Page X",
+                "Uncertainty: <low|medium|high>",
+                make_citation_instruction(),
+                "",
+                f"Question: {question.strip()}",
+                "",
+                "Evidence pages:",
+            ]
+            for i, row in enumerate(evidence, start=1):
+                page_idx = int(row.get("page_index", -1))
+                lines.append(f"[Page {page_idx}] Score: {row.get('score', 0.0):.3f}")
+                lines.append(f"Summary: {row.get('summary', '')}")
+                lines.append(f"OCR: {row.get('ocr_text_preview', '')}")
 
-            lines.append(f"检索分数：{row.get('score', 0.0):.4f}")
-            lines.append("")
+                ft_lines = build_figure_table_context_lines(
+                    page_index=page_idx,
+                    context=self._layout_context,
+                )
+                for ft_line in ft_lines:
+                    lines.append(ft_line)
+                lines.append("")
+        else:
+            lines = [
+                "你是文档问答助手。",
+                "你只能依据给定页面图像、页面摘要和 OCR 文本回答。",
+                "如果证据不足，回答'文档中未找到明确依据'。",
+                "",
+                "注意：请给出简短精炼的答案。如果问题是事实性问题（数字、名称、日期等），直接输出答案，不要长篇解释。",
+                "",
+                "必须输出：",
+                "答案：<简短答案>",
+                "依据：<证据来源>",
+                "引用：第 X 页",
+                "不确定性：<低|中|高>",
+                make_citation_instruction(),
+                "",
+                f"用户问题：{question.strip()}",
+                "",
+                "候选证据：",
+            ]
+            for i, row in enumerate(evidence, start=1):
+                page_idx = int(row.get("page_index", -1))
+                lines.append(f"[证据 {i}] 第 {page_idx} 页")
+                lines.append(f"页面摘要：{row.get('summary', '')}")
+                lines.append(f"OCR文本：{row.get('ocr_text_preview', '')}")
+
+                ft_lines = build_figure_table_context_lines(
+                    page_index=page_idx,
+                    context=self._layout_context,
+                )
+                for ft_line in ft_lines:
+                    lines.append(ft_line)
+
+                lines.append(f"检索分数：{row.get('score', 0.0):.4f}")
+                lines.append("")
         return "\n".join(lines).strip()
 
     def answer(self, question: str) -> QAResult:
