@@ -381,7 +381,9 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
     )
 
     if args.retriever_type == "text":
-        # 纯文本基线：仅构建 text index，跳过摘要和 hybrid index
+        cmd_summary = [sys.executable, "scripts/ingest/build_page_summaries.py", "--manifest", str(manifest_src), "--out", str(summaries_jsonl)]
+        if args.summary_model_id: cmd_summary += ["--model-id", args.summary_model_id]
+        _run_cmd(cmd_summary, log_file)
         _run_cmd(
             [
                 sys.executable,
@@ -395,6 +397,8 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
             ],
             log_file,
         )
+        bm25_index_dir = inter_dir / "bm25_index"
+        _run_cmd([sys.executable, "scripts/retrieve/build_bm25_index.py", "--ocr", str(ocr_jsonl), "--index-dir", str(bm25_index_dir)], log_file)
         eval_index_dir = str(text_index_dir)
     else:
         cmd_summary = [
@@ -409,6 +413,8 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
             cmd_summary += ["--model-id", args.summary_model_id]
         _run_cmd(cmd_summary, log_file)
 
+        _run_cmd([sys.executable, "scripts/retrieve/build_text_index.py", "--ocr", str(ocr_jsonl), "--index-dir", str(text_index_dir), "--model-name", args.index_model_name], log_file)
+        _run_cmd([sys.executable, "scripts/retrieve/build_bm25_index.py", "--ocr", str(ocr_jsonl), "--index-dir", str(inter_dir / "bm25_index")], log_file)
         _run_cmd(
             [
                 sys.executable,

@@ -23,6 +23,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--layout", default=None,
         help="可选 layout JSONL 路径（用于图/表编号引用）。",
     )
+    parser.add_argument("--manifest", default=None, help="可选 manifest.json 路径。")
+    parser.add_argument("--summaries", default=None, help="可选 page_summaries.jsonl 路径。")
     return parser
 
 
@@ -35,6 +37,8 @@ def main() -> int:
             top_k=args.top_k,
             load_in_4bit=args.load_in_4bit,
             layout_jsonl=args.layout,
+            manifest_path=args.manifest,
+            summary_jsonl=args.summaries,
         )
         engine.max_new_tokens = args.max_new_tokens
         result = engine.answer(args.question)
