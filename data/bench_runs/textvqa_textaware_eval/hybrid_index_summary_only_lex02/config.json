@@ -1,0 +1,8 @@
+{
+  "model_name": "BAAI/bge-small-zh-v1.5",
+  "dimension": 512,
+  "metric": "cosine_ip",
+  "num_pages": 64,
+  "text_mode": "summary_only",
+  "lexical_weight": 0.2
+}

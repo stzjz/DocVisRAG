@@ -1,0 +1,13 @@
+{
+  "num_questions": 10,
+  "retriever_type": "text",
+  "em": 0.0,
+  "f1": 0.0,
+  "anls": 0.0,
+  "recall@3": 0.9,
+  "citation_accuracy": 0.9,
+  "avg_latency_seconds": 5.7511,
+  "questions": "data/bench/docvqa_small/questions.jsonl",
+  "index_dir": "data/bench_runs/textaware_docvqa_eval/text_index",
+  "predictions": "data/bench_runs/textaware_docvqa_eval/qa_text_qwen3vl4b_limit10.jsonl"
+}

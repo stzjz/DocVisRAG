@@ -19,7 +19,14 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.docvisrag.eval import citation_accuracy, exact_match, mrr, ndcg_at_k, recall_at_k, simple_anls, token_f1
 from src.docvisrag.qa import DocQAEngine, TextDocQAEngine
-from src.docvisrag.retrieve import HybridPageIndex, TextIndex, VisualPageIndex, reciprocal_rank_fusion
+from src.docvisrag.retrieve import (
+    HybridPageIndex,
+    TextIndex,
+    VisualPageIndex,
+    reciprocal_rank_fusion,
+    text_chunks_to_page_results,
+    weighted_reciprocal_rank_fusion,
+)
 
 
 def _load_questions(path: str) -> List[Dict[str, Any]]:
@@ -100,7 +107,7 @@ def run_retrieval_comparison(
         row: Dict[str, Any] = {"id": q.get("id", ""), "question": question, "gold_pages": gold_pages}
 
         # --- text retrieval ---
-        text_chunks = text_index.search(question, top_k=max(10, top_k * 2))
+        text_chunks = text_index.search(question, top_k=max(50, top_k * 6))
         text_results = _dedup_pages(text_chunks)
         text_pages = [r["page_index"] for r in text_results[:top_k]]
         row["text_pages"] = text_pages
@@ -128,7 +135,22 @@ def run_retrieval_comparison(
             modes["visual"]["mrr"].append(mrr(visual_pages_raw[:top_k], gold_pages))
             modes["visual"]["ndcg5"].append(ndcg_at_k(visual_pages_raw[:top_k], gold_pages, 5))
 
-            fusion_results = reciprocal_rank_fusion(hybrid_results, visual_raw, top_k=top_k)
+            text_page_results = text_chunks_to_page_results(text_chunks, top_k=max(10, top_k * 2))
+            hybrid_by_page = {
+                (str(r.get("doc_id", "")), int(r.get("page_index", -1))): r
+                for r in hybrid_results
+            }
+            for page_row in text_page_results:
+                hrow = hybrid_by_page.get((str(page_row.get("doc_id", "")), int(page_row.get("page_index", -1))))
+                if hrow:
+                    for field in ["image_path", "summary", "ocr_text_preview"]:
+                        if not page_row.get(field) and hrow.get(field):
+                            page_row[field] = hrow.get(field)
+            fusion_results = weighted_reciprocal_rank_fusion(
+                {"text": text_page_results, "hybrid": hybrid_results, "visual": visual_raw},
+                weights={"text": 2.0, "hybrid": 0.3, "visual": 0.1},
+                top_k=top_k,
+            )
             fusion_pages = [int(r.get("page_index", -1)) for r in fusion_results]
             row["fusion_pages"] = fusion_pages
             for k, key in [(1, "r1"), (3, "r3"), (5, "r5")]:
@@ -358,6 +380,7 @@ def main() -> int:
             load_in_4bit=args.load_in_4bit,
             retriever_type=args.multimodal_type,
             visual_index_dir=args.visual_index_dir,
+            text_index_dir=args.text_index_dir if args.multimodal_type == "fusion" else None,
         )
 
         print("Running QA comparison...")

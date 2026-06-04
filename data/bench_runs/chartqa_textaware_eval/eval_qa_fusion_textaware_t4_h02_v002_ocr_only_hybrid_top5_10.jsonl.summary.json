@@ -1,0 +1,23 @@
+{
+  "num_questions": 10,
+  "retriever_type": "fusion",
+  "em": 0.2,
+  "f1": 0.3522222222222222,
+  "anls": 0.31666666666666665,
+  "recall@3": 0.3,
+  "citation_accuracy": 0.4,
+  "avg_latency_seconds": 2.85,
+  "questions": "data/bench/chartqa_small/questions.jsonl",
+  "index_dir": "data/bench_runs/chartqa_textaware_eval/hybrid_index_tesseract_ocr_only",
+  "predictions": "data/bench_runs/chartqa_textaware_eval/eval_qa_fusion_textaware_t4_h02_v002_ocr_only_hybrid_top5_10.jsonl",
+  "fusion_weights": {
+    "text": 4.0,
+    "hybrid": 0.2,
+    "visual": 0.02
+  },
+  "fusion_candidate_depths": {
+    "text": 50,
+    "hybrid": 10,
+    "visual": 10
+  }
+}
