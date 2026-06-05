@@ -99,6 +99,29 @@ python scripts/bench/run_benchmark_suite.py \
 
 如果新版 fusion 在 text 类问题上接近 text，并在 table/chart/layout 上超过 text，说明优化方向正确。
 
+
+## 2026-06-05 三数据集重跑汇总
+
+合并远端 `dev-next` 后，重新使用现有 100 题 small benchmark 和已构建索引跑了 DocVQA、ChartQA、TextVQA 的 `text / hybrid / fusion` 检索对比。输出统一放在 `data/bench_runs/rerun_20260605/`。
+
+| 数据集 | 模式 | 配置 | R@1 | R@3 | R@5 | MRR | NDCG@5 | 输出文件 |
+|---|---|---|---:|---:|---:|---:|---:|---|
+| DocVQA | text | OCR chunk text index | 0.4700 | 0.7100 | 0.8200 | 0.6156 | 0.6627 | `rerun_20260605/docvqa/eval_retrieval_text.json` |
+| DocVQA | hybrid | OCR-only + lexical=0.2 | 0.6600 | 0.7900 | 0.8300 | 0.7354 | 0.7549 | `rerun_20260605/docvqa/eval_retrieval_hybrid_ocr_only_lex02.json` |
+| DocVQA | fusion | text=0.2, hybrid=5.0, visual=0.01 | 0.6600 | 0.8000 | 0.8400 | 0.7404 | 0.7625 | `rerun_20260605/docvqa/eval_retrieval_fusion_t02_h5_v001_ocr_only_lex02.json` |
+| ChartQA | text | tesseract OCR text index | 0.1600 | 0.2600 | 0.4300 | 0.2478 | 0.2863 | `rerun_20260605/chartqa/eval_retrieval_text_tesseract.json` |
+| ChartQA | hybrid | OCR-only + lexical=0.2 | 0.2300 | 0.4100 | 0.4800 | 0.3353 | 0.3619 | `rerun_20260605/chartqa/eval_retrieval_hybrid_ocr_only_lex02.json` |
+| ChartQA | fusion | text=1.0, hybrid=5.0, visual=0.02 | 0.2500 | 0.3900 | 0.4800 | 0.3504 | 0.3723 | `rerun_20260605/chartqa/eval_retrieval_fusion_t1_h5_v002_ocr_only_lex02.json` |
+| TextVQA | text | tesseract OCR text index | 0.0700 | 0.1300 | 0.1400 | 0.0975 | 0.1069 | `rerun_20260605/textvqa/eval_retrieval_text_tesseract.json` |
+| TextVQA | hybrid | summary+OCR + lexical=0.2 | 0.1900 | 0.2500 | 0.3600 | 0.2569 | 0.2687 | `rerun_20260605/textvqa/eval_retrieval_hybrid_summary_ocr_lex02.json` |
+| TextVQA | fusion | text=0.2, hybrid=5.0, visual=0.1 | 0.1200 | 0.2500 | 0.3400 | 0.2119 | 0.2272 | `rerun_20260605/textvqa/eval_retrieval_fusion_t02_h5_v01_summary_ocr_lex02.json` |
+
+重跑结论：
+
+- DocVQA：`fusion >= hybrid > text`。fusion 的 R@1 与 hybrid 打平，但 R@3/R@5/MRR/NDCG@5 更高。
+- ChartQA：按 R@1/MRR/NDCG@5 看，`fusion > hybrid > text`；R@5 上 fusion 与 hybrid 打平。
+- TextVQA：当前仍是 `hybrid > fusion > text` 或 `hybrid > text`，不能作为 fusion 优于 hybrid 的证据。主要问题是 tesseract 对自然图片文字漏检明显，visual 分支也偏弱。
+
 ## 本次 DocVQA small 实测
 
 环境：`docvisrag` conda 环境，DocVQA validation 前 100 个问题，26 张唯一页面。检索评估使用 `retrieval-top-k=10`，QA 小样本使用本地缓存 `Qwen/Qwen3-VL-4B-Instruct`、前 10 题、`qa-top-k=5`、`max_new_tokens=128`。
