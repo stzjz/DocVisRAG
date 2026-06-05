@@ -5,14 +5,14 @@ import sys
 import time
 from pathlib import Path
 from statistics import mean
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.docvisrag.eval import citation_accuracy, exact_match, recall_at_k, simple_anls, token_f1
+from src.docvisrag.eval import citation_accuracy, exact_match, recall_at_k, relaxed_accuracy, simple_anls, token_f1
 from src.docvisrag.qa import DocQAEngine, TextDocQAEngine
 
 
@@ -98,6 +98,24 @@ def main() -> int:
         print("[ERROR] No valid questions to evaluate.")
         return 1
 
+    manifest_path = None
+    summary_jsonl = None
+    text_index_dir = None
+    if questions:
+        first_doc = questions[0].get("doc_path", "")
+        if first_doc and Path(first_doc).exists():
+            manifest_path = first_doc
+        else:
+            idx_parent = Path(args.index_dir).resolve().parent
+            for cand in ["manifest.json", "manifest.snapshot.json"]:
+                candidate = idx_parent.parent / cand
+                if candidate.exists(): manifest_path = str(candidate); break
+        for sc in [Path(manifest_path).parent / "page_summaries.jsonl" if manifest_path else None,
+                    Path(args.index_dir).resolve().parent / "page_summaries.jsonl"]:
+            if sc and sc.exists(): summary_jsonl = str(sc); break
+        tc = Path(args.index_dir).resolve().parent / "text_index"
+        if tc.exists(): text_index_dir = str(tc)
+
     try:
         if args.retriever_type == "text":
             engine = TextDocQAEngine(
@@ -105,6 +123,8 @@ def main() -> int:
                 model_id=args.model_id,
                 top_k=args.top_k,
                 load_in_4bit=args.load_in_4bit,
+                manifest_path=manifest_path,
+                summary_jsonl=summary_jsonl,
             )
         else:
             engine = DocQAEngine(
@@ -114,6 +134,9 @@ def main() -> int:
                 load_in_4bit=args.load_in_4bit,
                 retriever_type=args.retriever_type,
                 visual_index_dir=args.visual_index_dir,
+                text_index_dir=text_index_dir,
+                manifest_path=manifest_path,
+                summary_jsonl=summary_jsonl,
             )
         engine.max_new_tokens = args.max_new_tokens
     except Exception as exc:  # noqa: BLE001
@@ -126,6 +149,7 @@ def main() -> int:
     ems: List[float] = []
     f1s: List[float] = []
     anls_scores: List[float] = []
+    relaxed_accs: List[float] = []
     recall3: List[float] = []
     citation_accs: List[float] = []
     latencies: List[float] = []
@@ -158,12 +182,14 @@ def main() -> int:
             em = exact_match(pred_answer, gold_answer)
             f1 = token_f1(pred_answer, gold_answer)
             anls = simple_anls(pred_answer, gold_answer)
+            relaxed = relaxed_accuracy(pred_answer, gold_answer)
             r3 = recall_at_k(evidence_pages, gold_pages, 3) if gold_pages else 0.0
             cite_acc = citation_accuracy(citation_pages, gold_pages) if gold_pages else 0.0
 
             ems.append(em)
             f1s.append(f1)
             anls_scores.append(anls)
+            relaxed_accs.append(relaxed)
             recall3.append(r3)
             citation_accs.append(cite_acc)
             latencies.append(latency_seconds)
@@ -183,6 +209,7 @@ def main() -> int:
                 "em": em,
                 "f1": f1,
                 "anls": anls,
+                "relaxed_accuracy": relaxed,
                 "recall@3": r3,
                 "citation_accuracy": cite_acc,
                 "latency_seconds": latency_seconds,
@@ -197,6 +224,7 @@ def main() -> int:
         "em": _avg(ems),
         "f1": _avg(f1s),
         "anls": _avg(anls_scores),
+        "relaxed_accuracy": _avg(relaxed_accs),
         "recall@3": _avg(recall3),
         "citation_accuracy": _avg(citation_accs),
         "avg_latency_seconds": _avg(latencies),
