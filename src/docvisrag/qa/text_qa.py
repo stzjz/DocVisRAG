@@ -1,5 +1,7 @@
+import json
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from src.docvisrag.qa.citation_utils import (
@@ -29,6 +31,8 @@ class TextDocQAEngine:
         top_k: int = 5,
         load_in_4bit: bool = False,
         layout_jsonl: str | None = None,
+        manifest_path: str | None = None,
+        summary_jsonl: str | None = None,
     ) -> None:
         if top_k <= 0:
             raise ValueError(f"top_k must be > 0, got {top_k}")
@@ -37,13 +41,70 @@ class TextDocQAEngine:
         self.max_new_tokens = 512
 
         self.text_index = TextIndex.load(index_dir)
-        self.llm = QwenVLClient(
-            model_id=model_id or "Qwen/Qwen2.5-VL-3B-Instruct",
+        self.vlm = QwenVLClient(
+            model_id=model_id or "Qwen/Qwen2.5-VL-7B-Instruct",
             load_in_4bit=load_in_4bit,
         )
 
         # 加载版面分析数据用于图/表引用
         self._layout_context = load_layout_context(layout_jsonl)
+
+        self._manifest_map = {}
+        if manifest_path:
+            self._load_manifest(manifest_path)
+        self._page_summaries = {}
+        if summary_jsonl:
+            self._load_summaries(summary_jsonl)
+
+
+    def _load_manifest(self, manifest_path):
+        import json
+        mf = Path(manifest_path).expanduser().resolve()
+        if not mf.exists(): return
+        data = json.loads(mf.read_text(encoding="utf-8"))
+        if not isinstance(data, list): return
+        for p in data:
+            if not isinstance(p, dict): continue
+            self._manifest_map[(str(p.get("doc_id","")), int(p.get("page_index",-1)))] = str(p.get("image_path",""))
+
+    def _load_summaries(self, path):
+        for row in self._load_jsonl(path):
+            key = (str(row.get("doc_id","")), int(row.get("page_index",-1)))
+            s = str(row.get("summary","")).strip()
+            if s: self._page_summaries[key] = s
+
+    @staticmethod
+    def _load_jsonl(path):
+        import json
+        rows = []
+        with Path(path).open("r",encoding="utf-8") as f:
+            for line in f:
+                if not line.strip(): continue
+                try: rows.append(json.loads(line))
+                except json.JSONDecodeError: continue
+        return rows
+
+    def _resolve_image_path(self, doc_id, page_index):
+        img = self._manifest_map.get((str(doc_id), int(page_index)), "")
+        if img and Path(img).exists(): return img
+        for (d,p), path in self._manifest_map.items():
+            if p == page_index and Path(path).exists(): return path
+        return ""
+
+    def _aggregate_to_pages(self, chunks, target_pages=5):
+        page_best = {}
+        for c in chunks:
+            key = (str(c.get("doc_id","")), int(c.get("page_index",-1)))
+            score = float(c.get("score",0.0))
+            if key not in page_best or score > page_best[key][0]:
+                page_best[key] = (score, [c])
+        ranked = sorted(page_best.items(), key=lambda kv: kv[1][0], reverse=True)
+        pages = []
+        for (doc_id, pi), (score, c_list) in ranked[:target_pages]:
+            ocr = " ".join(str(c.get("text","")) for c in c_list if str(c.get("text","")).strip())
+            img = self._resolve_image_path(doc_id, pi)
+            pages.append({"doc_id":doc_id,"page_index":pi,"score":score,"ocr_text_preview":ocr[:500],"image_path":img,"summary":self._page_summaries.get((doc_id,pi),"")})
+        return pages
 
     @staticmethod
     def _extract_section(text: str, section_name: str) -> str:
@@ -74,6 +135,25 @@ class TextDocQAEngine:
             if pos >= 0:
                 cut = min(cut, pos)
         return tail[:cut].strip()
+
+
+    @staticmethod
+    def _extract_short_answer(answer_text: str) -> str:
+        text = (answer_text or "").strip()
+        if not text: return ""
+        for marker in ["Answer:", "answer:", "答案：", "答案:"]:
+            pos = text.find(marker)
+            if pos >= 0:
+                after = text[pos + len(marker):]
+                line = after.split("\n")[0].strip()
+                if line: text = line; break
+        first_line = text.split("\n")[0].strip()
+        colon_match = re.match(r"^([A-Za-z\\u4e00-\\u9fff\\s]+):\s*(.+)", first_line)
+        if colon_match:
+            prefix, suffix = colon_match.group(1).strip(), colon_match.group(2).strip()
+            if len(prefix.split()) <= 5 and not any(c.isdigit() for c in prefix):
+                first_line = suffix
+        return first_line.strip()
 
     @staticmethod
     def _parse_citations(citation_text: str) -> List[str]:
@@ -159,7 +239,7 @@ class TextDocQAEngine:
         return "\n".join(lines).strip()
 
     def _retrieve(self, question: str) -> List[Dict[str, Any]]:
-        return self.text_index.search(question, top_k=self.top_k)
+        return self.text_index.search(question, top_k=max(self.top_k * 3, 15))
 
     def answer(self, question: str) -> TextQAResult:
         if not question or not question.strip():
@@ -167,18 +247,19 @@ class TextDocQAEngine:
 
         chunks = self._retrieve(question)
         if not chunks:
-            return TextQAResult(
-                question=question,
-                answer="文档中未找到明确依据",
-                evidence=[],
-                citations=[],
-                uncertainty="检索阶段未找到相关文本块",
-            )
+            return TextQAResult(question=question, answer="文档中未找到明确依据", evidence=[], citations=[], uncertainty="检索阶段未找到相关文本块")
 
-        prompt = self._build_prompt(question, chunks)
-        raw = self.llm.answer_text(question=prompt, max_new_tokens=self.max_new_tokens)
+        pages = self._aggregate_to_pages(chunks, target_pages=self.top_k)
+        image_paths = [p["image_path"] for p in pages if p.get("image_path") and Path(p["image_path"]).exists()]
+        prompt = self._build_prompt(question, pages)
+
+        if image_paths:
+            raw = self.vlm.answer_images(image_paths=image_paths, question=prompt, max_new_tokens=self.max_new_tokens)
+        else:
+            raw = self.vlm.answer_text(question=prompt, max_new_tokens=self.max_new_tokens)
 
         answer_text = self._extract_section(raw, "答案") or raw.strip()
+        short_answer = self._extract_short_answer(answer_text)
         evidence_text = self._extract_section(raw, "依据")
         citation_text = self._extract_section(raw, "引用")
         uncertainty_text = self._extract_section(raw, "不确定性")
@@ -200,15 +281,17 @@ class TextDocQAEngine:
 
         return TextQAResult(
             question=question,
-            answer=answer_text,
+            answer=short_answer,
             evidence=[
                 {
-                    "page_index": int(c.get("page_index", -1)),
-                    "text": c.get("text", ""),
-                    "score": float(c.get("score", 0.0)),
+                    "page_index": int(p.get("page_index", -1)),
+                    "text": p.get("ocr_text_preview", ""),
+                    "summary": p.get("summary", ""),
+                    "image_path": p.get("image_path", ""),
+                    "score": float(p.get("score", 0.0)),
                     "model_evidence": evidence_text,
                 }
-                for c in chunks
+                for p in pages
             ],
             citations=citations,
             uncertainty=uncertainty_text or "未说明",

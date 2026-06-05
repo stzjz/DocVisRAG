@@ -11,6 +11,7 @@ from src.docvisrag.qa.citation_utils import (
 )
 from src.docvisrag.retrieve import (
     HybridPageIndex,
+    TextIndex,
     VisualPageIndex,
     reciprocal_rank_fusion,
 )
@@ -36,6 +37,9 @@ class DocQAEngine:
         retriever_type: str = "hybrid",
         visual_index_dir: str | None = None,
         layout_jsonl: str | None = None,
+        text_index_dir: str | None = None,
+        manifest_path: str | None = None,
+        summary_jsonl: str | None = None,
     ) -> None:
         if top_k <= 0:
             raise ValueError(f"top_k must be > 0, got {top_k}")
@@ -51,15 +55,35 @@ class DocQAEngine:
         self.visual_index_dir = visual_index_dir
         self.hybrid_index: Optional[HybridPageIndex] = None
         self.visual_index: Optional[VisualPageIndex] = None
+        self.text_index: Optional[TextIndex] = None
+        self._use_text_index = False
+        if text_index_dir:
+            try:
+                self.text_index = TextIndex.load(text_index_dir)
+                self._use_text_index = True
+            except Exception:
+                pass
+        self._manifest_map = {}
+        if manifest_path:
+            self._load_manifest(manifest_path)
+        self._page_summaries = {}
+        if summary_jsonl:
+            self._load_summaries(summary_jsonl)
 
         if retriever_type == "hybrid":
-            self.hybrid_index = HybridPageIndex.load(index_dir)
+            if self._use_text_index:
+                self.hybrid_index = self._try_load_hybrid(index_dir)
+            else:
+                self.hybrid_index = HybridPageIndex.load(index_dir)
         elif retriever_type == "visual":
             self.hybrid_index = self._try_load_hybrid(index_dir)
             vdir = self._resolve_visual_index_dir(index_dir=index_dir, visual_index_dir=visual_index_dir)
             self.visual_index = VisualPageIndex.load(vdir)
         else:
-            self.hybrid_index = HybridPageIndex.load(index_dir)
+            if self._use_text_index:
+                self.hybrid_index = self._try_load_hybrid(index_dir)
+            else:
+                self.hybrid_index = HybridPageIndex.load(index_dir)
             vdir = self._resolve_visual_index_dir(index_dir=index_dir, visual_index_dir=visual_index_dir)
             self.visual_index = VisualPageIndex.load(vdir)
 
@@ -100,6 +124,57 @@ class DocQAEngine:
             "Please pass visual_index_dir explicitly when retriever_type is visual/fusion."
         )
 
+
+    def _load_manifest(self, manifest_path):
+        import json
+        mf = Path(manifest_path).expanduser().resolve()
+        if not mf.exists(): return
+        try: data = json.loads(mf.read_text(encoding="utf-8"))
+        except: return
+        if not isinstance(data, list): return
+        for p in data:
+            if not isinstance(p, dict): continue
+            self._manifest_map[(str(p.get("doc_id","")), int(p.get("page_index",-1)))] = str(p.get("image_path",""))
+
+    @staticmethod
+    def _load_jsonl(path):
+        import json
+        rows = []
+        with Path(path).open("r",encoding="utf-8") as f:
+            for line in f:
+                if not line.strip(): continue
+                try: rows.append(json.loads(line))
+                except: continue
+        return rows
+
+    def _load_summaries(self, path):
+        for row in self._load_jsonl(path):
+            key = (str(row.get("doc_id","")), int(row.get("page_index",-1)))
+            s = str(row.get("summary","")).strip()
+            if s: self._page_summaries[key] = s
+
+    @staticmethod
+    def _key(doc_id, page_index):
+        return (str(doc_id), int(page_index))
+
+    def _retrieve_text_chunks_and_aggregate(self, question):
+        assert self.text_index is not None
+        chunks = self.text_index.search(question, top_k=max(self.top_k * 4, 20))
+        page_best = {}
+        for c in chunks:
+            key = self._key(str(c.get("doc_id","")), int(c.get("page_index",-1)))
+            score = float(c.get("score",0.0))
+            if key not in page_best or score > page_best[key][0]:
+                page_best[key] = (score, [c])
+        ranked = sorted(page_best.items(), key=lambda kv: kv[1][0], reverse=True)
+        results = []
+        for (doc_id, pi), (score, c_list) in ranked[:self.top_k]:
+            ocr = " ".join(str(c.get("text","")) for c in c_list if str(c.get("text","")).strip())
+            summary = self._page_summaries.get((doc_id, pi), "")
+            img = self._manifest_map.get((doc_id, pi), "")
+            results.append({"doc_id":doc_id,"page_index":pi,"score":score,"image_path":img,"summary":summary,"ocr_text_preview":ocr[:500]})
+        return results
+
     @staticmethod
     def _result_key(row: Dict) -> Tuple[str, int]:
         return (Path(str(row.get("image_path", ""))).name, int(row.get("page_index", -1)))
@@ -126,6 +201,8 @@ class DocQAEngine:
         return enriched
 
     def _retrieve(self, question: str) -> List[Dict]:
+        if self.retriever_type == "hybrid" and self._use_text_index:
+            return self._retrieve_text_chunks_and_aggregate(question)
         if self.retriever_type == "hybrid":
             assert self.hybrid_index is not None
             return self.hybrid_index.search(question, top_k=self.top_k)
@@ -141,7 +218,13 @@ class DocQAEngine:
                     hybrid_for_enrich = []
             return self._enrich_visual_results(visual, hybrid_for_enrich)
 
-        assert self.hybrid_index is not None and self.visual_index is not None
+        assert self.visual_index is not None
+        if self._use_text_index and self.text_index is not None:
+            text_pages = self._retrieve_text_chunks_and_aggregate(question)
+            visual = self.visual_index.search(question, top_k=max(self.top_k * 2, 10))
+            visual = self._enrich_visual_results(visual, text_pages)
+            return reciprocal_rank_fusion(hybrid_results=text_pages, visual_results=visual, top_k=self.top_k)
+        assert self.hybrid_index is not None
         hybrid = self.hybrid_index.search(question, top_k=max(self.top_k * 2, 10))
         visual = self.visual_index.search(question, top_k=max(self.top_k * 2, 10))
         visual = self._enrich_visual_results(visual, hybrid)
@@ -195,6 +278,26 @@ class DocQAEngine:
             if pos >= 0:
                 cut = min(cut, pos)
         return tail[:cut].strip()
+
+
+    @staticmethod
+    def _extract_short_answer(answer_text):
+        text = (answer_text or "").strip()
+        if not text: return ""
+        for marker in ["Answer:", "answer:", "答案：", "答案:"]:
+            pos = text.find(marker)
+            if pos >= 0:
+                after = text[pos + len(marker):]
+                line = after.split("\n")[0].strip()
+                if line: text = line; break
+        first_line = text.split("\n")[0].strip()
+        import re
+        colon_match = re.match(r"^([A-Za-z\u4e00-\u9fff\s]+):\s*(.+)", first_line)
+        if colon_match:
+            prefix, suffix = colon_match.group(1).strip(), colon_match.group(2).strip()
+            if len(prefix.split()) <= 5 and not any(c.isdigit() for c in prefix):
+                first_line = suffix
+        return first_line.strip()
 
     @staticmethod
     def _parse_citations(citation_text: str) -> List[str]:
@@ -314,6 +417,7 @@ class DocQAEngine:
         )
 
         answer_text = self._extract_section(raw, "答案") or raw.strip()
+        short_answer = self._extract_short_answer(answer_text)
         evidence_text = self._extract_section(raw, "依据")
         citation_text = self._extract_section(raw, "引用")
         uncertainty_text = self._extract_section(raw, "不确定性")
@@ -336,7 +440,7 @@ class DocQAEngine:
 
         return QAResult(
             question=question,
-            answer=answer_text,
+            answer=short_answer,
             evidence=[
                 {
                     "page_index": int(x.get("page_index", -1)),

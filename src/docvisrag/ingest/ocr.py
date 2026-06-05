@@ -14,6 +14,56 @@ LOGGER = logging.getLogger(__name__)
 VALID_OCR_BACKENDS = {"auto", "paddle", "tesseract"}
 
 
+def _find_tesseract_binary() -> str | None:
+    """Auto-detect tesseract binary path, including conda envs."""
+    # 1. Check explicit path from env var
+    env_path = os.getenv("TESSERACT_CMD")
+    if env_path and Path(env_path).is_file():
+        return env_path
+
+    # 2. Check common conda environment paths
+    candidates = [
+        os.path.expanduser("~/tesseract_env/bin/tesseract"),
+    ]
+    # Also check any conda env named *tesseract*
+    for conda_root in [os.path.expanduser("~"), "/opt/anaconda3"]:
+        envs_dir = os.path.join(conda_root, "envs")
+        if os.path.isdir(envs_dir):
+            for env_name in os.listdir(envs_dir):
+                if "tesseract" in env_name.lower():
+                    candidates.append(os.path.join(envs_dir, env_name, "bin", "tesseract"))
+    # Also check conda prefix paths
+    for prefix_dir in [os.path.expanduser("~/tesseract_env")]:
+        candidates.append(os.path.join(prefix_dir, "bin", "tesseract"))
+
+    for candidate in candidates:
+        if Path(candidate).is_file():
+            return candidate
+
+    # 3. Fallback: check PATH via shutil
+    import shutil
+    which_result = shutil.which("tesseract")
+    if which_result:
+        return which_result
+
+    return None
+
+
+def _configure_tesseract():
+    """Ensure pytesseract knows where the tesseract binary is."""
+    try:
+        import pytesseract
+    except ImportError:
+        return  # pytesseract not installed, will fail later with clear error
+
+    binary = _find_tesseract_binary()
+    if binary:
+        pytesseract.pytesseract.tesseract_cmd = binary
+        LOGGER.info("Tesseract configured: %s", binary)
+    else:
+        LOGGER.warning("Tesseract binary not found. Install with: conda create -p ~/tesseract_env -c conda-forge tesseract")
+
+
 @dataclass
 class OCRBlock:
     doc_id: str
@@ -88,6 +138,7 @@ print(json.dumps(out, ensure_ascii=False))
 
 
 def _ocr_with_tesseract(image_path: str, page_index: int, doc_id: str) -> List[OCRBlock]:
+    _configure_tesseract()
     try:
         import pytesseract
         from pytesseract import Output

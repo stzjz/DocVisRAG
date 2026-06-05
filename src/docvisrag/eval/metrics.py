@@ -1,7 +1,7 @@
 ﻿import re
 import unicodedata
 from collections import Counter
-from typing import List
+from typing import List, Optional
 
 
 def _drop_punct(text: str) -> str:
@@ -138,3 +138,22 @@ def _log2(value: int) -> float:
     import math
 
     return math.log2(value)
+
+
+def _extract_numeric(text: str) -> Optional[float]:
+    cleaned = re.sub(r"[,%$€£¥]", "", (text or "").strip())
+    m = re.match(r"(\d+(?:\.\d+)?)\s*([mkbMKB])", cleaned.replace(" ", ""))
+    if m:
+        num, unit = float(m.group(1)), m.group(2).upper()
+        return num * (1000 if unit=="K" else 1_000_000 if unit=="M" else 1_000_000_000)
+    m = re.search(r"(\d+(?:\.\d+)?)", cleaned)
+    return float(m.group(1)) if m else None
+
+def relaxed_accuracy(pred: str, gold: str, tolerance: float = 0.05) -> float:
+    pred_num = _extract_numeric(pred)
+    gold_num = _extract_numeric(gold)
+    if pred_num is not None and gold_num is not None:
+        if gold_num == 0:
+            return 1.0 if pred_num == 0 else 0.0
+        return 1.0 if abs(pred_num - gold_num) / abs(gold_num) <= tolerance else 0.0
+    return exact_match(pred, gold)
