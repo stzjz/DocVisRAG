@@ -1,0 +1,23 @@
+{
+  "num_questions": 10,
+  "retriever_type": "hybrid",
+  "em": 0.3,
+  "f1": 0.39,
+  "anls": 0.35,
+  "recall@3": 0.2,
+  "citation_accuracy": 0.5,
+  "avg_latency_seconds": 2.3192,
+  "questions": "data/bench/chartqa_small/questions.jsonl",
+  "index_dir": "data/bench_runs/chartqa_textaware_eval/hybrid_index_tesseract_ocr_only_lex02",
+  "predictions": "data/bench_runs/chartqa_textaware_eval/eval_qa_hybrid_ocr_only_lex02_top5_10.jsonl",
+  "fusion_weights": {
+    "text": 2.0,
+    "hybrid": 0.3,
+    "visual": 0.1
+  },
+  "fusion_candidate_depths": {
+    "text": null,
+    "hybrid": null,
+    "visual": null
+  }
+}

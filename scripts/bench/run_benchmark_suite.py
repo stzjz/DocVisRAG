@@ -464,6 +464,8 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
     ]
     if args.retriever_type in {"visual", "fusion"}:
         cmd_eval_retrieval += ["--visual-index-dir", str(visual_index_dir)]
+    if args.retriever_type == "fusion":
+        cmd_eval_retrieval += ["--text-index-dir", str(text_index_dir)]
     _run_cmd(cmd_eval_retrieval, log_file)
 
     qa_success = True
@@ -486,6 +488,8 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
         ]
         if args.retriever_type in {"visual", "fusion"}:
             cmd_qa += ["--visual-index-dir", str(visual_index_dir)]
+        if args.retriever_type == "fusion":
+            cmd_qa += ["--text-index-dir", str(text_index_dir)]
         if args.qa_limit is not None:
             cmd_qa += ["--limit", str(args.qa_limit)]
         if args.qa_model_id:

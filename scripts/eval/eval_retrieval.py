@@ -12,7 +12,13 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.docvisrag.eval import mrr, ndcg_at_k, recall_at_k
-from src.docvisrag.retrieve import HybridPageIndex, TextIndex, VisualPageIndex, reciprocal_rank_fusion
+from src.docvisrag.retrieve import (
+    HybridPageIndex,
+    TextIndex,
+    VisualPageIndex,
+    text_chunks_to_page_results,
+    weighted_reciprocal_rank_fusion,
+)
 
 
 def _load_questions(path: str) -> List[Dict[str, Any]]:
@@ -72,8 +78,19 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional visual index directory for visual/fusion mode.",
     )
+    parser.add_argument(
+        "--text-index-dir",
+        default=None,
+        help="Optional text index directory for text-aware fusion mode.",
+    )
     parser.add_argument("--out", required=True, help="Output JSON path")
     parser.add_argument("--top-k", type=int, default=5, help="Retrieval top-k (default: 5)")
+    parser.add_argument("--fusion-text-weight", type=float, default=2.0, help="Text branch RRF weight for fusion.")
+    parser.add_argument("--fusion-hybrid-weight", type=float, default=0.3, help="Hybrid branch RRF weight for fusion.")
+    parser.add_argument("--fusion-visual-weight", type=float, default=0.1, help="Visual branch RRF weight for fusion.")
+    parser.add_argument("--fusion-text-candidates", type=int, default=None, help="Text branch candidate depth for fusion; defaults to max(50, top_k * 6).")
+    parser.add_argument("--fusion-hybrid-candidates", type=int, default=None, help="Hybrid branch candidate depth for fusion; defaults to max(20, top_k * 4).")
+    parser.add_argument("--fusion-visual-candidates", type=int, default=None, help="Visual branch candidate depth for fusion; defaults to max(20, top_k * 4).")
     return parser
 
 
@@ -91,6 +108,8 @@ def main() -> int:
             visual = VisualPageIndex.load(visual_dir)
         if retriever_type == "text":
             text_index = TextIndex.load(args.index_dir)
+        elif retriever_type == "fusion" and args.text_index_dir:
+            text_index = TextIndex.load(args.text_index_dir)
     except Exception as exc:  # noqa: BLE001
         print(f"[ERROR] Init retrieval evaluation failed: {exc}")
         return 1
@@ -133,9 +152,35 @@ def main() -> int:
                         results.append({"page_index": page, "score": c.get("score", 0.0)})
             else:
                 assert hybrid is not None and visual is not None
-                h = hybrid.search(question, top_k=max(10, args.top_k * 2))
-                v = visual.search(question, top_k=max(10, args.top_k * 2))
-                results = reciprocal_rank_fusion(h, v, top_k=max(5, args.top_k))
+                hybrid_candidate_k = args.fusion_hybrid_candidates or max(20, args.top_k * 4)
+                visual_candidate_k = args.fusion_visual_candidates or max(20, args.top_k * 4)
+                text_candidate_k = args.fusion_text_candidates or max(50, args.top_k * 6)
+                h = hybrid.search(question, top_k=hybrid_candidate_k)
+                v = visual.search(question, top_k=visual_candidate_k)
+                if text_index is not None:
+                    chunks = text_index.search(question, top_k=text_candidate_k)
+                    t = text_chunks_to_page_results(chunks, top_k=hybrid_candidate_k)
+                    hybrid_by_page = {
+                        (str(r.get("doc_id", "")), int(r.get("page_index", -1))): r
+                        for r in h
+                    }
+                    for page_row in t:
+                        hrow = hybrid_by_page.get((str(page_row.get("doc_id", "")), int(page_row.get("page_index", -1))))
+                        if hrow:
+                            for field in ["image_path", "summary", "ocr_text_preview"]:
+                                if not page_row.get(field) and hrow.get(field):
+                                    page_row[field] = hrow.get(field)
+                    results = weighted_reciprocal_rank_fusion(
+                        {"text": t, "hybrid": h, "visual": v},
+                        weights={"text": args.fusion_text_weight, "hybrid": args.fusion_hybrid_weight, "visual": args.fusion_visual_weight},
+                        top_k=max(5, args.top_k),
+                    )
+                else:
+                    results = weighted_reciprocal_rank_fusion(
+                        {"hybrid": h, "visual": v},
+                        weights={"hybrid": args.fusion_hybrid_weight, "visual": args.fusion_visual_weight},
+                        top_k=max(5, args.top_k),
+                    )
         except Exception as exc:  # noqa: BLE001
             print(f"[WARN] Retrieval failed for {qid}: {exc}")
             continue
@@ -196,6 +241,17 @@ def main() -> int:
         "index_dir": str(Path(args.index_dir).as_posix()),
         "retriever_type": retriever_type,
         "visual_index_dir": str(args.visual_index_dir) if args.visual_index_dir else None,
+        "text_index_dir": str(args.text_index_dir) if args.text_index_dir else None,
+        "fusion_weights": {
+            "text": args.fusion_text_weight,
+            "hybrid": args.fusion_hybrid_weight,
+            "visual": args.fusion_visual_weight,
+        },
+        "fusion_candidate_depths": {
+            "text": args.fusion_text_candidates,
+            "hybrid": args.fusion_hybrid_candidates,
+            "visual": args.fusion_visual_candidates,
+        },
         "overall": overall,
         "by_type": by_type,
         "details": details,

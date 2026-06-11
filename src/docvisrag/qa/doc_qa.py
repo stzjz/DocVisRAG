@@ -1,4 +1,4 @@
-﻿import re
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -14,6 +14,8 @@ from src.docvisrag.retrieve import (
     TextIndex,
     VisualPageIndex,
     reciprocal_rank_fusion,
+    text_chunks_to_page_results,
+    weighted_reciprocal_rank_fusion,
 )
 from src.docvisrag.vlm import QwenVLClient
 
@@ -38,6 +40,12 @@ class DocQAEngine:
         visual_index_dir: str | None = None,
         layout_jsonl: str | None = None,
         text_index_dir: str | None = None,
+        fusion_text_weight: float = 2.0,
+        fusion_hybrid_weight: float = 0.3,
+        fusion_visual_weight: float = 0.1,
+        fusion_text_candidates: int | None = None,
+        fusion_hybrid_candidates: int | None = None,
+        fusion_visual_candidates: int | None = None,
         manifest_path: str | None = None,
         summary_jsonl: str | None = None,
     ) -> None:
@@ -53,6 +61,15 @@ class DocQAEngine:
         self.max_new_tokens = 512
         self.retriever_type = retriever_type
         self.visual_index_dir = visual_index_dir
+        self.text_index_dir = text_index_dir
+        self.fusion_weights = {
+            "text": float(fusion_text_weight),
+            "hybrid": float(fusion_hybrid_weight),
+            "visual": float(fusion_visual_weight),
+        }
+        self.fusion_text_candidates = fusion_text_candidates
+        self.fusion_hybrid_candidates = fusion_hybrid_candidates
+        self.fusion_visual_candidates = fusion_visual_candidates
         self.hybrid_index: Optional[HybridPageIndex] = None
         self.visual_index: Optional[VisualPageIndex] = None
         self.text_index: Optional[TextIndex] = None
@@ -86,6 +103,8 @@ class DocQAEngine:
                 self.hybrid_index = HybridPageIndex.load(index_dir)
             vdir = self._resolve_visual_index_dir(index_dir=index_dir, visual_index_dir=visual_index_dir)
             self.visual_index = VisualPageIndex.load(vdir)
+            if text_index_dir:
+                self.text_index = TextIndex.load(text_index_dir)
 
         self.vlm = QwenVLClient(
             model_id=model_id or "Qwen/Qwen2.5-VL-7B-Instruct",
@@ -180,6 +199,26 @@ class DocQAEngine:
         return (Path(str(row.get("image_path", ""))).name, int(row.get("page_index", -1)))
 
     @staticmethod
+    def _page_key(row: Dict) -> Tuple[str, int]:
+        return (str(row.get("doc_id", "")), int(row.get("page_index", -1)))
+
+    def _enrich_text_page_results(self, text_pages: List[Dict]) -> List[Dict]:
+        if self.hybrid_index is None:
+            return text_pages
+
+        by_page = {self._page_key(row): row for row in self.hybrid_index.metadata}
+        enriched: List[Dict] = []
+        for row in text_pages:
+            out = dict(row)
+            hrow = by_page.get(self._page_key(out))
+            if hrow:
+                for field in ["image_path", "summary", "ocr_text_preview", "doc_id"]:
+                    if not out.get(field) and hrow.get(field):
+                        out[field] = hrow.get(field)
+            enriched.append(out)
+        return enriched
+
+    @staticmethod
     def _enrich_visual_results(
         visual_results: List[Dict],
         hybrid_results: List[Dict],
@@ -204,8 +243,11 @@ class DocQAEngine:
         if self.retriever_type == "hybrid" and self._use_text_index:
             return self._retrieve_text_chunks_and_aggregate(question)
         if self.retriever_type == "hybrid":
-            assert self.hybrid_index is not None
-            return self.hybrid_index.search(question, top_k=self.top_k)
+            if self.hybrid_index is not None:
+                return self.hybrid_index.search(question, top_k=self.top_k)
+            if self._use_text_index:
+                return self._retrieve_text_chunks_and_aggregate(question)
+            raise RuntimeError("Hybrid retriever is unavailable.")
 
         if self.retriever_type == "visual":
             assert self.visual_index is not None
@@ -219,16 +261,42 @@ class DocQAEngine:
             return self._enrich_visual_results(visual, hybrid_for_enrich)
 
         assert self.visual_index is not None
-        if self._use_text_index and self.text_index is not None:
+        default_candidate_k = max(self.top_k * 4, 20)
+        hybrid_candidate_k = self.fusion_hybrid_candidates or default_candidate_k
+        visual_candidate_k = self.fusion_visual_candidates or default_candidate_k
+        page_candidate_k = max(hybrid_candidate_k, visual_candidate_k)
+        text_candidate_k = self.fusion_text_candidates or max(page_candidate_k * 3, 50)
+
+        visual = self.visual_index.search(question, top_k=visual_candidate_k)
+        if self.hybrid_index is None:
+            if not (self._use_text_index and self.text_index is not None):
+                raise RuntimeError("Fusion retriever requires a hybrid or text index.")
             text_pages = self._retrieve_text_chunks_and_aggregate(question)
-            visual = self.visual_index.search(question, top_k=max(self.top_k * 2, 10))
             visual = self._enrich_visual_results(visual, text_pages)
             return reciprocal_rank_fusion(hybrid_results=text_pages, visual_results=visual, top_k=self.top_k)
-        assert self.hybrid_index is not None
-        hybrid = self.hybrid_index.search(question, top_k=max(self.top_k * 2, 10))
-        visual = self.visual_index.search(question, top_k=max(self.top_k * 2, 10))
+
+        hybrid = self.hybrid_index.search(question, top_k=hybrid_candidate_k)
         visual = self._enrich_visual_results(visual, hybrid)
-        return reciprocal_rank_fusion(hybrid_results=hybrid, visual_results=visual, top_k=self.top_k)
+
+        if self.text_index is None:
+            return weighted_reciprocal_rank_fusion(
+                ranked_lists={"hybrid": hybrid, "visual": visual},
+                weights={"hybrid": self.fusion_weights["hybrid"], "visual": self.fusion_weights["visual"]},
+                top_k=self.top_k,
+            )
+
+        text_chunks = self.text_index.search(question, top_k=text_candidate_k)
+        text_pages = text_chunks_to_page_results(
+            text_chunks,
+            top_k=page_candidate_k,
+            max_snippets_per_page=3,
+        )
+        text_pages = self._enrich_text_page_results(text_pages)
+        return weighted_reciprocal_rank_fusion(
+            ranked_lists={"text": text_pages, "hybrid": hybrid, "visual": visual},
+            weights=self.fusion_weights,
+            top_k=self.top_k,
+        )
 
     def _resolve_image_path(self, image_path: str) -> str:
         img = Path(image_path)
@@ -249,19 +317,25 @@ class DocQAEngine:
     def _extract_section(text: str, section_name: str) -> str:
         if not text:
             return ""
-        # Support both Chinese and English markers
-        markers = [
-            f"{section_name}：", f"{section_name}:",
-            f"{section_name} ",  # Space-separated English
-        ]
+
+        aliases = {
+            "答案": ["答案", "Answer", "answer"],
+            "依据": ["依据", "Evidence", "evidence"],
+            "引用": ["引用", "Citation", "citation"],
+            "不确定性": ["不确定性", "Uncertainty", "uncertainty"],
+        }
+        names = aliases.get(section_name, [section_name])
+        markers = []
+        for name in names:
+            markers.extend([f"{name}：", f"{name}:", f"{name} "])
+
         start = -1
         marker_len = 0
         for marker in markers:
             pos = text.find(marker)
-            if pos >= 0:
+            if pos >= 0 and (start < 0 or pos < start):
                 start = pos
                 marker_len = len(marker)
-                break
         if start < 0:
             return ""
 
@@ -342,6 +416,10 @@ class DocQAEngine:
                 lines.append(f"[Page {page_idx}] Score: {row.get('score', 0.0):.3f}")
                 lines.append(f"Summary: {row.get('summary', '')}")
                 lines.append(f"OCR: {row.get('ocr_text_preview', '')}")
+                text_matches = row.get("text_matches", []) or []
+                for j, match in enumerate(text_matches, start=1):
+                    if isinstance(match, dict) and match.get("text"):
+                        lines.append(f"Matched OCR {j}: {match.get('text')}")
 
                 ft_lines = build_figure_table_context_lines(
                     page_index=page_idx,
@@ -374,6 +452,10 @@ class DocQAEngine:
                 lines.append(f"[证据 {i}] 第 {page_idx} 页")
                 lines.append(f"页面摘要：{row.get('summary', '')}")
                 lines.append(f"OCR文本：{row.get('ocr_text_preview', '')}")
+                text_matches = row.get("text_matches", []) or []
+                for j, match in enumerate(text_matches, start=1):
+                    if isinstance(match, dict) and match.get("text"):
+                        lines.append(f"OCR命中片段 {j}：{match.get('text')}")
 
                 ft_lines = build_figure_table_context_lines(
                     page_index=page_idx,

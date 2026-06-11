@@ -1,0 +1,13 @@
+{
+  "num_questions": 10,
+  "retriever_type": "hybrid",
+  "em": 0.5,
+  "f1": 0.9242424242424243,
+  "anls": 0.8233333333333334,
+  "recall@3": 1.0,
+  "citation_accuracy": 1.0,
+  "avg_latency_seconds": 9.3201,
+  "questions": "data/bench/docvqa_small/questions.jsonl",
+  "index_dir": "data/bench_runs/textaware_docvqa_eval/hybrid_index",
+  "predictions": "data/bench_runs/textaware_docvqa_eval/qa_hybrid_qwen3vl4b_limit10.jsonl"
+}

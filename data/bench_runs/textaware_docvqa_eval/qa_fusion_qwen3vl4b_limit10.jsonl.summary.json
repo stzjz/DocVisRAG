@@ -1,0 +1,13 @@
+{
+  "num_questions": 10,
+  "retriever_type": "fusion",
+  "em": 0.3,
+  "f1": 0.6575757575757576,
+  "anls": 0.6233333333333333,
+  "recall@3": 0.7,
+  "citation_accuracy": 0.7,
+  "avg_latency_seconds": 9.749600000000001,
+  "questions": "data/bench/docvqa_small/questions.jsonl",
+  "index_dir": "data/bench_runs/textaware_docvqa_eval/hybrid_index",
+  "predictions": "data/bench_runs/textaware_docvqa_eval/qa_fusion_qwen3vl4b_limit10.jsonl"
+}

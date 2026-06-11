@@ -1,0 +1,2537 @@
+{
+  "questions_file": "data/bench/textvqa_small/questions.jsonl",
+  "index_dir": "data/bench_runs/textvqa_textaware_eval/hybrid_index_summary_ocr_lex02",
+  "retriever_type": "fusion",
+  "visual_index_dir": "data/bench_runs/textvqa_textaware_eval/visual_index",
+  "text_index_dir": "data/bench_runs/textvqa_textaware_eval/text_index_tesseract",
+  "fusion_weights": {
+    "text": 0.2,
+    "hybrid": 5.0,
+    "visual": 0.1
+  },
+  "fusion_candidate_depths": {
+    "text": 50,
+    "hybrid": 10,
+    "visual": 10
+  },
+  "overall": {
+    "num_questions": 100,
+    "recall@1": 0.12,
+    "recall@3": 0.25,
+    "recall@5": 0.34,
+    "mrr": 0.2118531746031746,
+    "ndcg@5": 0.22723971534645865
+  },
+  "by_type": {
+    "text": {
+      "count": 100,
+      "recall@1": 0.12,
+      "recall@3": 0.25,
+      "recall@5": 0.34,
+      "mrr": 0.2118531746031746,
+      "ndcg@5": 0.22723971534645865
+    }
+  },
+  "details": [
+    {
+      "id": "34602",
+      "type": "text",
+      "question": "what is the brand of this camera?",
+      "gold_pages": [
+        1
+      ],
+      "retrieved_pages": [
+        1,
+        12,
+        63,
+        25,
+        55,
+        54,
+        46,
+        45,
+        34,
+        6
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "34603",
+      "type": "text",
+      "question": "what does the small white text spell?",
+      "gold_pages": [
+        2
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        60,
+        51,
+        12,
+        42,
+        3,
+        45,
+        23,
+        25
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34604",
+      "type": "text",
+      "question": "what kind of beer is this?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        21,
+        63,
+        55,
+        60,
+        24,
+        51,
+        54,
+        61,
+        38,
+        3
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34605",
+      "type": "text",
+      "question": "what brand liquor is on the right?",
+      "gold_pages": [
+        4
+      ],
+      "retrieved_pages": [
+        12,
+        63,
+        55,
+        3,
+        34,
+        54,
+        42,
+        25,
+        23,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34606",
+      "type": "text",
+      "question": "how long has the drink on the right been aged?",
+      "gold_pages": [
+        4
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        24,
+        3,
+        21,
+        42,
+        25,
+        45,
+        31,
+        54
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34607",
+      "type": "text",
+      "question": "what number is on the player's jersey?",
+      "gold_pages": [
+        5
+      ],
+      "retrieved_pages": [
+        61,
+        54,
+        37,
+        20,
+        5,
+        39,
+        27,
+        16,
+        12,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "34608",
+      "type": "text",
+      "question": "what is the time?",
+      "gold_pages": [
+        6
+      ],
+      "retrieved_pages": [
+        63,
+        59,
+        25,
+        54,
+        21,
+        44,
+        55,
+        46,
+        51,
+        24
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34609",
+      "type": "text",
+      "question": "what brand of watch is that?",
+      "gold_pages": [
+        6
+      ],
+      "retrieved_pages": [
+        6,
+        54,
+        55,
+        63,
+        25,
+        12,
+        21,
+        64,
+        45,
+        23
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "34610",
+      "type": "text",
+      "question": "who is at the center of all of this?",
+      "gold_pages": [
+        7
+      ],
+      "retrieved_pages": [
+        21,
+        55,
+        54,
+        16,
+        8,
+        63,
+        24,
+        61,
+        45,
+        7
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34611",
+      "type": "text",
+      "question": "who was the photographer?",
+      "gold_pages": [
+        8
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        38,
+        25,
+        7,
+        44,
+        8,
+        24,
+        2,
+        20
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.14285714285714285,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34612",
+      "type": "text",
+      "question": "are these switches on or off?",
+      "gold_pages": [
+        9
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        21,
+        59,
+        20,
+        25,
+        54,
+        39,
+        35,
+        1
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34613",
+      "type": "text",
+      "question": "what candy bar is down there on the bottom?",
+      "gold_pages": [
+        10
+      ],
+      "retrieved_pages": [
+        12,
+        45,
+        55,
+        63,
+        3,
+        54,
+        24,
+        16,
+        41,
+        57
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34614",
+      "type": "text",
+      "question": "what does the light sign read on the farthest right window?",
+      "gold_pages": [
+        11
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        25,
+        54,
+        42,
+        21,
+        12,
+        61,
+        46,
+        51
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34615",
+      "type": "text",
+      "question": "how much for a can of skoal?",
+      "gold_pages": [
+        11
+      ],
+      "retrieved_pages": [
+        55,
+        24,
+        63,
+        51,
+        48,
+        25,
+        54,
+        7,
+        59,
+        20
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34616",
+      "type": "text",
+      "question": "is this denny's?",
+      "gold_pages": [
+        12
+      ],
+      "retrieved_pages": [
+        21,
+        63,
+        12,
+        60,
+        45,
+        55,
+        42,
+        47,
+        53,
+        37
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "34617",
+      "type": "text",
+      "question": "what color are the letters on this sign?",
+      "gold_pages": [
+        12
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        21,
+        25,
+        26,
+        12,
+        45,
+        22,
+        47,
+        54
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34618",
+      "type": "text",
+      "question": "what brand is the bottle with red label?",
+      "gold_pages": [
+        13
+      ],
+      "retrieved_pages": [
+        63,
+        3,
+        12,
+        55,
+        53,
+        45,
+        23,
+        54,
+        57,
+        51
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34619",
+      "type": "text",
+      "question": "how many percent is shown on the poster?",
+      "gold_pages": [
+        14
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        25,
+        24,
+        21,
+        54,
+        48,
+        7,
+        51,
+        8
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34620",
+      "type": "text",
+      "question": "how many items can you get for $5?",
+      "gold_pages": [
+        15
+      ],
+      "retrieved_pages": [
+        36,
+        48,
+        55,
+        57,
+        14,
+        11,
+        25,
+        45,
+        63,
+        56
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34621",
+      "type": "text",
+      "question": "how man price tags are on the bottom shelf?",
+      "gold_pages": [
+        15
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        12,
+        3,
+        54,
+        51,
+        23,
+        45,
+        31,
+        24
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34622",
+      "type": "text",
+      "question": "what is one of the brands being advertised?",
+      "gold_pages": [
+        16
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        12,
+        45,
+        46,
+        54,
+        42,
+        24,
+        25,
+        3
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34623",
+      "type": "text",
+      "question": "what year was this taken?",
+      "gold_pages": [
+        17
+      ],
+      "retrieved_pages": [
+        21,
+        63,
+        47,
+        44,
+        51,
+        55,
+        54,
+        25,
+        24,
+        3
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34624",
+      "type": "text",
+      "question": "what kind of comupter is this?",
+      "gold_pages": [
+        18
+      ],
+      "retrieved_pages": [
+        55,
+        21,
+        51,
+        60,
+        63,
+        24,
+        47,
+        35,
+        49,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34625",
+      "type": "text",
+      "question": "what does the screen say to do?",
+      "gold_pages": [
+        18
+      ],
+      "retrieved_pages": [
+        25,
+        63,
+        55,
+        12,
+        18,
+        54,
+        51,
+        59,
+        7,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "34626",
+      "type": "text",
+      "question": "what is written at the top of the yellow sticker on the fridge?",
+      "gold_pages": [
+        19
+      ],
+      "retrieved_pages": [
+        21,
+        63,
+        55,
+        53,
+        42,
+        12,
+        51,
+        26,
+        3,
+        24
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34627",
+      "type": "text",
+      "question": "what is the year on the calender?",
+      "gold_pages": [
+        19
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        44,
+        47,
+        26,
+        35,
+        45,
+        24,
+        20,
+        54
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34628",
+      "type": "text",
+      "question": "what is the name of the runner on the left?",
+      "gold_pages": [
+        20
+      ],
+      "retrieved_pages": [
+        63,
+        21,
+        61,
+        55,
+        42,
+        20,
+        24,
+        51,
+        54,
+        47
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34629",
+      "type": "text",
+      "question": "what event is this from?",
+      "gold_pages": [
+        20
+      ],
+      "retrieved_pages": [
+        21,
+        63,
+        25,
+        48,
+        54,
+        7,
+        47,
+        59,
+        51,
+        55
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34630",
+      "type": "text",
+      "question": "who beamed at him?",
+      "gold_pages": [
+        21
+      ],
+      "retrieved_pages": [
+        21,
+        63,
+        55,
+        48,
+        24,
+        35,
+        42,
+        8,
+        20,
+        54
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "34631",
+      "type": "text",
+      "question": "what is the name of this chapter?",
+      "gold_pages": [
+        21
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        21,
+        60,
+        42,
+        51,
+        24,
+        47,
+        45,
+        35
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "34632",
+      "type": "text",
+      "question": "who is the author of the book?",
+      "gold_pages": [
+        22
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        42,
+        60,
+        46,
+        51,
+        21,
+        24,
+        44,
+        35
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34633",
+      "type": "text",
+      "question": "are these bottles of pepsi?",
+      "gold_pages": [
+        23
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        60,
+        3,
+        21,
+        23,
+        53,
+        45,
+        24,
+        31
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34634",
+      "type": "text",
+      "question": "who edited the book?",
+      "gold_pages": [
+        24
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        60,
+        42,
+        51,
+        46,
+        24,
+        21,
+        44,
+        22
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.14285714285714285,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34635",
+      "type": "text",
+      "question": "what time is it?",
+      "gold_pages": [
+        25
+      ],
+      "retrieved_pages": [
+        21,
+        59,
+        25,
+        46,
+        63,
+        54,
+        28,
+        51,
+        44,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "34636",
+      "type": "text",
+      "question": "what is the screen name being displayed?",
+      "gold_pages": [
+        25
+      ],
+      "retrieved_pages": [
+        63,
+        18,
+        25,
+        55,
+        12,
+        51,
+        54,
+        61,
+        8,
+        1
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "34637",
+      "type": "text",
+      "question": "what does the picture say the other ride is?",
+      "gold_pages": [
+        26
+      ],
+      "retrieved_pages": [
+        26,
+        63,
+        21,
+        55,
+        24,
+        45,
+        39,
+        12,
+        49,
+        35
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "34638",
+      "type": "text",
+      "question": "whats the lowest number yard line that you can see?",
+      "gold_pages": [
+        27
+      ],
+      "retrieved_pages": [
+        63,
+        21,
+        55,
+        42,
+        24,
+        12,
+        51,
+        54,
+        25,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34639",
+      "type": "text",
+      "question": "what word is handwritten?",
+      "gold_pages": [
+        28
+      ],
+      "retrieved_pages": [
+        55,
+        51,
+        63,
+        21,
+        46,
+        25,
+        26,
+        24,
+        60,
+        47
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34640",
+      "type": "text",
+      "question": "what is the title of the book?",
+      "gold_pages": [
+        28
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        42,
+        51,
+        21,
+        60,
+        24,
+        46,
+        12,
+        44
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34641",
+      "type": "text",
+      "question": "what is the number of the runner in the lead right now?",
+      "gold_pages": [
+        29
+      ],
+      "retrieved_pages": [
+        42,
+        63,
+        61,
+        21,
+        20,
+        55,
+        54,
+        24,
+        29,
+        12
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34642",
+      "type": "text",
+      "question": "what is the number on the runner in middle?",
+      "gold_pages": [
+        29
+      ],
+      "retrieved_pages": [
+        63,
+        21,
+        24,
+        55,
+        20,
+        42,
+        48,
+        47,
+        61,
+        54
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34643",
+      "type": "text",
+      "question": "was the ruler made in 2002?",
+      "gold_pages": [
+        30
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        30,
+        42,
+        53,
+        3,
+        21,
+        24,
+        4,
+        41
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "34644",
+      "type": "text",
+      "question": "what is the largest measurement we can see on this ruler?",
+      "gold_pages": [
+        30
+      ],
+      "retrieved_pages": [
+        55,
+        35,
+        48,
+        51,
+        24,
+        21,
+        42,
+        63,
+        49,
+        25
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34645",
+      "type": "text",
+      "question": "what type of liquor is displayed?",
+      "gold_pages": [
+        31
+      ],
+      "retrieved_pages": [
+        55,
+        25,
+        63,
+        51,
+        54,
+        21,
+        12,
+        6,
+        61,
+        24
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34646",
+      "type": "text",
+      "question": "what is the name of the vodka?",
+      "gold_pages": [
+        31
+      ],
+      "retrieved_pages": [
+        21,
+        24,
+        31,
+        63,
+        55,
+        51,
+        47,
+        12,
+        35,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "34647",
+      "type": "text",
+      "question": "what are the brand of cigarettes?",
+      "gold_pages": [
+        32
+      ],
+      "retrieved_pages": [
+        63,
+        53,
+        55,
+        3,
+        12,
+        45,
+        54,
+        23,
+        64,
+        22
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34648",
+      "type": "text",
+      "question": "what is the gold coin worth?",
+      "gold_pages": [
+        33
+      ],
+      "retrieved_pages": [
+        3,
+        63,
+        55,
+        51,
+        24,
+        33,
+        42,
+        31,
+        54,
+        61
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34649",
+      "type": "text",
+      "question": "how much is the copper colored coin worth?",
+      "gold_pages": [
+        33
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        3,
+        60,
+        24,
+        53,
+        51,
+        26,
+        42,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34650",
+      "type": "text",
+      "question": "what word does the license plate say?",
+      "gold_pages": [
+        34
+      ],
+      "retrieved_pages": [
+        63,
+        51,
+        42,
+        47,
+        55,
+        24,
+        46,
+        7,
+        25,
+        39
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34651",
+      "type": "text",
+      "question": "what state is this car from?",
+      "gold_pages": [
+        34
+      ],
+      "retrieved_pages": [
+        34,
+        21,
+        52,
+        25,
+        51,
+        55,
+        47,
+        63,
+        3,
+        45
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "34652",
+      "type": "text",
+      "question": "what's the time next to domingo?",
+      "gold_pages": [
+        35
+      ],
+      "retrieved_pages": [
+        55,
+        54,
+        25,
+        63,
+        45,
+        51,
+        59,
+        44,
+        47,
+        24
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34653",
+      "type": "text",
+      "question": "what monetary value is the blue and purple bill?",
+      "gold_pages": [
+        36
+      ],
+      "retrieved_pages": [
+        42,
+        63,
+        21,
+        3,
+        55,
+        53,
+        12,
+        24,
+        36,
+        51
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34654",
+      "type": "text",
+      "question": "what is the word in blue buble bottom left?",
+      "gold_pages": [
+        36
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        24,
+        51,
+        42,
+        3,
+        12,
+        41,
+        61,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34655",
+      "type": "text",
+      "question": "what number is the player looking at the children?",
+      "gold_pages": [
+        37
+      ],
+      "retrieved_pages": [
+        37,
+        54,
+        39,
+        61,
+        63,
+        20,
+        5,
+        45,
+        27,
+        62
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "34656",
+      "type": "text",
+      "question": "who is one of the sponsors?",
+      "gold_pages": [
+        37
+      ],
+      "retrieved_pages": [
+        63,
+        21,
+        55,
+        60,
+        61,
+        24,
+        42,
+        51,
+        54,
+        35
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34657",
+      "type": "text",
+      "question": "what is written on the man's shirt?",
+      "gold_pages": [
+        38
+      ],
+      "retrieved_pages": [
+        63,
+        12,
+        55,
+        26,
+        38,
+        25,
+        21,
+        54,
+        24,
+        51
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "34658",
+      "type": "text",
+      "question": "what number is the player on the right?",
+      "gold_pages": [
+        39
+      ],
+      "retrieved_pages": [
+        54,
+        61,
+        20,
+        37,
+        16,
+        5,
+        39,
+        25,
+        27,
+        12
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.14285714285714285,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34659",
+      "type": "text",
+      "question": "what football league is the jacket from on the man pointing?",
+      "gold_pages": [
+        39
+      ],
+      "retrieved_pages": [
+        39,
+        61,
+        54,
+        5,
+        37,
+        27,
+        43,
+        16,
+        20,
+        12
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "34660",
+      "type": "text",
+      "question": "how much is the coin worth?",
+      "gold_pages": [
+        40
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        42,
+        24,
+        51,
+        46,
+        3,
+        60,
+        48,
+        28
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34661",
+      "type": "text",
+      "question": "what year is the coin?",
+      "gold_pages": [
+        40
+      ],
+      "retrieved_pages": [
+        63,
+        44,
+        55,
+        47,
+        3,
+        54,
+        42,
+        53,
+        45,
+        51
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34662",
+      "type": "text",
+      "question": "what is in the bottles?",
+      "gold_pages": [
+        41
+      ],
+      "retrieved_pages": [
+        63,
+        3,
+        21,
+        55,
+        53,
+        28,
+        51,
+        41,
+        45,
+        31
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.125,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34663",
+      "type": "text",
+      "question": "what is the brand of the bottled drink?",
+      "gold_pages": [
+        41
+      ],
+      "retrieved_pages": [
+        53,
+        3,
+        63,
+        31,
+        41,
+        45,
+        55,
+        12,
+        23,
+        57
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "34664",
+      "type": "text",
+      "question": "what is the date on the text?",
+      "gold_pages": [
+        42
+      ],
+      "retrieved_pages": [
+        63,
+        51,
+        55,
+        25,
+        46,
+        47,
+        21,
+        45,
+        44,
+        3
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34665",
+      "type": "text",
+      "question": "what player number is this football player?",
+      "gold_pages": [
+        43
+      ],
+      "retrieved_pages": [
+        54,
+        61,
+        39,
+        16,
+        37,
+        27,
+        20,
+        5,
+        62,
+        25
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34666",
+      "type": "text",
+      "question": "what color is the number 19 on the player's jersey?",
+      "gold_pages": [
+        43
+      ],
+      "retrieved_pages": [
+        37,
+        54,
+        20,
+        61,
+        43,
+        12,
+        27,
+        63,
+        39,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "34667",
+      "type": "text",
+      "question": "what company made most of these books?",
+      "gold_pages": [
+        44
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        60,
+        51,
+        12,
+        47,
+        24,
+        45,
+        3,
+        54
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34668",
+      "type": "text",
+      "question": "what volumes are the last two black  marvel books?",
+      "gold_pages": [
+        44
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        60,
+        22,
+        21,
+        44,
+        46,
+        51,
+        45,
+        24
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34669",
+      "type": "text",
+      "question": "what is being served?",
+      "gold_pages": [
+        45
+      ],
+      "retrieved_pages": [
+        63,
+        24,
+        21,
+        55,
+        51,
+        48,
+        28,
+        25,
+        46,
+        47
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34670",
+      "type": "text",
+      "question": "what brand of cocoa is it?",
+      "gold_pages": [
+        45
+      ],
+      "retrieved_pages": [
+        21,
+        12,
+        45,
+        55,
+        63,
+        57,
+        23,
+        53,
+        3,
+        54
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "34671",
+      "type": "text",
+      "question": "who wrote this book?",
+      "gold_pages": [
+        46
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        51,
+        21,
+        46,
+        60,
+        42,
+        24,
+        22,
+        44
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "34672",
+      "type": "text",
+      "question": "what does it say in the bottom right corner?",
+      "gold_pages": [
+        47
+      ],
+      "retrieved_pages": [
+        21,
+        63,
+        54,
+        42,
+        12,
+        16,
+        45,
+        55,
+        24,
+        8
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34673",
+      "type": "text",
+      "question": "who is this congratulations from?",
+      "gold_pages": [
+        47
+      ],
+      "retrieved_pages": [
+        47,
+        55,
+        21,
+        51,
+        63,
+        24,
+        42,
+        8,
+        48,
+        22
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "34674",
+      "type": "text",
+      "question": "what is the first name on this list?",
+      "gold_pages": [
+        48
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        21,
+        51,
+        47,
+        42,
+        25,
+        12,
+        45,
+        3
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34675",
+      "type": "text",
+      "question": "what name is next to number 5?",
+      "gold_pages": [
+        48
+      ],
+      "retrieved_pages": [
+        48,
+        47,
+        63,
+        25,
+        52,
+        55,
+        61,
+        12,
+        59,
+        51
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "34676",
+      "type": "text",
+      "question": "what is the 3 letter word to the left of casa in the text?",
+      "gold_pages": [
+        49
+      ],
+      "retrieved_pages": [
+        55,
+        60,
+        51,
+        63,
+        21,
+        47,
+        26,
+        46,
+        45,
+        12
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34677",
+      "type": "text",
+      "question": "what year was this made?",
+      "gold_pages": [
+        50
+      ],
+      "retrieved_pages": [
+        63,
+        21,
+        44,
+        51,
+        53,
+        55,
+        47,
+        45,
+        3,
+        54
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34678",
+      "type": "text",
+      "question": "is this a reference book?",
+      "gold_pages": [
+        51
+      ],
+      "retrieved_pages": [
+        55,
+        51,
+        21,
+        63,
+        46,
+        42,
+        24,
+        60,
+        25,
+        44
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "34679",
+      "type": "text",
+      "question": "what is the license plate number?",
+      "gold_pages": [
+        52
+      ],
+      "retrieved_pages": [
+        63,
+        47,
+        51,
+        42,
+        55,
+        48,
+        24,
+        12,
+        3,
+        30
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34680",
+      "type": "text",
+      "question": "what is the alcohol content?",
+      "gold_pages": [
+        53
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        25,
+        45,
+        3,
+        51,
+        46,
+        41,
+        24,
+        23
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34681",
+      "type": "text",
+      "question": "what is the name of this ale?",
+      "gold_pages": [
+        53
+      ],
+      "retrieved_pages": [
+        21,
+        55,
+        3,
+        63,
+        53,
+        51,
+        35,
+        45,
+        34,
+        24
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "34682",
+      "type": "text",
+      "question": "what is the beer brand front center?",
+      "gold_pages": [
+        54
+      ],
+      "retrieved_pages": [
+        16,
+        54,
+        12,
+        55,
+        45,
+        63,
+        34,
+        61,
+        24,
+        37
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "34683",
+      "type": "text",
+      "question": "what is the company name to the left of the coors logo?",
+      "gold_pages": [
+        54
+      ],
+      "retrieved_pages": [
+        54,
+        34,
+        12,
+        61,
+        45,
+        41,
+        3,
+        63,
+        64,
+        47
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "34684",
+      "type": "text",
+      "question": "who is usa today's bestselling author?",
+      "gold_pages": [
+        55
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        51,
+        42,
+        24,
+        60,
+        54,
+        46,
+        47,
+        61
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "34685",
+      "type": "text",
+      "question": "what is the name of this bestselling books?",
+      "gold_pages": [
+        55
+      ],
+      "retrieved_pages": [
+        55,
+        51,
+        63,
+        42,
+        60,
+        21,
+        24,
+        46,
+        47,
+        12
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "34686",
+      "type": "text",
+      "question": "what is this food place selling?",
+      "gold_pages": [
+        56
+      ],
+      "retrieved_pages": [
+        12,
+        63,
+        56,
+        51,
+        21,
+        54,
+        10,
+        32,
+        41,
+        35
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "34687",
+      "type": "text",
+      "question": "what is the top word on the sign on the left?",
+      "gold_pages": [
+        56
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        21,
+        47,
+        54,
+        25,
+        51,
+        61,
+        26,
+        12
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34688",
+      "type": "text",
+      "question": "what does his jacket say?",
+      "gold_pages": [
+        57
+      ],
+      "retrieved_pages": [
+        21,
+        63,
+        12,
+        42,
+        61,
+        54,
+        55,
+        37,
+        45,
+        24
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34689",
+      "type": "text",
+      "question": "what brand is in white letters with a red background?",
+      "gold_pages": [
+        57
+      ],
+      "retrieved_pages": [
+        63,
+        12,
+        55,
+        45,
+        3,
+        42,
+        54,
+        61,
+        34,
+        51
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34690",
+      "type": "text",
+      "question": "what brand of diaper area is this?",
+      "gold_pages": [
+        58
+      ],
+      "retrieved_pages": [
+        54,
+        12,
+        63,
+        34,
+        21,
+        3,
+        16,
+        55,
+        53,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34691",
+      "type": "text",
+      "question": "what animal is shown on the changing table?",
+      "gold_pages": [
+        58
+      ],
+      "retrieved_pages": [
+        63,
+        25,
+        45,
+        54,
+        24,
+        21,
+        55,
+        12,
+        2,
+        51
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34692",
+      "type": "text",
+      "question": "what time is it?",
+      "gold_pages": [
+        59
+      ],
+      "retrieved_pages": [
+        21,
+        59,
+        25,
+        46,
+        63,
+        54,
+        28,
+        51,
+        44,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "34693",
+      "type": "text",
+      "question": "what's the name of the book on the top of the pile?",
+      "gold_pages": [
+        60
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        24,
+        60,
+        42,
+        51,
+        21,
+        45,
+        22,
+        35
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "34694",
+      "type": "text",
+      "question": "what is the title of the green book that is second from the bottom?",
+      "gold_pages": [
+        60
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        21,
+        42,
+        51,
+        12,
+        60,
+        45,
+        24,
+        3
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.14285714285714285,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34695",
+      "type": "text",
+      "question": "what is the advertisement in the white board?",
+      "gold_pages": [
+        61
+      ],
+      "retrieved_pages": [
+        63,
+        55,
+        54,
+        12,
+        25,
+        61,
+        26,
+        39,
+        51,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34696",
+      "type": "text",
+      "question": "what is the number for southern homes?",
+      "gold_pages": [
+        61
+      ],
+      "retrieved_pages": [
+        55,
+        61,
+        42,
+        34,
+        63,
+        12,
+        47,
+        51,
+        35,
+        52
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "34697",
+      "type": "text",
+      "question": "what is the brand of the bass drum?",
+      "gold_pages": [
+        62
+      ],
+      "retrieved_pages": [
+        41,
+        3,
+        53,
+        54,
+        12,
+        55,
+        24,
+        63,
+        64,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34698",
+      "type": "text",
+      "question": "what is the name of this comic?",
+      "gold_pages": [
+        63
+      ],
+      "retrieved_pages": [
+        55,
+        21,
+        51,
+        63,
+        35,
+        60,
+        47,
+        45,
+        24,
+        61
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "34699",
+      "type": "text",
+      "question": "who wrote the novelet titled \"men must die\"?",
+      "gold_pages": [
+        63
+      ],
+      "retrieved_pages": [
+        55,
+        63,
+        42,
+        44,
+        24,
+        21,
+        46,
+        35,
+        25,
+        3
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "34700",
+      "type": "text",
+      "question": "what time is displayed on the clock?",
+      "gold_pages": [
+        64
+      ],
+      "retrieved_pages": [
+        25,
+        54,
+        59,
+        63,
+        21,
+        61,
+        44,
+        55,
+        6,
+        51
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "34701",
+      "type": "text",
+      "question": "what is this item in the middle?",
+      "gold_pages": [
+        64
+      ],
+      "retrieved_pages": [
+        63,
+        21,
+        55,
+        51,
+        42,
+        24,
+        45,
+        48,
+        25,
+        46
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    }
+  ]
+}

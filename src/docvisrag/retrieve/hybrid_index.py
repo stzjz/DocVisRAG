@@ -1,4 +1,5 @@
 ﻿import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -15,6 +16,8 @@ class _HybridConfig:
     dimension: int
     metric: str
     num_pages: int
+    text_mode: str = "summary_ocr"
+    lexical_weight: float = 0.0
 
 
 class HybridPageIndex(BaseRetriever):
@@ -23,6 +26,7 @@ class HybridPageIndex(BaseRetriever):
         self.index: Any = None
         self.metadata: List[Dict[str, Any]] = []
         self.model: Any = None
+        self.lexical_weight: float = 0.0
 
     @staticmethod
     def _normalize(vectors: np.ndarray) -> np.ndarray:
@@ -60,6 +64,29 @@ class HybridPageIndex(BaseRetriever):
     def _key(doc_id: str, page_index: int) -> Tuple[str, int]:
         return (str(doc_id), int(page_index))
 
+    @staticmethod
+    def _tokenize(text: str) -> List[str]:
+        stopwords = {
+            "the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "with",
+            "is", "are", "was", "were", "as", "by", "from", "what", "which", "who",
+            "how", "many", "much", "does", "do", "did", "has", "have", "had", "than",
+            "graph", "chart", "line", "bar", "value", "values", "highest", "lowest",
+        }
+        tokens = [t.lower() for t in re.findall(r"[A-Za-z0-9]+", text)]
+        return [t for t in tokens if len(t) >= 2 and t not in stopwords]
+
+    @classmethod
+    def _lexical_score(cls, query: str, text: str) -> float:
+        query_tokens = cls._tokenize(query)
+        if not query_tokens:
+            return 0.0
+        page_tokens = set(cls._tokenize(text))
+        if not page_tokens:
+            return 0.0
+        unique_query_tokens = set(query_tokens)
+        matched = sum(1 for token in unique_query_tokens if token in page_tokens)
+        return matched / max(1, len(unique_query_tokens))
+
     def build(
         self,
         manifest_path: str,
@@ -67,6 +94,8 @@ class HybridPageIndex(BaseRetriever):
         summary_jsonl: str,
         index_dir: str,
         model_name: str = "BAAI/bge-small-zh-v1.5",
+        text_mode: str = "summary_ocr",
+        lexical_weight: float = 0.0,
     ) -> None:
         try:
             import faiss
@@ -112,10 +141,21 @@ class HybridPageIndex(BaseRetriever):
             ocr_text = " ".join(ocr_by_page.get(key, []))
             ocr_preview = ocr_text[:300]
 
-            combined = (
-                f"页面摘要：{summary}\n"
-                f"页面OCR：{ocr_text}"
-            ).strip()
+            mode = (text_mode or "summary_ocr").strip().lower()
+            if mode == "ocr_summary":
+                combined = (
+                    f"Page OCR: {ocr_text}\n"
+                    f"Page summary: {summary}"
+                ).strip()
+            elif mode == "ocr_only":
+                combined = ocr_text.strip()
+            elif mode == "summary_only":
+                combined = summary.strip()
+            else:
+                combined = (
+                    f"页面摘要：{summary}\n"
+                    f"页面OCR：{ocr_text}"
+                ).strip()
             if not combined:
                 combined = f"第 {page.page_index} 页"
 
@@ -128,11 +168,13 @@ class HybridPageIndex(BaseRetriever):
                     "image_path": page.image_path,
                     "summary": summary,
                     "ocr_text_preview": ocr_preview,
+                    "search_text": combined,
                     "score": 0.0,
                 }
             )
 
         self.model_name = model_name
+        self.lexical_weight = float(lexical_weight or 0.0)
         self.model = self._load_model(model_name)
         embeddings = self.model.encode(page_texts, convert_to_numpy=True)
         embeddings = np.asarray(embeddings, dtype="float32")
@@ -155,6 +197,8 @@ class HybridPageIndex(BaseRetriever):
             dimension=dim,
             metric="cosine_ip",
             num_pages=len(metadata),
+            text_mode=(text_mode or "summary_ocr").strip().lower(),
+            lexical_weight=float(lexical_weight or 0.0),
         )
         with (out_dir / "config.json").open("w", encoding="utf-8") as f:
             json.dump(cfg.__dict__, f, ensure_ascii=False, indent=2)
@@ -185,6 +229,7 @@ class HybridPageIndex(BaseRetriever):
         instance.model_name = str(cfg.get("model_name", "BAAI/bge-small-zh-v1.5"))
         instance.index = faiss.read_index(str(index_file))
         instance.metadata = instance._load_jsonl(str(meta_file))
+        instance.lexical_weight = float(cfg.get("lexical_weight", 0.0) or 0.0)
         instance.model = instance._load_model(instance.model_name)
         return instance
 
@@ -200,7 +245,10 @@ class HybridPageIndex(BaseRetriever):
         q_emb = np.asarray(q_emb, dtype="float32")
         q_emb = self._normalize(q_emb)
 
-        k = min(top_k, len(self.metadata))
+        candidate_k = top_k
+        if self.lexical_weight > 0:
+            candidate_k = max(top_k, min(len(self.metadata), top_k * 5))
+        k = min(candidate_k, len(self.metadata))
         scores, ids = self.index.search(q_emb, k)
 
         results: List[Dict[str, Any]] = []
@@ -208,6 +256,15 @@ class HybridPageIndex(BaseRetriever):
             if idx < 0:
                 continue
             row = dict(self.metadata[int(idx)])
-            row["score"] = float(score)
+            dense_score = float(score)
+            lexical_score = 0.0
+            if self.lexical_weight > 0:
+                lexical_score = self._lexical_score(query, str(row.get("search_text", "")))
+            row["dense_score"] = dense_score
+            row["lexical_score"] = lexical_score
+            row["score"] = dense_score + (self.lexical_weight * lexical_score)
             results.append(row)
-        return results
+
+        if self.lexical_weight > 0:
+            results.sort(key=lambda row: float(row.get("score", 0.0)), reverse=True)
+        return results[:top_k]

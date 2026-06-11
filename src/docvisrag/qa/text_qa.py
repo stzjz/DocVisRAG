@@ -110,24 +110,34 @@ class TextDocQAEngine:
     def _extract_section(text: str, section_name: str) -> str:
         if not text:
             return ""
-        markers = [f"{section_name}：", f"{section_name}:"]
+
+        aliases = {
+            "答案": ["答案", "Answer", "answer"],
+            "依据": ["依据", "Evidence", "evidence"],
+            "引用": ["引用", "Citation", "citation"],
+            "不确定性": ["不确定性", "Uncertainty", "uncertainty"],
+        }
+        names = aliases.get(section_name, [section_name])
+        markers = []
+        for name in names:
+            markers.extend([f"{name}：", f"{name}:", f"{name} "])
+
         start = -1
         marker_len = 0
         for marker in markers:
             pos = text.find(marker)
-            if pos >= 0:
+            if pos >= 0 and (start < 0 or pos < start):
                 start = pos
                 marker_len = len(marker)
-                break
         if start < 0:
             return ""
 
         tail = text[start + marker_len:]
         next_keys = [
-            "\n答案：", "\n依据：",
-            "\n引用：", "\n不确定性：",
-            "\n答案:", "\n依据:",
-            "\n引用:", "\n不确定性:",
+            "\n答案：", "\n答案:", "\nAnswer:", "\nanswer:",
+            "\n依据：", "\n依据:", "\nEvidence:", "\nevidence:",
+            "\n引用：", "\n引用:", "\nCitation:", "\ncitation:",
+            "\n不确定性：", "\n不确定性:", "\nUncertainty:", "\nuncertainty:",
         ]
         cut = len(tail)
         for key in next_keys:

@@ -53,8 +53,8 @@ DocVisRAG 是一个面向复杂 PDF、扫描件、PPT 截图等文档的多模�
 | 错误分析 | ✅ | `make_error_analysis.py` 自动分类 |
 | 对比实验一键脚本 | ✅ | `compare_rag.py` + `run_benchmark_suite.py` |
 | DocVQA 评测 | ✅ | 已完成 100 题 benchmark 运行 |
-| ChartQA 评测 | ⬜ | 框架就绪，数据集待运行 |
-| TextVQA 评测 | ⬜ | 框架就绪，数据集待运行 |
+| ChartQA 评测 | 🔶 | 已完成 100 题 text/hybrid/visual/fusion 检索与前 10 题 QA sanity check；完整 QA 和 Relaxed Accuracy 待补 |
+| TextVQA 评测 | 🔶 | 已完成 100 题小样本检索诊断；QA 与更强 OCR 待补 |
 | 自建课程文档集 (60-120 QA) | ⬜ | 待创建 |
 | Relaxed Accuracy | ⬜ | 图表数值评测指标待实现 |
 | RAGAS / Faithfulness | ⬜ | 忠实度自动评测待引入 |
@@ -74,7 +74,7 @@ DocVisRAG 是一个面向复杂 PDF、扫描件、PPT 截图等文档的多模�
 
 ### 后续优先工作
 
-1. **P0** — 运行 ChartQA + TextVQA 完整评测，产出对比实验数据
+1. **P0** — 补齐 ChartQA 完整 QA 与 Relaxed Accuracy；补强 TextVQA OCR 后运行完整 QA
 2. **P0** — 创建自建课程文档集（8-12 份文档，60-120 条 QA）
 3. **P1** — 实现 Relaxed Accuracy 指标，补充 RAGAS 忠实度评测
 4. **P1** — 图号/表号引用增强（当前仅页码，缺少 "图 Y""表 Z" 格式）
@@ -619,6 +619,9 @@ python scripts/eval/eval_qa.py \
 ```
 
 ### 5b.4 纯文本 vs 多模态对比评测
+
+> DocVQA 上推荐使用 text-aware fusion 对比，详见 `docs/TEXT_AWARE_FUSION.md`。
+
 ```bash
 python scripts/bench/compare_rag.py \
   --questions eval/questions.example.jsonl \
@@ -825,7 +828,7 @@ suite 根目录包含：
 支持三种检索模式：
 - `hybrid`：主线模式，摘要 + OCR
 - `visual`：Byaldi/ColPali 页面视觉检索
-- `fusion`：hybrid + visual 的 RRF 融合排序，当前 Demo 默认使用
+- `fusion`：默认 hybrid + visual 的 RRF；传入 text index 后启用 text-aware fusion（text + hybrid + visual 加权 RRF），当前 Demo 默认使用
 
 ### 9.1 构建 visual index
 ```bash

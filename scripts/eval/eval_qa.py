@@ -73,12 +73,23 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional visual index directory for visual/fusion mode.",
     )
+    parser.add_argument(
+        "--text-index-dir",
+        default=None,
+        help="Optional text index directory for text-aware fusion mode.",
+    )
     parser.add_argument("--out", required=True, help="Output predictions jsonl path")
     parser.add_argument("--limit", type=int, default=None, help="Evaluate only first N samples")
     parser.add_argument("--top-k", type=int, default=3, help="Top-k pages for DocQA retrieval")
     parser.add_argument("--model-id", default=None, help="Optional model id override")
     parser.add_argument("--load-in-4bit", action="store_true", help="Enable 4-bit loading")
     parser.add_argument("--max-new-tokens", type=int, default=512, help="Max new tokens for generation")
+    parser.add_argument("--fusion-text-weight", type=float, default=2.0, help="Text branch RRF weight for fusion.")
+    parser.add_argument("--fusion-hybrid-weight", type=float, default=0.3, help="Hybrid branch RRF weight for fusion.")
+    parser.add_argument("--fusion-visual-weight", type=float, default=0.1, help="Visual branch RRF weight for fusion.")
+    parser.add_argument("--fusion-text-candidates", type=int, default=None, help="Text branch candidate depth for fusion.")
+    parser.add_argument("--fusion-hybrid-candidates", type=int, default=None, help="Hybrid branch candidate depth for fusion.")
+    parser.add_argument("--fusion-visual-candidates", type=int, default=None, help="Visual branch candidate depth for fusion.")
     return parser
 
 
@@ -134,7 +145,13 @@ def main() -> int:
                 load_in_4bit=args.load_in_4bit,
                 retriever_type=args.retriever_type,
                 visual_index_dir=args.visual_index_dir,
-                text_index_dir=text_index_dir,
+                text_index_dir=(args.text_index_dir or text_index_dir) if args.retriever_type == "fusion" else None,
+                fusion_text_weight=args.fusion_text_weight,
+                fusion_hybrid_weight=args.fusion_hybrid_weight,
+                fusion_visual_weight=args.fusion_visual_weight,
+                fusion_text_candidates=args.fusion_text_candidates,
+                fusion_hybrid_candidates=args.fusion_hybrid_candidates,
+                fusion_visual_candidates=args.fusion_visual_candidates,
                 manifest_path=manifest_path,
                 summary_jsonl=summary_jsonl,
             )
@@ -231,6 +248,16 @@ def main() -> int:
         "questions": str(Path(args.questions).as_posix()),
         "index_dir": str(Path(args.index_dir).as_posix()),
         "predictions": str(out_path.as_posix()),
+        "fusion_weights": {
+            "text": args.fusion_text_weight,
+            "hybrid": args.fusion_hybrid_weight,
+            "visual": args.fusion_visual_weight,
+        },
+        "fusion_candidate_depths": {
+            "text": args.fusion_text_candidates,
+            "hybrid": args.fusion_hybrid_candidates,
+            "visual": args.fusion_visual_candidates,
+        },
     }
 
     summary_path = out_path.with_suffix(out_path.suffix + ".summary.json")
