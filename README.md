@@ -171,8 +171,7 @@ DocVisRAG/
 │   ├── questions.example.jsonl     #   问题样例格式
 │   └── bench_suite.example.json    #   benchmark 套件定义
 ├── requirements-base.txt           # 核心依赖
-├── requirements-visual.txt         # 可选视觉检索依赖
-└── Dockerfile                      # Docker 构建（备用）
+└── requirements-visual.txt         # 可选视觉检索依赖
 ```
 
 ### 数据格式规范
@@ -206,7 +205,7 @@ DocVisRAG/
 
 | 特性 | text | hybrid | visual | fusion |
 |------|------|--------|--------|--------|
-| 检索单元 | OCR文本行 | 页面（摘要+OCR） | 页面图像 | 页面（hybrid+visual融合） |
+| 检索单元 | OCR文本行 | 页面（摘要+OCR） | 页面图像 | 页面（text+hybrid+visual 加权融合） |
 | 嵌入模型 | bge-small-zh | bge-small-zh | ColQwen2-V1.0 | 两者结合 |
 | 向量库 | FAISS·512d | FAISS·512d | Byaldi·多向量 | FAISS + Byaldi |
 | 需要GPU | 否 | 否 | 是 | 是 |
@@ -240,7 +239,7 @@ DocVisRAG/
 
 ## 1. 环境与虚拟环境
 
-推荐直接使用 `python -m venv` 安装和运行项目，不再依赖 Docker。
+当前服务器推荐使用已配置好的 conda 环境：`/data1/home/zengjian/miniconda3/envs/docvisrag`。
 
 ### 1.1 系统依赖
 Ubuntu 22.04 上建议先安装：
@@ -253,17 +252,15 @@ sudo apt-get install -y --no-install-recommends \
   build-essential git curl wget ca-certificates
 ```
 
-### 1.2 创建虚拟环境
+### 1.2 启用 conda 环境
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+cd /data1/home/zengjian/DocVisRAG
+source /data1/home/zengjian/miniconda3/bin/activate docvisrag
 python -m pip install --upgrade pip setuptools wheel
-python -m pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
-  --index-url https://download.pytorch.org/whl/cu124
 python -m pip install -r requirements-base.txt
 ```
 
-阶段 9 的 visual / fusion 检索依赖可选安装：
+阶段 9 的 visual / fusion 检索依赖可按需补装：
 
 ```bash
 python -m pip install -r requirements-visual.txt
@@ -674,7 +671,7 @@ python scripts/qa/doc_qa.py \
 - `--model-id`
 - `--load-in-4bit`
 - `--max-new-tokens`
-- `--retriever-type`（阶段9新增：`hybrid|visual|fusion|text`）
+- `--retriever-type`（阶段9新增：`hybrid|visual|fusion`）
 - `--visual-index-dir`（visual/fusion 时）
 
 注意：`text` 检索模式请使用专用脚本 `scripts/qa/text_qa.py`，它仅基于 OCR 文本无需页面图像。
@@ -823,54 +820,133 @@ suite 根目录包含：
 
 ---
 
-## 3. 阶段 9：可选增强（Visual / Fusion 检索）
+## 3. 阶段 9：可选增强（Visual / Text-aware Fusion 检索）
 
-支持三种检索模式：
-- `hybrid`：主线模式，摘要 + OCR
-- `visual`：Byaldi/ColPali 页面视觉检索
-- `fusion`：默认 hybrid + visual 的 RRF；传入 text index 后启用 text-aware fusion（text + hybrid + visual 加权 RRF），当前 Demo 默认使用
+支持三种多模态检索模式：
+- `hybrid`：页面级摘要 + OCR 检索，是无 visual 依赖时的主线模式。
+- `visual`：Byaldi/ColPali 页面视觉检索，用于图表、版面和视觉证据对照。
+- `fusion`：传入 `--text-index-dir` 后启用 text-aware fusion，将 OCR chunk 级 `text`、页面级 `hybrid`、页面视觉 `visual` 按加权 RRF 混合。
 
-### 9.1 构建 visual index
+当前推荐先做检索层消融，再做 QA 小样本验证。最新实验结论见 `docs/TEXT_AWARE_FUSION.md`。
+
+### 9.1 构建三路索引
 ```bash
+python scripts/retrieve/build_text_index.py \
+  --ocr data/outputs/demo_pages/ocr.jsonl \
+  --index-dir data/indexes/demo_text
+
+python scripts/retrieve/build_hybrid_index.py \
+  --manifest data/outputs/demo_pages/manifest.json \
+  --ocr data/outputs/demo_pages/ocr.jsonl \
+  --summaries data/outputs/demo_pages/page_summaries.jsonl \
+  --index-dir data/indexes/demo_hybrid \
+  --text-mode ocr_only \
+  --lexical-weight 0.2
+
 python scripts/retrieve/build_visual_index.py \
   --manifest data/outputs/demo_pages/manifest.json \
   --index-dir data/indexes/demo_visual
 ```
 
-### 9.2 visual 问答
+### 9.2 text / hybrid / fusion 单次问答
 ```bash
+# text 基线
+python scripts/qa/text_qa.py \
+  --index-dir data/indexes/demo_text \
+  --question "这个文档有多少张图片？" \
+  --top-k 5
+
+# hybrid 页面级问答
 python scripts/qa/doc_qa.py \
   --index-dir data/indexes/demo_hybrid \
-  --visual-index-dir data/indexes/demo_visual \
-  --retriever-type visual \
+  --retriever-type hybrid \
   --question "这个文档有多少张图片？" \
   --top-k 3
-```
 
-### 9.3 fusion 问答
-```bash
+# text-aware fusion: DocVQA 推荐 text=0.2, hybrid=5.0, visual=0.01
 python scripts/qa/doc_qa.py \
   --index-dir data/indexes/demo_hybrid \
   --visual-index-dir data/indexes/demo_visual \
+  --text-index-dir data/indexes/demo_text \
   --retriever-type fusion \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 0.01 \
+  --fusion-text-candidates 50 \
+  --fusion-hybrid-candidates 10 \
+  --fusion-visual-candidates 10 \
   --question "这个文档有多少张图片？" \
   --top-k 3
 ```
 
-### 9.4 benchmark 切换检索器
+### 9.3 benchmark 检索消融
+
+DocVQA 推荐配置：
 ```bash
 python scripts/bench/run_benchmark_suite.py \
-  --name docvqa_small \
+  --name docvqa_fusion_t02_h5_v001 \
   --manifest data/bench/docvqa_small/manifest.json \
   --questions data/bench/docvqa_small/questions.jsonl \
   --out-root data/bench_runs \
-  --retriever-type fusion
+  --retriever-type fusion \
+  --hybrid-text-mode ocr_only \
+  --hybrid-lexical-weight 0.2 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 0.01 \
+  --fusion-text-candidates 50 \
+  --fusion-hybrid-candidates 10 \
+  --fusion-visual-candidates 10 \
+  --retrieval-top-k 10 \
+  --skip-qa
+```
+
+ChartQA 推荐配置：
+```bash
+python scripts/bench/run_benchmark_suite.py \
+  --name chartqa_fusion_t1_h5_v002 \
+  --manifest data/bench/chartqa_small/manifest.json \
+  --questions data/bench/chartqa_small/questions.jsonl \
+  --out-root data/bench_runs \
+  --retriever-type fusion \
+  --hybrid-text-mode ocr_only \
+  --hybrid-lexical-weight 0.2 \
+  --fusion-text-weight 1.0 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 0.02 \
+  --fusion-text-candidates 50 \
+  --fusion-hybrid-candidates 10 \
+  --fusion-visual-candidates 10 \
+  --retrieval-top-k 10 \
+  --skip-qa
+```
+
+### 9.4 QA 小样本验证
+```bash
+python scripts/bench/run_benchmark_suite.py \
+  --name docvqa_fusion_t02_h5_v001_qa10 \
+  --manifest data/bench/docvqa_small/manifest.json \
+  --questions data/bench/docvqa_small/questions.jsonl \
+  --out-root data/bench_runs \
+  --retriever-type fusion \
+  --hybrid-text-mode ocr_only \
+  --hybrid-lexical-weight 0.2 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 0.01 \
+  --fusion-text-candidates 50 \
+  --fusion-hybrid-candidates 10 \
+  --fusion-visual-candidates 10 \
+  --qa-model-id Qwen/Qwen2.5-VL-3B-Instruct \
+  --qa-top-k 5 \
+  --qa-limit 10 \
+  --retrieval-top-k 10
 ```
 
 ### 9.5 纯文本基线 benchmark
 ```bash
 python scripts/bench/run_benchmark_suite.py \
-  --name docvqa_small \
+  --name docvqa_text \
   --manifest data/bench/docvqa_small/manifest.json \
   --questions data/bench/docvqa_small/questions.jsonl \
   --out-root data/bench_runs \
@@ -885,23 +961,14 @@ python scripts/bench/run_benchmark_suite.py \
 这是可选增强依赖冲突。先保证 hybrid 主线可用。
 
 建议：
-1. 把依赖版本固定到 Dockerfile / requirements 后重建镜像
-2. visual/fusion 仅用于对比实验时启用
+1. 先确认基础依赖和 `requirements-visual.txt` 已安装。
+2. visual/fusion 仅用于对比实验时启用。
 
 ### Q2：benchmark 数据集加载失败
 优先检查：
 - HF 镜像与网络
 - `datasets` 是否安装
 - split 是否正确（可尝试 `--split train`）
-
-### Q3：为什么推荐虚拟环境而不是 Docker
-当前项目主线已经支持直接使用 `python -m venv` 安装运行：
-
-- 环境更轻，便于调试和增量安装
-- 本地缓存和模型目录更容易复用
-- 文档里的命令可以直接在仓库根目录执行
-
-如果你仍然需要容器化部署，可以保留 Dockerfile 作为可选方案，但开发、调试和实验默认推荐虚拟环境。
 
 ---
 

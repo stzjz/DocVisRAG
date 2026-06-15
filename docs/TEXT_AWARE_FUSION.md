@@ -1,6 +1,18 @@
 # Text-aware Fusion Optimization
 
-本文记录 DocVQA 对比实验中 `text / hybrid / fusion` 三种模式的优化背景、代码改动和推荐评估方式。
+本文记录 DocVQA / ChartQA / TextVQA 对比实验中 `text / hybrid / fusion` 三种模式的优化背景、代码改动和推荐评估方式。当前结论以 2026-06-05 之后在本服务器上重跑的 text-aware fusion 实验为准。
+
+## 当前推荐配置
+
+Text-aware fusion 将 OCR chunk 级 `text`、页面级 `hybrid` 和页面视觉 `visual` 三路结果按加权 RRF 混合。最新小样本检索结果显示，DocVQA 和 ChartQA 更适合 hybrid-heavy 配置，而不是早期的 text-heavy 默认值。
+
+| 数据集 | 推荐权重 | 候选深度 | 结论 |
+|---|---|---|---|
+| DocVQA | `text=0.2, hybrid=5.0, visual=0.01` | `text=50, hybrid=10, visual=10` | `fusion >= hybrid > text`，fusion 在 R@3/R@5/MRR/NDCG@5 上更稳 |
+| ChartQA | `text=1.0, hybrid=5.0, visual=0.02` | `text=50, hybrid=10, visual=10` | `fusion > hybrid > text`，按 R@1/MRR/NDCG@5 看最优 |
+| TextVQA | 暂不推荐作为 fusion 正向证据 | 需重做 OCR/visual 分支 | 当前 `hybrid > fusion`，主要瓶颈是自然图片 OCR 漏检和 visual 分支偏弱 |
+
+推荐先用 `--skip-qa` 做检索层权重扫描，再用 `--qa-limit` 做小样本生成验证。README 和仓库根目录 `ins` 中给出了可直接运行的命令模板。
 
 ## 背景
 
@@ -16,7 +28,7 @@ DocVQA 的大量问题答案直接出现在 OCR 文本短片段中，例如数�
 
 ```text
 fusion = weighted_RRF(text_pages, hybrid_pages, visual_pages)
-DocVQA 推荐默认权重：text=2.0, hybrid=0.3, visual=0.1
+早期默认权重：text=2.0, hybrid=0.3, visual=0.1；最新推荐以文档开头的 hybrid-heavy 配置为准。
 ```
 
 同时新增 `text_chunks_to_page_results`，将 text chunk 检索结果聚合成 page-level 结果，并保留每页 top OCR 命中片段。这样 fusion 排名仍然是页面级，但不会丢失 text 的精细定位能力。
@@ -48,7 +60,7 @@ DocVQA 推荐默认权重：text=2.0, hybrid=0.3, visual=0.1
 - `scripts/bench/run_benchmark_suite.py`：一键 benchmark 的 fusion 模式自动传递 text index。
 - `scripts/bench/compare_rag.py`：对比脚本中的 fusion 检索和 QA 使用 text-aware fusion。
 
-## 推荐 DocVQA 三模式评估
+## 推荐三模式评估命令
 
 建议先固定同一批 DocVQA 问题和同一套 OCR/页面渲染产物，再分别跑三种模式。基础模型后续可以直接换 3B/4B 测试，但检索参数建议先固定：
 
@@ -75,15 +87,42 @@ python scripts/bench/run_benchmark_suite.py \
   --qa-top-k 5 \
   --retrieval-top-k 10
 
-# text-aware fusion
+# text-aware fusion: DocVQA 推荐权重，先只跑检索
 python scripts/bench/run_benchmark_suite.py \
-  --name docvqa_fusion_textaware \
+  --name docvqa_fusion_textaware_t02_h5_v001 \
   --manifest data/bench/docvqa_small/manifest.json \
   --questions data/bench/docvqa_small/questions.jsonl \
   --out-root data/bench_runs \
   --retriever-type fusion \
+  --hybrid-text-mode ocr_only \
+  --hybrid-lexical-weight 0.2 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 0.01 \
+  --fusion-text-candidates 50 \
+  --fusion-hybrid-candidates 10 \
+  --fusion-visual-candidates 10 \
+  --retrieval-top-k 10 \
+  --skip-qa
+
+# QA 小样本 sanity check
+python scripts/bench/run_benchmark_suite.py \
+  --name docvqa_fusion_textaware_t02_h5_v001_qa10 \
+  --manifest data/bench/docvqa_small/manifest.json \
+  --questions data/bench/docvqa_small/questions.jsonl \
+  --out-root data/bench_runs \
+  --retriever-type fusion \
+  --hybrid-text-mode ocr_only \
+  --hybrid-lexical-weight 0.2 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 0.01 \
+  --fusion-text-candidates 50 \
+  --fusion-hybrid-candidates 10 \
+  --fusion-visual-candidates 10 \
   --qa-model-id Qwen/Qwen2.5-VL-3B-Instruct \
   --qa-top-k 5 \
+  --qa-limit 10 \
   --retrieval-top-k 10
 ```
 

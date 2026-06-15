@@ -18,15 +18,6 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.docvisrag.eval import citation_accuracy, exact_match, mrr, ndcg_at_k, recall_at_k, simple_anls, token_f1
-from src.docvisrag.qa import DocQAEngine, TextDocQAEngine
-from src.docvisrag.retrieve import (
-    HybridPageIndex,
-    TextIndex,
-    VisualPageIndex,
-    reciprocal_rank_fusion,
-    text_chunks_to_page_results,
-    weighted_reciprocal_rank_fusion,
-)
 
 
 def _load_questions(path: str) -> List[Dict[str, Any]]:
@@ -83,10 +74,16 @@ def _extract_pages_from_citations(citations: List[str]) -> List[int]:
 
 def run_retrieval_comparison(
     questions: List[Dict],
-    text_index: TextIndex,
-    hybrid_index: HybridPageIndex,
-    visual_index: VisualPageIndex | None,
+    text_index: Any,
+    hybrid_index: Any,
+    visual_index: Any | None,
     top_k: int = 5,
+    fusion_text_weight: float = 2.0,
+    fusion_hybrid_weight: float = 0.3,
+    fusion_visual_weight: float = 0.1,
+    fusion_text_candidates: int | None = None,
+    fusion_hybrid_candidates: int | None = None,
+    fusion_visual_candidates: int | None = None,
 ) -> Dict[str, Any]:
     modes = {
         "text": {"r1": [], "r3": [], "r5": [], "mrr": [], "ndcg5": []},
@@ -106,8 +103,12 @@ def run_retrieval_comparison(
 
         row: Dict[str, Any] = {"id": q.get("id", ""), "question": question, "gold_pages": gold_pages}
 
+        text_candidate_k = fusion_text_candidates or max(50, top_k * 6)
+        hybrid_candidate_k = fusion_hybrid_candidates or top_k
+        visual_candidate_k = fusion_visual_candidates or max(10, top_k * 2)
+
         # --- text retrieval ---
-        text_chunks = text_index.search(question, top_k=max(50, top_k * 6))
+        text_chunks = text_index.search(question, top_k=text_candidate_k)
         text_results = _dedup_pages(text_chunks)
         text_pages = [r["page_index"] for r in text_results[:top_k]]
         row["text_pages"] = text_pages
@@ -117,7 +118,8 @@ def run_retrieval_comparison(
         modes["text"]["ndcg5"].append(ndcg_at_k(text_pages, gold_pages, 5))
 
         # --- hybrid retrieval ---
-        hybrid_results = hybrid_index.search(question, top_k=top_k)
+        hybrid_candidate_results = hybrid_index.search(question, top_k=max(top_k, hybrid_candidate_k))
+        hybrid_results = hybrid_candidate_results[:top_k]
         hybrid_pages = [int(r.get("page_index", -1)) for r in hybrid_results]
         row["hybrid_pages"] = hybrid_pages
         for k, key in [(1, "r1"), (3, "r3"), (5, "r5")]:
@@ -127,7 +129,7 @@ def run_retrieval_comparison(
 
         # --- visual / fusion ---
         if visual_index is not None:
-            visual_raw = visual_index.search(question, top_k=max(10, top_k * 2))
+            visual_raw = visual_index.search(question, top_k=visual_candidate_k)
             visual_pages_raw = [int(r.get("page_index", -1)) for r in visual_raw]
             row["visual_pages"] = visual_pages_raw[:top_k]
             for k, key in [(1, "r1"), (3, "r3"), (5, "r5")]:
@@ -135,10 +137,14 @@ def run_retrieval_comparison(
             modes["visual"]["mrr"].append(mrr(visual_pages_raw[:top_k], gold_pages))
             modes["visual"]["ndcg5"].append(ndcg_at_k(visual_pages_raw[:top_k], gold_pages, 5))
 
-            text_page_results = text_chunks_to_page_results(text_chunks, top_k=max(10, top_k * 2))
+            text_page_results = text_chunks_to_page_results(
+                text_chunks,
+                top_k=max(top_k, hybrid_candidate_k, visual_candidate_k),
+            )
+            fusion_hybrid_results = hybrid_candidate_results[:hybrid_candidate_k]
             hybrid_by_page = {
                 (str(r.get("doc_id", "")), int(r.get("page_index", -1))): r
-                for r in hybrid_results
+                for r in fusion_hybrid_results
             }
             for page_row in text_page_results:
                 hrow = hybrid_by_page.get((str(page_row.get("doc_id", "")), int(page_row.get("page_index", -1))))
@@ -147,8 +153,12 @@ def run_retrieval_comparison(
                         if not page_row.get(field) and hrow.get(field):
                             page_row[field] = hrow.get(field)
             fusion_results = weighted_reciprocal_rank_fusion(
-                {"text": text_page_results, "hybrid": hybrid_results, "visual": visual_raw},
-                weights={"text": 2.0, "hybrid": 0.3, "visual": 0.1},
+                {"text": text_page_results, "hybrid": fusion_hybrid_results, "visual": visual_raw},
+                weights={
+                    "text": fusion_text_weight,
+                    "hybrid": fusion_hybrid_weight,
+                    "visual": fusion_visual_weight,
+                },
                 top_k=top_k,
             )
             fusion_pages = [int(r.get("page_index", -1)) for r in fusion_results]
@@ -175,8 +185,8 @@ def run_retrieval_comparison(
 
 def run_qa_comparison(
     questions: List[Dict],
-    text_engine: TextDocQAEngine,
-    multimodal_engine: DocQAEngine,
+    text_engine: Any,
+    multimodal_engine: Any,
 ) -> Dict[str, Any]:
     modes = {
         "text": {"em": [], "f1": [], "anls": [], "r3": [], "cite_acc": [], "latency": []},
@@ -319,11 +329,38 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--load-in-4bit", action="store_true", help="启用 4-bit 模型加载。")
     parser.add_argument("--limit", type=int, default=None, help="仅评测前 N 条问题。")
     parser.add_argument("--skip-qa", action="store_true", help="跳过 QA 评测，仅做检索对比。")
+    parser.add_argument("--fusion-text-weight", type=float, default=2.0, help="Fusion text branch RRF weight.")
+    parser.add_argument("--fusion-hybrid-weight", type=float, default=0.3, help="Fusion hybrid branch RRF weight.")
+    parser.add_argument("--fusion-visual-weight", type=float, default=0.1, help="Fusion visual branch RRF weight.")
+    parser.add_argument("--fusion-text-candidates", type=int, default=None, help="Optional text branch candidate depth for fusion.")
+    parser.add_argument("--fusion-hybrid-candidates", type=int, default=None, help="Optional hybrid branch candidate depth for fusion.")
+    parser.add_argument("--fusion-visual-candidates", type=int, default=None, help="Optional visual branch candidate depth for fusion.")
     return parser
 
 
 def main() -> int:
     args = build_parser().parse_args()
+
+    from src.docvisrag.qa import DocQAEngine, TextDocQAEngine
+    from src.docvisrag.retrieve import (
+        HybridPageIndex,
+        TextIndex,
+        VisualPageIndex,
+        text_chunks_to_page_results,
+        weighted_reciprocal_rank_fusion,
+    )
+
+    globals().update(
+        {
+            "DocQAEngine": DocQAEngine,
+            "TextDocQAEngine": TextDocQAEngine,
+            "HybridPageIndex": HybridPageIndex,
+            "TextIndex": TextIndex,
+            "VisualPageIndex": VisualPageIndex,
+            "text_chunks_to_page_results": text_chunks_to_page_results,
+            "weighted_reciprocal_rank_fusion": weighted_reciprocal_rank_fusion,
+        }
+    )
 
     questions = _load_questions(args.questions)
     if not questions:
@@ -353,6 +390,12 @@ def main() -> int:
         hybrid_index=hybrid_index,
         visual_index=visual_index,
         top_k=args.top_k,
+        fusion_text_weight=args.fusion_text_weight,
+        fusion_hybrid_weight=args.fusion_hybrid_weight,
+        fusion_visual_weight=args.fusion_visual_weight,
+        fusion_text_candidates=args.fusion_text_candidates,
+        fusion_hybrid_candidates=args.fusion_hybrid_candidates,
+        fusion_visual_candidates=args.fusion_visual_candidates,
     )
     _print_retrieval_table(retrieval_result["summary"])
 
@@ -361,6 +404,14 @@ def main() -> int:
         "num_questions": len(questions),
         "retrieval": retrieval_result["summary"],
         "retrieval_details": retrieval_result["details"],
+        "fusion_config": {
+            "text_weight": args.fusion_text_weight,
+            "hybrid_weight": args.fusion_hybrid_weight,
+            "visual_weight": args.fusion_visual_weight,
+            "text_candidates": args.fusion_text_candidates,
+            "hybrid_candidates": args.fusion_hybrid_candidates,
+            "visual_candidates": args.fusion_visual_candidates,
+        },
     }
 
     if not args.skip_qa:
@@ -381,6 +432,12 @@ def main() -> int:
             retriever_type=args.multimodal_type,
             visual_index_dir=args.visual_index_dir,
             text_index_dir=args.text_index_dir if args.multimodal_type == "fusion" else None,
+            fusion_text_weight=args.fusion_text_weight,
+            fusion_hybrid_weight=args.fusion_hybrid_weight,
+            fusion_visual_weight=args.fusion_visual_weight,
+            fusion_text_candidates=args.fusion_text_candidates,
+            fusion_hybrid_candidates=args.fusion_hybrid_candidates,
+            fusion_visual_candidates=args.fusion_visual_candidates,
         )
 
         print("Running QA comparison...")
