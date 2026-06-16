@@ -1,0 +1,8 @@
+{
+  "benchmark": "homeworkqa_mc",
+  "source_questions": "data/bench_full/homeworkqa/questions.jsonl",
+  "num_questions": 160,
+  "min_choices": 4,
+  "max_choices": 6,
+  "seed": 20260615
+}

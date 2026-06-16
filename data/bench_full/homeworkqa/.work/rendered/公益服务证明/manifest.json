@@ -1,0 +1,10 @@
+[
+  {
+    "doc_id": "document-1a4add6c",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/公益服务证明.pdf",
+    "page_index": 1,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/公益服务证明/pages/page_001.png",
+    "width": 1488,
+    "height": 2105
+  }
+]

@@ -1,0 +1,410 @@
+[
+  {
+    "doc_id": "document-1a4add6c",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/公益服务证明.pdf",
+    "page_index": 1,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/公益服务证明/pages/page_001.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-ca0c15bb",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/圆顶.pdf",
+    "page_index": 1,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/圆顶/pages/page_001.png",
+    "width": 2400,
+    "height": 1350
+  },
+  {
+    "doc_id": "document-ca0c15bb",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/圆顶.pdf",
+    "page_index": 2,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/圆顶/pages/page_002.png",
+    "width": 2400,
+    "height": 1350
+  },
+  {
+    "doc_id": "document-ca0c15bb",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/圆顶.pdf",
+    "page_index": 3,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/圆顶/pages/page_003.png",
+    "width": 2400,
+    "height": 1350
+  },
+  {
+    "doc_id": "document-ca0c15bb",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/圆顶.pdf",
+    "page_index": 4,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/圆顶/pages/page_004.png",
+    "width": 2400,
+    "height": 1350
+  },
+  {
+    "doc_id": "document-ca0c15bb",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/圆顶.pdf",
+    "page_index": 5,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/圆顶/pages/page_005.png",
+    "width": 2400,
+    "height": 1350
+  },
+  {
+    "doc_id": "document-ca0c15bb",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/圆顶.pdf",
+    "page_index": 6,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/圆顶/pages/page_006.png",
+    "width": 2400,
+    "height": 1350
+  },
+  {
+    "doc_id": "document-ca0c15bb",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/圆顶.pdf",
+    "page_index": 7,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/圆顶/pages/page_007.png",
+    "width": 2400,
+    "height": 1350
+  },
+  {
+    "doc_id": "document-ca0c15bb",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/圆顶.pdf",
+    "page_index": 8,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/圆顶/pages/page_008.png",
+    "width": 2400,
+    "height": 1350
+  },
+  {
+    "doc_id": "document-0928199b",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/大学物理.pdf",
+    "page_index": 1,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/大学物理/pages/page_001.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-0928199b",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/大学物理.pdf",
+    "page_index": 2,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/大学物理/pages/page_002.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-0928199b",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/大学物理.pdf",
+    "page_index": 3,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/大学物理/pages/page_003.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-106dab10",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/大数据.pdf",
+    "page_index": 1,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/大数据/pages/page_001.png",
+    "width": 1490,
+    "height": 2108
+  },
+  {
+    "doc_id": "document-106dab10",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/大数据.pdf",
+    "page_index": 2,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/大数据/pages/page_002.png",
+    "width": 1490,
+    "height": 2108
+  },
+  {
+    "doc_id": "document-106dab10",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/大数据.pdf",
+    "page_index": 3,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/大数据/pages/page_003.png",
+    "width": 1490,
+    "height": 2108
+  },
+  {
+    "doc_id": "document-106dab10",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/大数据.pdf",
+    "page_index": 4,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/大数据/pages/page_004.png",
+    "width": 1490,
+    "height": 2108
+  },
+  {
+    "doc_id": "document-106dab10",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/大数据.pdf",
+    "page_index": 5,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/大数据/pages/page_005.png",
+    "width": 1490,
+    "height": 2108
+  },
+  {
+    "doc_id": "document-106dab10",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/大数据.pdf",
+    "page_index": 6,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/大数据/pages/page_006.png",
+    "width": 1490,
+    "height": 2108
+  },
+  {
+    "doc_id": "document-1e71ff6c",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/并行计算.pdf",
+    "page_index": 1,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/并行计算/pages/page_001.png",
+    "width": 2880,
+    "height": 1620
+  },
+  {
+    "doc_id": "document-1e71ff6c",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/并行计算.pdf",
+    "page_index": 2,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/并行计算/pages/page_002.png",
+    "width": 2880,
+    "height": 1620
+  },
+  {
+    "doc_id": "document-1e71ff6c",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/并行计算.pdf",
+    "page_index": 3,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/并行计算/pages/page_003.png",
+    "width": 2880,
+    "height": 1620
+  },
+  {
+    "doc_id": "document-1e71ff6c",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/并行计算.pdf",
+    "page_index": 4,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/并行计算/pages/page_004.png",
+    "width": 2880,
+    "height": 1620
+  },
+  {
+    "doc_id": "document-1e71ff6c",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/并行计算.pdf",
+    "page_index": 5,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/并行计算/pages/page_005.png",
+    "width": 2880,
+    "height": 1620
+  },
+  {
+    "doc_id": "document-1e71ff6c",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/并行计算.pdf",
+    "page_index": 6,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/并行计算/pages/page_006.png",
+    "width": 2880,
+    "height": 1620
+  },
+  {
+    "doc_id": "document-1e71ff6c",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/并行计算.pdf",
+    "page_index": 7,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/并行计算/pages/page_007.png",
+    "width": 2880,
+    "height": 1620
+  },
+  {
+    "doc_id": "document-3a8f7a32",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/推荐系统.pdf",
+    "page_index": 1,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/推荐系统/pages/page_001.png",
+    "width": 2103,
+    "height": 1488
+  },
+  {
+    "doc_id": "document-3a8f7a32",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/推荐系统.pdf",
+    "page_index": 2,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/推荐系统/pages/page_002.png",
+    "width": 2103,
+    "height": 1488
+  },
+  {
+    "doc_id": "document-3a8f7a32",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/推荐系统.pdf",
+    "page_index": 3,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/推荐系统/pages/page_003.png",
+    "width": 2103,
+    "height": 1488
+  },
+  {
+    "doc_id": "document-3a8f7a32",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/推荐系统.pdf",
+    "page_index": 4,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/推荐系统/pages/page_004.png",
+    "width": 2103,
+    "height": 1488
+  },
+  {
+    "doc_id": "document-3a8f7a32",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/推荐系统.pdf",
+    "page_index": 5,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/推荐系统/pages/page_005.png",
+    "width": 2103,
+    "height": 1488
+  },
+  {
+    "doc_id": "document-3a8f7a32",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/推荐系统.pdf",
+    "page_index": 6,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/推荐系统/pages/page_006.png",
+    "width": 2103,
+    "height": 1488
+  },
+  {
+    "doc_id": "document-74ccb666",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数字电路.pdf",
+    "page_index": 1,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数字电路/pages/page_001.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-74ccb666",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数字电路.pdf",
+    "page_index": 2,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数字电路/pages/page_002.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-74ccb666",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数字电路.pdf",
+    "page_index": 3,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数字电路/pages/page_003.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-74ccb666",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数字电路.pdf",
+    "page_index": 4,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数字电路/pages/page_004.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-74ccb666",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数字电路.pdf",
+    "page_index": 5,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数字电路/pages/page_005.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-74ccb666",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数字电路.pdf",
+    "page_index": 6,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数字电路/pages/page_006.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-74ccb666",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数字电路.pdf",
+    "page_index": 7,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数字电路/pages/page_007.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "2-6d678096",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数字电路2.pdf",
+    "page_index": 1,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数字电路2/pages/page_001.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "2-6d678096",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数字电路2.pdf",
+    "page_index": 2,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数字电路2/pages/page_002.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "2-6d678096",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数字电路2.pdf",
+    "page_index": 3,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数字电路2/pages/page_003.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "2-6d678096",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数字电路2.pdf",
+    "page_index": 4,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数字电路2/pages/page_004.png",
+    "width": 1488,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-0d30f96a",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数据结构.pdf",
+    "page_index": 1,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数据结构/pages/page_001.png",
+    "width": 1489,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-0d30f96a",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数据结构.pdf",
+    "page_index": 2,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数据结构/pages/page_002.png",
+    "width": 1489,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-0d30f96a",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数据结构.pdf",
+    "page_index": 3,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数据结构/pages/page_003.png",
+    "width": 1489,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-0d30f96a",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数据结构.pdf",
+    "page_index": 4,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数据结构/pages/page_004.png",
+    "width": 1489,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-0d30f96a",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数据结构.pdf",
+    "page_index": 5,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数据结构/pages/page_005.png",
+    "width": 1489,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-0d30f96a",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/数据结构.pdf",
+    "page_index": 6,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/数据结构/pages/page_006.png",
+    "width": 1489,
+    "height": 2105
+  },
+  {
+    "doc_id": "document-7ab67eb3",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/编译原理.pdf",
+    "page_index": 1,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/编译原理/pages/page_001.png",
+    "width": 1488,
+    "height": 2103
+  },
+  {
+    "doc_id": "document-7ab67eb3",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/编译原理.pdf",
+    "page_index": 2,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/编译原理/pages/page_002.png",
+    "width": 1488,
+    "height": 2103
+  },
+  {
+    "doc_id": "document-7ab67eb3",
+    "source_path": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/pdf/编译原理.pdf",
+    "page_index": 3,
+    "image_path": "data/bench_full/homeworkqa/.work/rendered/编译原理/pages/page_003.png",
+    "width": 1488,
+    "height": 2103
+  }
+]
