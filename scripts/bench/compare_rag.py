@@ -13,6 +13,8 @@ from pathlib import Path
 from statistics import mean
 from typing import Any, Dict, List
 
+from tqdm.auto import tqdm
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -44,6 +46,10 @@ def _load_questions(path: str) -> List[Dict[str, Any]]:
 
 def _avg(values: List[float]) -> float:
     return float(mean(values)) if values else 0.0
+
+
+def _progress(rows: List[Dict[str, Any]], desc: str, disabled: bool):
+    return tqdm(rows, desc=desc, unit="q", dynamic_ncols=True, disable=disabled)
 
 
 def _dedup_pages(chunks: List[Dict]) -> List[Dict]:
@@ -84,6 +90,7 @@ def run_retrieval_comparison(
     fusion_text_candidates: int | None = None,
     fusion_hybrid_candidates: int | None = None,
     fusion_visual_candidates: int | None = None,
+    show_progress: bool = True,
 ) -> Dict[str, Any]:
     modes = {
         "text": {"r1": [], "r3": [], "r5": [], "mrr": [], "ndcg5": []},
@@ -95,7 +102,7 @@ def run_retrieval_comparison(
 
     details: List[Dict] = []
 
-    for q in questions:
+    for q in _progress(questions, "retrieval comparison", not show_progress):
         question = str(q.get("question", "")).strip()
         gold_pages = [int(x) for x in q.get("evidence_pages", [])]
         if not question:
@@ -187,6 +194,7 @@ def run_qa_comparison(
     questions: List[Dict],
     text_engine: Any,
     multimodal_engine: Any,
+    show_progress: bool = True,
 ) -> Dict[str, Any]:
     modes = {
         "text": {"em": [], "f1": [], "anls": [], "r3": [], "cite_acc": [], "latency": []},
@@ -194,7 +202,7 @@ def run_qa_comparison(
     }
     predictions: List[Dict] = []
 
-    for q in questions:
+    for q in _progress(questions, "QA comparison", not show_progress):
         question = str(q.get("question", "")).strip()
         gold_answer = str(q.get("answer", "")).strip()
         gold_pages = [int(x) for x in q.get("evidence_pages", [])]
@@ -335,6 +343,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fusion-text-candidates", type=int, default=None, help="Optional text branch candidate depth for fusion.")
     parser.add_argument("--fusion-hybrid-candidates", type=int, default=None, help="Optional hybrid branch candidate depth for fusion.")
     parser.add_argument("--fusion-visual-candidates", type=int, default=None, help="Optional visual branch candidate depth for fusion.")
+    parser.add_argument("--no-progress", action="store_true", help="Disable tqdm progress bar.")
     return parser
 
 
@@ -396,6 +405,7 @@ def main() -> int:
         fusion_text_candidates=args.fusion_text_candidates,
         fusion_hybrid_candidates=args.fusion_hybrid_candidates,
         fusion_visual_candidates=args.fusion_visual_candidates,
+        show_progress=not args.no_progress,
     )
     _print_retrieval_table(retrieval_result["summary"])
 
@@ -445,6 +455,7 @@ def main() -> int:
             questions=questions,
             text_engine=text_engine,
             multimodal_engine=multimodal_engine,
+            show_progress=not args.no_progress,
         )
         _print_qa_table(qa_result["summary"])
 

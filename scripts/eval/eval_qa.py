@@ -7,6 +7,8 @@ from pathlib import Path
 from statistics import mean
 from typing import Any, Dict, List, Optional
 
+from tqdm.auto import tqdm
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
@@ -58,6 +60,10 @@ def _avg(values: List[float]) -> float:
     return float(mean(values)) if values else 0.0
 
 
+def _progress(rows: List[Dict[str, Any]], desc: str, disabled: bool):
+    return tqdm(rows, desc=desc, unit="q", dynamic_ncols=True, disable=disabled)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Evaluate DocQA answer quality (EM/F1/ANLS).")
     parser.add_argument("--questions", required=True, help="Path to questions jsonl")
@@ -90,6 +96,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fusion-text-candidates", type=int, default=None, help="Text branch candidate depth for fusion.")
     parser.add_argument("--fusion-hybrid-candidates", type=int, default=None, help="Hybrid branch candidate depth for fusion.")
     parser.add_argument("--fusion-visual-candidates", type=int, default=None, help="Visual branch candidate depth for fusion.")
+    parser.add_argument("--no-progress", action="store_true", help="Disable tqdm progress bar.")
     return parser
 
 
@@ -173,7 +180,7 @@ def main() -> int:
 
     count = 0
     with out_path.open("w", encoding="utf-8") as f:
-        for sample in questions:
+        for sample in _progress(questions, f"{args.retriever_type} QA", args.no_progress):
             qid = str(sample.get("id", ""))
             question = str(sample.get("question", "")).strip()
             gold_answer = str(sample.get("answer", "")).strip()

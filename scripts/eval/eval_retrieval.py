@@ -6,6 +6,8 @@ from pathlib import Path
 from statistics import mean
 from typing import Any, Dict, List
 
+from tqdm.auto import tqdm
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
@@ -46,6 +48,10 @@ def _load_questions(path: str) -> List[Dict[str, Any]]:
 
 def _avg(values: List[float]) -> float:
     return float(mean(values)) if values else 0.0
+
+
+def _progress(rows: List[Dict[str, Any]], desc: str, disabled: bool):
+    return tqdm(rows, desc=desc, unit="q", dynamic_ncols=True, disable=disabled)
 
 
 def _resolve_visual_index_dir(index_dir: str, visual_index_dir: str | None) -> str:
@@ -91,6 +97,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fusion-text-candidates", type=int, default=None, help="Text branch candidate depth for fusion; defaults to max(50, top_k * 6).")
     parser.add_argument("--fusion-hybrid-candidates", type=int, default=None, help="Hybrid branch candidate depth for fusion; defaults to max(20, top_k * 4).")
     parser.add_argument("--fusion-visual-candidates", type=int, default=None, help="Visual branch candidate depth for fusion; defaults to max(20, top_k * 4).")
+    parser.add_argument("--no-progress", action="store_true", help="Disable tqdm progress bar.")
     return parser
 
 
@@ -123,7 +130,7 @@ def main() -> int:
         lambda: {"r1": [], "r3": [], "r5": [], "mrr": [], "ndcg5": []}
     )
 
-    for q in questions:
+    for q in _progress(questions, f"{retriever_type} retrieval", args.no_progress):
         qid = str(q.get("id", ""))
         question = str(q.get("question", "")).strip()
         qtype = str(q.get("type", "text"))

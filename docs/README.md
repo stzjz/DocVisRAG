@@ -5,6 +5,7 @@
 ## 当前文档
 
 - `TEXT_AWARE_FUSION.md`：最新 text-aware fusion 实验记录与推荐运行方式。
+- `HOMEWORKQA_BENCHMARK.md`：自建 HomeworkQA PDF benchmark 的数据结构、生成规则、合并索引按 PDF 过滤评估口径，以及 2026-06-15 全量 200 题检索与 HomeworkQA-MC 选择题准确率结果。
 
 ## 历史归档
 

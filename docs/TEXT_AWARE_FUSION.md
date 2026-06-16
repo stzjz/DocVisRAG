@@ -1,6 +1,6 @@
 # Text-aware Fusion Optimization
 
-本文记录 DocVQA / ChartQA / TextVQA 对比实验中 `text / hybrid / fusion` 三种模式的优化背景、代码改动和推荐评估方式。当前结论以 2026-06-05 之后在本服务器上重跑的 text-aware fusion 实验为准。
+本文记录 DocVQA / ChartQA / TextVQA 对比实验中 `text / hybrid / fusion` 三种模式的优化背景、代码改动和推荐评估方式。小样本调参结论以 2026-06-05 之后在本服务器上重跑的 text-aware fusion 实验为准；全量 validation 检索结果见 2026-06-15 章节。
 
 ## 当前推荐配置
 
@@ -13,6 +13,39 @@ Text-aware fusion 将 OCR chunk 级 `text`、页面级 `hybrid` 和页面视觉 
 | TextVQA | 暂不推荐作为 fusion 正向证据 | 需重做 OCR/visual 分支 | 当前 `hybrid > fusion`，主要瓶颈是自然图片 OCR 漏检和 visual 分支偏弱 |
 
 推荐先用 `--skip-qa` 做检索层权重扫描，再用 `--qa-limit` 做小样本生成验证。README 和仓库根目录 `ins` 中给出了可直接运行的命令模板。
+
+注意：2026-06-15 的全量 validation 检索结果采用 OCR-only hybrid 作为全量可承受配置，结果并不支持“fusion 全量稳定优于 hybrid”。DocVQA/ChartQA 全量上 hybrid 的 R@1/MRR/NDCG@5 更高；DocVQA fusion 只在 R@3 上极小幅超过 hybrid、R@5 打平。TextVQA OCR-only fusion 略高于 hybrid，但整体指标很低，不应作为 fusion 正向证据。
+
+## 2026-06-15 全量 validation 检索结果
+
+本轮跑的是公开 validation/val 全量检索评估，不是 hidden test；只评估检索层，不跑 QA 生成。输出统一放在 `data/bench_runs/full_20260615/`。
+
+全量运行配置：
+
+- DocVQA validation：5349 题，1286 页；OCR-only hybrid，`lexical_weight=0.2`；fusion=`text=0.2, hybrid=5.0, visual=0.01`，候选深度 `50/10/10`。
+- ChartQA val：1920 题，1055 张图；OCR-only hybrid，`lexical_weight=0.2`；fusion=`text=1.0, hybrid=5.0, visual=0.02`，候选深度 `50/10/10`。
+- TextVQA validation：5000 题，3166 张图；OCR-only diagnostic 配置，`lexical_weight=0.2`；fusion=`text=0.2, hybrid=5.0, visual=0.1`，候选深度 `50/10/10`。本轮未重跑全量 VLM summary，因为成本较高。
+
+| 数据集 | 模式 | 配置 | N | R@1 | R@3 | R@5 | MRR | NDCG@5 | 输出文件 |
+|---|---|---|---:|---:|---:|---:|---:|---:|---|
+| DocVQA | text | OCR chunk text index | 5349 | 0.0580 | 0.1165 | 0.1610 | 0.0997 | 0.1100 | `full_20260615/docvqa/eval_retrieval_text.json` |
+| DocVQA | hybrid | OCR-only + lexical=0.2 | 5349 | 0.2434 | 0.3085 | 0.3330 | 0.2812 | 0.2918 | `full_20260615/docvqa/eval_retrieval_hybrid_ocr_only_lex02.json` |
+| DocVQA | fusion | text=0.2, hybrid=5.0, visual=0.01 | 5349 | 0.2245 | 0.3090 | 0.3330 | 0.2713 | 0.2845 | `full_20260615/docvqa/eval_retrieval_fusion_t02_h5_v001_ocr_only_lex02.json` |
+| ChartQA | text | OCR chunk text index | 1920 | 0.0599 | 0.1182 | 0.1536 | 0.0997 | 0.1088 | `full_20260615/chartqa/eval_retrieval_text.json` |
+| ChartQA | hybrid | OCR-only + lexical=0.2 | 1920 | 0.1953 | 0.2427 | 0.2635 | 0.2255 | 0.2318 | `full_20260615/chartqa/eval_retrieval_hybrid_ocr_only_lex02.json` |
+| ChartQA | fusion | text=1.0, hybrid=5.0, visual=0.02 | 1920 | 0.1495 | 0.2240 | 0.2589 | 0.1947 | 0.2069 | `full_20260615/chartqa/eval_retrieval_fusion_t1_h5_v002_ocr_only_lex02.json` |
+| TextVQA | text | tesseract OCR text index | 5000 | 0.0152 | 0.0278 | 0.0330 | 0.0216 | 0.0245 | `full_20260615/textvqa/eval_retrieval_text.json` |
+| TextVQA | hybrid | OCR-only + lexical=0.2 | 5000 | 0.0246 | 0.0346 | 0.0398 | 0.0300 | 0.0324 | `full_20260615/textvqa/eval_retrieval_hybrid_ocr_only_lex02.json` |
+| TextVQA | visual | ColQwen2 visual index | 5000 | 0.0004 | 0.0014 | 0.0018 | 0.0010 | 0.0012 | `full_20260615/textvqa/eval_retrieval_visual_retry.json` |
+| TextVQA | fusion | text=0.2, hybrid=5.0, visual=0.1 | 5000 | 0.0246 | 0.0362 | 0.0416 | 0.0309 | 0.0336 | `full_20260615/textvqa/eval_retrieval_fusion_t02_h5_v01_ocr_only_lex02_retry.json` |
+
+全量结论：
+
+- DocVQA：`hybrid > fusion > text`，但 fusion 在 R@3 上略高于 hybrid、R@5 打平；主排序指标 R@1/MRR/NDCG@5 仍是 hybrid 更好。
+- ChartQA：`hybrid > fusion > text`，fusion 没有复现 100 题小样本上的优势。
+- TextVQA：OCR-only diagnostic 下 `fusion >= hybrid > text > visual`，fusion 相对 hybrid 只有很小提升；由于 visual 极弱、整体指标低，不能作为 text-aware fusion 有效性的强证据。
+- 因此当前更稳妥的表述是：text-aware fusion 是有价值的消融方向，但 full validation 上需要继续调权重和改进 visual/OCR 分支，不能只用小样本结果宣称 fusion 全面优于 hybrid。
+
 
 ## 背景
 

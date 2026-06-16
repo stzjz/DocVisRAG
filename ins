@@ -155,3 +155,285 @@ python scripts/bench/compare_rag.py \
   --top-k 5 \
   --qa-top-k 3 \
   --skip-qa
+
+# HomeworkQA 自建 PDF benchmark：合并索引 + 按 PDF 过滤评估
+# 说明：HomeworkQA 的 visual/fusion 默认启用优化版 visual metadata rerank：mode=metadata, alpha=0.1；fusion 默认 visual_weight=5.0。
+# 评估口径：10 份 PDF 合并建索引，模型/索引只加载一次；每道题按所属 PDF 过滤候选页，避免跨 PDF 串页。
+export HF_HOME=/data1/home/zengjian/.cache/huggingface
+export HF_HUB_CACHE=/data1/home/zengjian/.cache/huggingface/hub
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+
+# 如需重建 HomeworkQA combined text / hybrid / visual 索引
+python scripts/retrieve/build_text_index.py \
+  --ocr data/bench_full/homeworkqa/.work/combined/ocr.jsonl \
+  --index-dir data/bench_runs/homeworkqa_eval_20260615_combined/text_index
+
+python scripts/retrieve/build_hybrid_index.py \
+  --manifest data/bench_full/homeworkqa/.work/combined/manifest.json \
+  --ocr data/bench_full/homeworkqa/.work/combined/ocr.jsonl \
+  --summaries data/bench_full/homeworkqa/.work/combined/page_summaries.jsonl \
+  --index-dir data/bench_runs/homeworkqa_eval_20260615_combined/hybrid_index_ocr_only_lex02 \
+  --text-mode ocr_only \
+  --lexical-weight 0.2
+
+CUDA_VISIBLE_DEVICES=3 python scripts/retrieve/build_visual_index.py \
+  --manifest data/bench_full/homeworkqa/.work/combined/manifest.json \
+  --index-dir data/bench_runs/homeworkqa_eval_20260615_combined/visual_index
+
+# HomeworkQA 全量 200 题检索评估：text / hybrid / visual / fusion 一次跑完
+CUDA_VISIBLE_DEVICES=3 python scripts/bench/eval_homeworkqa_combined.py \
+  --questions data/bench_full/homeworkqa/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa/batch_config.json \
+  --text-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/text_index \
+  --hybrid-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/hybrid_index_ocr_only_lex02 \
+  --visual-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/visual_index \
+  --out data/bench_runs/homeworkqa_eval_20260615_combined/eval_retrieval_homeworkqa_combined.json \
+  --top-k 5 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 5.0 \
+  --fusion-text-candidates 0 \
+  --fusion-hybrid-candidates 0 \
+  --fusion-visual-candidates 0
+
+# 只看 fusion 时可减少输出，但仍使用同一个 combined index 和 per-PDF 过滤
+CUDA_VISIBLE_DEVICES=3 python scripts/bench/eval_homeworkqa_combined.py \
+  --questions data/bench_full/homeworkqa/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa/batch_config.json \
+  --text-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/text_index \
+  --hybrid-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/hybrid_index_ocr_only_lex02 \
+  --visual-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/visual_index \
+  --out data/bench_runs/homeworkqa_eval_20260615_combined/eval_retrieval_homeworkqa_fusion_only.json \
+  --modes fusion \
+  --top-k 5 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 5.0 \
+  --fusion-text-candidates 0 \
+  --fusion-hybrid-candidates 0 \
+  --fusion-visual-candidates 0
+
+# HomeworkQA-MC 选择题版本：生成 4-6 选项并评估最终 accuracy
+python scripts/bench/make_homeworkqa_mc.py \
+  --questions data/bench_full/homeworkqa/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa/batch_config.json \
+  --out-dir data/bench_full/homeworkqa_mc \
+  --min-choices 4 \
+  --max-choices 6 \
+  --seed 20260615
+
+export DOCVISRAG_LOCAL_FILES_ONLY=1
+CUDA_VISIBLE_DEVICES=3 python scripts/bench/eval_homeworkqa_mc.py \
+  --questions data/bench_full/homeworkqa_mc/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa_mc/batch_config.json \
+  --text-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/text_index \
+  --hybrid-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/hybrid_index_ocr_only_lex02 \
+  --visual-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/visual_index \
+  --out data/bench_runs/homeworkqa_mc_20260615/predictions_hybrid_fusion.jsonl \
+  --summary-out data/bench_runs/homeworkqa_mc_20260615/summary_hybrid_fusion.json \
+  --modes hybrid fusion \
+  --top-k 3 \
+  --model-id Qwen/Qwen3-VL-4B-Instruct \
+  --max-new-tokens 8 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 5.0 \
+  --fusion-text-candidates 0 \
+  --fusion-hybrid-candidates 0 \
+  --fusion-visual-candidates 0
+
+# 快速 smoke test 可加 --limit 5
+CUDA_VISIBLE_DEVICES=3 python scripts/bench/eval_homeworkqa_mc.py \
+  --questions data/bench_full/homeworkqa_mc/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa_mc/batch_config.json \
+  --text-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/text_index \
+  --hybrid-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/hybrid_index_ocr_only_lex02 \
+  --visual-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/visual_index \
+  --out data/bench_runs/homeworkqa_mc_20260615/smoke_predictions.jsonl \
+  --summary-out data/bench_runs/homeworkqa_mc_20260615/smoke_summary.json \
+  --modes hybrid fusion \
+  --limit 5 \
+  --top-k 3 \
+  --model-id Qwen/Qwen3-VL-4B-Instruct \
+  --max-new-tokens 8 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 5.0 \
+  --fusion-text-candidates 0 \
+  --fusion-hybrid-candidates 0 \
+  --fusion-visual-candidates 0
+
+# HomeworkQA-MC text / visual 单路评估与 7B judge 模型
+CUDA_VISIBLE_DEVICES=3 python scripts/bench/eval_homeworkqa_mc.py \
+  --questions data/bench_full/homeworkqa_mc/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa_mc/batch_config.json \
+  --text-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/text_index \
+  --hybrid-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/hybrid_index_ocr_only_lex02 \
+  --visual-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/visual_index \
+  --out data/bench_runs/homeworkqa_mc_20260615/predictions_text_visual.jsonl \
+  --summary-out data/bench_runs/homeworkqa_mc_20260615/summary_text_visual.json \
+  --modes text visual \
+  --top-k 3 \
+  --model-id Qwen/Qwen3-VL-4B-Instruct \
+  --max-new-tokens 8 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 5.0 \
+  --fusion-text-candidates 0 \
+  --fusion-hybrid-candidates 0 \
+  --fusion-visual-candidates 0
+
+# HomeworkQA 短答版 fusion 全量预测
+HF_HOME=/data1/home/zengjian/.cache/huggingface \
+HF_HUB_CACHE=/data1/home/zengjian/.cache/huggingface/hub \
+HF_HUB_OFFLINE=1 \
+TRANSFORMERS_OFFLINE=1 \
+DOCVISRAG_LOCAL_FILES_ONLY=1 \
+CUDA_VISIBLE_DEVICES=3 \
+python scripts/bench/eval_homeworkqa_qa.py \
+  --questions data/bench_full/homeworkqa/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa/batch_config.json \
+  --text-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/text_index \
+  --hybrid-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/hybrid_index_ocr_only_lex02 \
+  --visual-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/visual_index \
+  --out data/bench_runs/homeworkqa_qa_20260616/predictions_fusion.jsonl \
+  --summary-out data/bench_runs/homeworkqa_qa_20260616/summary_fusion.json \
+  --mode fusion \
+  --top-k 3 \
+  --model-id Qwen/Qwen3-VL-4B-Instruct \
+  --max-new-tokens 96 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 5.0 \
+  --fusion-text-candidates 0 \
+  --fusion-hybrid-candidates 0 \
+  --fusion-visual-candidates 0
+
+# 单路 text / hybrid / visual 复现：
+# 将上面短答预测命令中的 --mode fusion 改为 --mode text / --mode hybrid / --mode visual，
+# 同时把 --out 和 --summary-out 改成 predictions_text|hybrid|visual.jsonl 和 summary_text|hybrid|visual.json。
+# judge 命令同理改 --predictions / --out / --summary-out 文件名。
+
+# HomeworkQA 短答版 Qwen2.5-7B 语义 judge
+HF_HOME=/data1/home/zengjian/.cache/huggingface \
+HF_HUB_CACHE=/data1/home/zengjian/.cache/huggingface/hub \
+HF_HUB_OFFLINE=1 \
+TRANSFORMERS_OFFLINE=1 \
+CUDA_VISIBLE_DEVICES=3 \
+python scripts/bench/judge_homeworkqa_qa.py \
+  --predictions data/bench_runs/homeworkqa_qa_20260616/predictions_fusion.jsonl \
+  --out data/bench_runs/homeworkqa_qa_20260616/judge_fusion_qwen25_7b.jsonl \
+  --summary-out data/bench_runs/homeworkqa_qa_20260616/judge_fusion_qwen25_7b_summary.json \
+  --judge-model /data1/home/zengjian/.cache/huggingface/hub/models--Qwen--Qwen2.5-7B-Instruct/snapshots/a09a35458c702b33eeacc393d103063234e8bc28 \
+  --max-new-tokens 128
+
+# 已下载的 7B 文本 judge 模型：Qwen/Qwen2.5-7B-Instruct
+# snapshot 路径：
+# /data1/home/zengjian/.cache/huggingface/hub/models--Qwen--Qwen2.5-7B-Instruct/snapshots/a09a35458c702b33eeacc393d103063234e8bc28
+# 如需重新下载：
+HF_ENDPOINT=https://hf-mirror.com \
+HF_HOME=/data1/home/zengjian/.cache/huggingface \
+HF_HUB_CACHE=/data1/home/zengjian/.cache/huggingface/hub \
+huggingface-cli download Qwen/Qwen2.5-7B-Instruct --resume-download
+
+# HomeworkQA visual 索引调优：纯 visual 下限、metadata rerank、fusion rerank
+HF_HOME=/data1/home/zengjian/.cache/huggingface \
+HF_HUB_CACHE=/data1/home/zengjian/.cache/huggingface/hub \
+HF_HUB_OFFLINE=1 \
+TRANSFORMERS_OFFLINE=1 \
+DOCVISRAG_LOCAL_FILES_ONLY=1 \
+CUDA_VISIBLE_DEVICES=3 \
+python scripts/bench/eval_homeworkqa_combined.py \
+  --questions data/bench_full/homeworkqa/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa/batch_config.json \
+  --text-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/text_index \
+  --hybrid-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/hybrid_index_ocr_only_lex02 \
+  --visual-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/visual_index \
+  --out data/bench_runs/homeworkqa_eval_20260615_combined/eval_retrieval_homeworkqa_visual_metadata_rerank_a01.json \
+  --modes visual \
+  --top-k 5 \
+  --fusion-visual-candidates 0 \
+  --visual-rerank-mode metadata \
+  --visual-rerank-alpha 0.1
+
+HF_HOME=/data1/home/zengjian/.cache/huggingface \
+HF_HUB_CACHE=/data1/home/zengjian/.cache/huggingface/hub \
+HF_HUB_OFFLINE=1 \
+TRANSFORMERS_OFFLINE=1 \
+DOCVISRAG_LOCAL_FILES_ONLY=1 \
+CUDA_VISIBLE_DEVICES=3 \
+python scripts/bench/eval_homeworkqa_combined.py \
+  --questions data/bench_full/homeworkqa/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa/batch_config.json \
+  --text-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/text_index \
+  --hybrid-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/hybrid_index_ocr_only_lex02 \
+  --visual-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/visual_index \
+  --out data/bench_runs/homeworkqa_eval_20260615_combined/eval_retrieval_homeworkqa_fusion_visual_metadata_rerank_vw5.json \
+  --modes fusion \
+  --top-k 5 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 5.0 \
+  --fusion-text-candidates 0 \
+  --fusion-hybrid-candidates 0 \
+  --fusion-visual-candidates 0 \
+  --visual-rerank-mode metadata \
+  --visual-rerank-alpha 0.1
+
+# HomeworkQA-Hard：生成多证据 hard split 和 hard-MC
+python scripts/bench/make_homeworkqa_hard.py \
+  --questions data/bench_full/homeworkqa/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa/batch_config.json \
+  --out-dir data/bench_full/homeworkqa_hard \
+  --questions-per-pdf 10 \
+  --seed 20260616
+
+python scripts/bench/make_homeworkqa_mc.py \
+  --questions data/bench_full/homeworkqa_hard/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa_hard/batch_config.json \
+  --out-dir data/bench_full/homeworkqa_hard_mc \
+  --min-choices 4 \
+  --max-choices 6 \
+  --seed 20260616
+
+# HomeworkQA-Hard 全量检索评估：重点看 evidence_coverage@k 和 all_evidence@k
+HF_HOME=/data1/home/zengjian/.cache/huggingface \
+HF_HUB_CACHE=/data1/home/zengjian/.cache/huggingface/hub \
+HF_HUB_OFFLINE=1 \
+TRANSFORMERS_OFFLINE=1 \
+DOCVISRAG_LOCAL_FILES_ONLY=1 \
+CUDA_VISIBLE_DEVICES=3 \
+python scripts/bench/eval_homeworkqa_combined.py \
+  --questions data/bench_full/homeworkqa_hard/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa_hard/batch_config.json \
+  --text-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/text_index \
+  --hybrid-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/hybrid_index_ocr_only_lex02 \
+  --visual-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/visual_index \
+  --out data/bench_runs/homeworkqa_hard_20260616/eval_retrieval_homeworkqa_hard_combined.json \
+  --top-k 5 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 5.0 \
+  --fusion-text-candidates 0 \
+  --fusion-hybrid-candidates 0 \
+  --fusion-visual-candidates 0
+
+# HomeworkQA v3 多模态主集检索评估：160题，默认优化版 visual/fusion
+HF_HOME=/data1/home/zengjian/.cache/huggingface \
+HF_HUB_CACHE=/data1/home/zengjian/.cache/huggingface/hub \
+HF_HUB_OFFLINE=1 \
+TRANSFORMERS_OFFLINE=1 \
+DOCVISRAG_LOCAL_FILES_ONLY=1 \
+CUDA_VISIBLE_DEVICES=3 \
+python scripts/bench/eval_homeworkqa_combined.py \
+  --questions data/bench_full/homeworkqa/questions.jsonl \
+  --batch-config data/bench_full/homeworkqa/batch_config.json \
+  --text-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/text_index \
+  --hybrid-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/hybrid_index_ocr_only_lex02 \
+  --visual-index-dir data/bench_runs/homeworkqa_eval_20260615_combined/visual_index \
+  --out data/bench_runs/homeworkqa_v3_multimodal_20260616/eval_retrieval_homeworkqa_v3_multimodal_combined.json \
+  --top-k 5 \
+  --fusion-text-candidates 0 \
+  --fusion-hybrid-candidates 0 \
+  --fusion-visual-candidates 0
