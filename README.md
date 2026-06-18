@@ -53,8 +53,8 @@ DocVisRAG 是一个面向复杂 PDF、扫描件、PPT 截图等文档的多模�
 | 错误分析 | ✅ | `make_error_analysis.py` 自动分类 |
 | 对比实验一键脚本 | ✅ | `compare_rag.py` + `run_benchmark_suite.py` |
 | DocVQA 评测 | ✅ | 已完成 100 题 benchmark 运行 |
-| ChartQA 评测 | ⬜ | 框架就绪，数据集待运行 |
-| TextVQA 评测 | ⬜ | 框架就绪，数据集待运行 |
+| ChartQA 评测 | 🔶 | 已完成 100 题 text/hybrid/visual/fusion 检索与前 10 题 QA sanity check；完整 QA 和 Relaxed Accuracy 待补 |
+| TextVQA 评测 | 🔶 | 已完成 100 题小样本检索诊断；QA 与更强 OCR 待补 |
 | 自建课程文档集 (60-120 QA) | ⬜ | 待创建 |
 | Relaxed Accuracy | ⬜ | 图表数值评测指标待实现 |
 | RAGAS / Faithfulness | ⬜ | 忠实度自动评测待引入 |
@@ -74,7 +74,7 @@ DocVisRAG 是一个面向复杂 PDF、扫描件、PPT 截图等文档的多模�
 
 ### 后续优先工作
 
-1. **P0** — 运行 ChartQA + TextVQA 完整评测，产出对比实验数据
+1. **P0** — 补齐 ChartQA 完整 QA 与 Relaxed Accuracy；补强 TextVQA OCR 后运行完整 QA
 2. **P0** — 创建自建课程文档集（8-12 份文档，60-120 条 QA）
 3. **P1** — 实现 Relaxed Accuracy 指标，补充 RAGAS 忠实度评测
 4. **P1** — 图号/表号引用增强（当前仅页码，缺少 "图 Y""表 Z" 格式）
@@ -84,9 +84,162 @@ DocVisRAG 是一个面向复杂 PDF、扫描件、PPT 截图等文档的多模�
 
 ---
 
+## 系统架构与数据流
+
+### 总体架构
+
+项目采用 **"离线建库 + 在线问答"** 两段式结构：
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        离线建库阶段                                │
+│                                                                   │
+│  输入文档 ──→ [渲染] ──→ [OCR] ──→ [版面分析] ──→ [摘要]            │
+│  (PDF/图片)     │          │          │              │             │
+│                 v          v          v              v             │
+│           manifest.json  ocr.jsonl  layout.jsonl  page_summaries  │
+│                 │          │          │              │             │
+│                 │          v          │              v             │
+│                 │    [text_index]     │       [hybrid_index]       │
+│                 │    FAISS·纯文本     │       FAISS·摘要+OCR       │
+│                 │                     │                            │
+│                 └─────────────────────┘                            │
+│                           │                                       │
+│                           v                                       │
+│                     [visual_index]                                │
+│                   Byaldi·ColPali·可选                             │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                        在线问答阶段                                │
+│                                                                   │
+│  用户问题 ──→ [检索] ──→ Top-K 页面 ──→ [VLM 生成] ──→ 答案+引用   │
+│                │                          │                       │
+│                ├─ hybrid (FAISS·摘要+OCR)  │                       │
+│                ├─ visual (ColPali·视觉)    ├─ Qwen2.5-VL 多图推理  │
+│                ├─ fusion (RRF·混合重排)    │                       │
+│                └─ text   (FAISS·纯OCR)    └─ 纯文本 LLM 生成       │
+│                                                                   │
+│  输出：答案 + 依据 + 引用（第 X 页）+ 不确定性说明                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 项目文件结构
+
+```
+DocVisRAG/
+├── src/docvisrag/                  # 核心 Python 包
+│   ├── config.py                   # ProjectConfig（模型ID、设备、top_k）
+│   ├── ingest/                     # 文档摄入层
+│   │   ├── render.py               #   PDF渲染→页面图像 + manifest
+│   │   ├── ocr.py                  #   PaddleOCR / Tesseract 文本提取
+│   │   ├── layout.py               #   版面分析（PP-Structure / OpenCV）
+│   │   ├── layout_chunk.py         #   版面感知分块
+│   │   └── page_summary.py         #   VLM 页面摘要生成
+│   ├── retrieve/                   # 检索层
+│   │   ├── base.py                 #   BaseRetriever 抽象基类
+│   │   ├── text_index.py           #   纯文本 FAISS 索引
+│   │   ├── hybrid_index.py         #   混合页面 FAISS 索引（摘要+OCR）
+│   │   ├── visual_index.py         #   ColPali/Byaldi 视觉索引
+│   │   └── fusion.py               #   RRF 融合排序（k=60）
+│   ├── qa/                         # 问答层
+│   │   ├── doc_qa.py               #   多模态文档QA（检索+多图VLM生成）
+│   │   ├── text_qa.py              #   纯文本RAG基线（检索+纯文本LLM生成）
+│   │   └── page_qa.py              #   单页面QA
+│   ├── vlm/                        # 视觉语言模型层
+│   │   └── qwen_vl.py              #   Qwen2.5-VL / Qwen3-VL 封装
+│   ├── eval/                       # 评测层
+│   │   └── metrics.py              #   R@K / MRR / NDCG / EM / F1 / ANLS / CitationAcc
+│   └── ui/                         # UI层（预留）
+├── scripts/                        # CLI 脚本（按功能分层）
+│   ├── ingest/                     #   摄入：render / ocr / layout / chunk / summary
+│   ├── retrieve/                   #   检索：build_*_index / *_search
+│   ├── qa/                         #   问答：vlm_qa / page_qa / doc_qa / text_qa
+│   ├── eval/                       #   评测：eval_retrieval / eval_qa / error_analysis
+│   ├── bench/                      #   基准：prepare_benchmark / run_suite / compare_rag
+│   ├── env/                        #   环境：check_env.py
+│   └── loopback_test.sh            #   端到端冒烟测试
+├── app.py                          # Gradio Web UI
+├── configs/default.yaml            # 默认配置
+├── data/                           # 数据目录
+│   ├── samples/                    #   测试样本（PDF / 图片）
+│   ├── bench_runs/                 #   benchmark 运行输出
+│   ├── outputs/                    #   管线中间产物（pages / ocr / layout / summary / index）
+│   └── indexes/                    #   索引文件（FAISS / Byaldi）
+├── eval/                           # 评测配置文件
+│   ├── questions.example.jsonl     #   问题样例格式
+│   └── bench_suite.example.json    #   benchmark 套件定义
+├── requirements-base.txt           # 核心依赖
+└── requirements-visual.txt         # 可选视觉检索依赖
+```
+
+### 数据格式规范
+
+#### 核心中间文件
+
+| 文件 | 格式 | 关键字段 | 生成者 | 消费者 |
+|------|------|----------|--------|--------|
+| `manifest.json` | JSON数组 | `doc_id, page_index, image_path, width, height` | `render.py` | 全部后续管线 |
+| `ocr.jsonl` | JSONL | `doc_id, page_index, text, bbox[x0,y0,x1,y1], confidence` | `ocr.py` | text_index, hybrid_index, layout_chunk |
+| `layout.jsonl` | JSONL | `region_id, region_type, bbox[0-1], confidence` | `layout.py` | layout_chunk |
+| `layout_chunks.jsonl` | JSONL | `chunk_id, chunk_type, text, bbox, page_index` | `layout_chunk.py` | build_layout_index |
+| `page_summaries.jsonl` | JSONL | `doc_id, page_index, summary(≤200字)` | `page_summary.py` | hybrid_index |
+| `index.faiss` | 二进制 | FAISS IndexFlatIP (余弦内积) | build_*_index.py | *_search, QA |
+| `metadata.jsonl` | JSONL | `id, doc_id, page_index, score` | build_*_index.py | 检索结果组装 |
+| `config.json` | JSON | `model_name, dimension, metric, num_vectors` | build_*_index.py | index.load() |
+
+#### 评测数据格式
+
+```jsonl
+# questions.jsonl（每行一个QA样本）
+{"id": "q001", "doc_path": "data/samples/demo.pdf", "question": "...",
+ "answer": "标准答案", "evidence_pages": [1, 2], "type": "text|table|chart|summary|layout"}
+
+# predictions.jsonl（每行一个预测结果）
+{"id": "q001", "pred_answer": "...", "gold_answer": "...", "em": 0.0,
+ "f1": 0.85, "anls": 0.72, "recall@3": 1.0, "citation_accuracy": 1.0}
+```
+
+### 检索器对比矩阵
+
+| 特性 | text | hybrid | visual | fusion |
+|------|------|--------|--------|--------|
+| 检索单元 | OCR文本行 | 页面（摘要+OCR） | 页面图像 | 页面（text+hybrid+visual 加权融合） |
+| 嵌入模型 | bge-small-zh | bge-small-zh | ColQwen2-V1.0 | 两者结合 |
+| 向量库 | FAISS·512d | FAISS·512d | Byaldi·多向量 | FAISS + Byaldi |
+| 需要GPU | 否 | 否 | 是 | 是 |
+| 图像作为证据 | 否 | 是 | 是 | 是 |
+| 版面结构保留 | 否（线性文本） | 部分（摘要描述） | 是（原始页面） | 是 |
+| 典型用例 | 纯文本RAG基线 | 通用文档QA | 图表/表格密集型 | 最全面 |
+
+### 生成模型配置
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `model_id` | `Qwen/Qwen2.5-VL-3B-Instruct` | 可通过 `DOCVISRAG_MODEL_ID` 环境变量覆盖 |
+| `device_map` | `auto` | accelerate 自动分配 |
+| `torch_dtype` | `auto` | 默认 fp16 |
+| `load_in_4bit` | `False` | BitsAndBytes 4-bit 量化，约节省 60% 显存 |
+| `max_new_tokens` | 512 | 生成回答的最大 token 数 |
+
+### 环境变量一览
+
+| 变量 | 用途 | 默认值 |
+|------|------|--------|
+| `DOCVISRAG_MODEL_ID` | 覆盖 VLM 模型ID | `Qwen/Qwen2.5-VL-3B-Instruct` |
+| `DOCVISRAG_LOCAL_FILES_ONLY` | 强制离线模式（仅本地缓存） | `false` |
+| `DOCVISRAG_OCR_BACKEND` | OCR后端选择 | `auto` (paddle→tesseract) |
+| `DOCVISRAG_LAYOUT_BACKEND` | 版面检测后端 | `auto` (ppstructure→opencv) |
+| `DOCVISRAG_STRICT_VISUAL_CHECK` | 严格 peft 兼容性检查 | `false` (relaxed) |
+| `HF_ENDPOINT` | HuggingFace 镜像 | `https://hf-mirror.com` |
+| `HF_HOME` / `HF_HUB_CACHE` / `TRANSFORMERS_CACHE` | 模型缓存路径 | `~/.cache/huggingface` |
+
+---
+
 ## 1. 环境与虚拟环境
 
-推荐直接使用 `python -m venv` 安装和运行项目，不再依赖 Docker。
+当前服务器推荐使用已配置好的 conda 环境：`/data1/home/zengjian/miniconda3/envs/docvisrag`。
 
 ### 1.1 系统依赖
 Ubuntu 22.04 上建议先安装：
@@ -99,17 +252,15 @@ sudo apt-get install -y --no-install-recommends \
   build-essential git curl wget ca-certificates
 ```
 
-### 1.2 创建虚拟环境
+### 1.2 启用 conda 环境
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+cd /data1/home/zengjian/DocVisRAG
+source /data1/home/zengjian/miniconda3/bin/activate docvisrag
 python -m pip install --upgrade pip setuptools wheel
-python -m pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
-  --index-url https://download.pytorch.org/whl/cu124
 python -m pip install -r requirements-base.txt
 ```
 
-阶段 9 的 visual / fusion 检索依赖可选安装：
+阶段 9 的 visual / fusion 检索依赖可按需补装：
 
 ```bash
 python -m pip install -r requirements-visual.txt
@@ -133,6 +284,159 @@ python scripts/env/check_env.py --visual
 说明：
 - `python scripts/env/check_env.py --visual` 仅在安装了 `requirements-visual.txt` 后运行。
 - 当前固定的 relaxed visual 依赖栈里，`peft.tp_helper : NO` 可能是预期现象，不影响继续构建 visual index。
+
+---
+
+## 本地开发指南：有限资源下能做什么
+
+本项目的 GPU 密集型操作（VLM 推理、视觉索引构建）需要在配备 CUDA GPU 的服务器上运行。但大量开发准备工作可以在本地（CPU only / 小显存）完成。
+
+### 操作分级
+
+| 等级 | 操作 | 需要 GPU | 可在本地完成 |
+|------|------|----------|-------------|
+| 🔵 CPU | PDF 渲染 (ingest_render) | 否 | ✅ |
+| 🔵 CPU | OCR 文本提取 (run_ocr) | 否 | ✅ |
+| 🔵 CPU | 版面分析·OpenCV 回退 (run_layout --backend opencv) | 否 | ✅ |
+| 🔵 CPU | 文本索引构建 (build_text_index) | 否 | ✅ |
+| 🔵 CPU | 混合索引构建 (build_hybrid_index) | 否 | ✅ |
+| 🔵 CPU | 版面索引构建 (build_layout_index) | 否 | ✅ |
+| 🔵 CPU | 文本/混合检索 (text_search / hybrid_search) | 否 | ✅ |
+| 🔵 CPU | 纯文本 QA (text_qa) — 调用本地嵌入模型 | 否 | ✅ |
+| 🔵 CPU | 检索评测 (eval_retrieval) | 否 | ✅ |
+| 🟡 CPU† | 版面分析·PP-Structure (run_layout --backend ppstructure) | 否† | ✅ |
+| 🟡 CPU† | 纯文本 QA — 使用小模型或 CPU 推理 | 否† | ✅ |
+| 🔴 GPU | VLM 页面摘要生成 (build_page_summaries) | 是 | ❌ |
+| 🔴 GPU | 视觉索引构建 (build_visual_index) | 是 | ❌ |
+| 🔴 GPU | 多模态 QA (doc_qa --retriever-type hybrid/visual/fusion) | 是 | ❌ |
+| 🔴 GPU | QA 评测 (eval_qa) | 是 | ❌ |
+| 🔴 GPU | 对比评测 QA 部分 (compare_rag) | 是 | ❌ |
+| 🔴 GPU | Gradio Demo (app.py) | 是 | ❌ |
+
+> † PP-Structure 可能首次下载模型；纯文本 QA 的 LLM 生成部分在 CPU 上会很慢，可用 `--limit 1` 验证链路。
+
+### 本地可完成的 8 件事
+
+#### 1. 验证代码链路完整性
+
+在 CPU 环境安装基础依赖后，用单张小图片跑通全链路（跳过 VLM 环节）：
+
+```bash
+# 安装 CPU 依赖（跳过 CUDA PyTorch）
+python -m pip install -r requirements-base.txt
+
+# 跑环境检查
+python scripts/env/check_env.py
+
+# 用 test_stage1.png 跑通基础链路
+python scripts/ingest/ingest_render.py \
+  --input data/samples/test_stage1.png \
+  --output data/outputs/local_test
+
+python scripts/ingest/run_ocr.py \
+  --manifest data/outputs/local_test/manifest.json \
+  --out data/outputs/local_test/ocr.jsonl
+
+python scripts/ingest/run_layout.py \
+  --manifest data/outputs/local_test/manifest.json \
+  --out data/outputs/local_test/layout.jsonl \
+  --backend opencv
+
+python scripts/retrieve/build_text_index.py \
+  --ocr data/outputs/local_test/ocr.jsonl \
+  --index-dir data/indexes/local_test_text
+
+# 纯文本检索验证
+python scripts/retrieve/text_search.py \
+  --index-dir data/indexes/local_test_text \
+  --question "这张图片的主要内容是什么？" --top-k 3
+```
+
+#### 2. 构建自建课程文档集（P0 待办）
+
+这是完全不需要 GPU 的工作，却是开题报告的核心交付物之一：
+
+- 收集 8–12 份不同类型的文档：课程 PPT（导出为PDF）、作业说明 PDF、论文 PDF、扫描件、带图表的报告
+- 每份文档设计 5–10 个问题，覆盖 text / table / chart / summary / layout 五种类型
+- 标注 `evidence_pages` 和标准答案
+- 参照格式：`eval/questions.example.jsonl`
+
+```jsonl
+{"id": "self001", "doc_path": "data/self_built/xxx.pdf", "question": "...",
+ "answer": "...", "evidence_pages": [3], "type": "text"}
+```
+
+#### 3. 准备公开数据集子集
+
+下载 DocVQA、ChartQA、TextVQA 的小规模子集（例如各 50 题），在本地整理好 `questions.jsonl`。数据集下载后提前上传到服务器，避免在服务器上临时下载。
+
+```bash
+# 查看 benchmark 配置格式
+cat eval/bench_suite.example.json
+
+# 本地准备问题文件（纯文本工作，无需 GPU）
+# 参照 data/bench_runs/suite_20260511_131616/docvqa_small/inputs/questions.jsonl
+```
+
+#### 4. 完善提示词模板
+
+提示词模板在 `src/docvisrag/qa/doc_qa.py:_build_prompt()` 中，修改不涉及模型推理：
+
+- 调整系统指令的表达方式
+- 为不同类型的文档设计专用 prompt（论文 vs PPT vs 财报）
+- 增加 "图 Y""表 Z" 引用格式的 prompt 指令
+- 测试中文/英文双语 prompt 效果
+
+#### 5. 增强评测指标
+
+在 `src/docvisrag/eval/metrics.py` 中添加新指标，纯代码逻辑不依赖 GPU：
+
+- `relaxed_accuracy()` — 图表数值问答的容差匹配
+- 评测分组细化 — 按 region_type 统计（text / table / chart 分报告）
+- 在 `make_error_analysis.py` 中增加版面相关的错误分类
+
+#### 6. 扩展引用格式（图号/表号）
+
+当前引用仅支持 "第 X 页"。可在本地设计并实现 "图 Y"、"表 Z" 的引用解析逻辑：
+
+- 扩展 `_parse_citations()` 正则支持 `图\s*\d+`、`表\s*\d+`
+- 设计从 layout regions 中提取图号/表号的逻辑
+- 在 prompt 中增加图号表号输出要求
+
+#### 7. 编写单元测试
+
+为各个独立模块编写测试（不需要模型）：
+
+- `render.py`：PDF 渲染、图片复制、manifest 序列化
+- `ocr.py`：JSONL 解析、OCR block 数据类
+- `layout.py`：IoU 计算、bbox 归一化、区域分类逻辑
+- `text_index.py`：JSONL 加载、格式验证
+- `metrics.py`：各指标的边界条件测试
+- `fusion.py`：RRF 排序边界条件
+
+#### 8. 代码审查和文档完善
+
+- 跑 `scripts/loopback_test.sh` 的 CPU 子集（设置 `RUN_VISUAL=0 RUN_DEMO=0`）
+- 阅读并理解队友新增的 `check_env.py` 和 `loopback_test.sh`
+- 更新 README 中各阶段的用法说明
+- 整理服务器部署 checklist
+
+### 本地 → 服务器迁移检查清单
+
+当需要在服务器上运行时，确保以下准备就绪：
+
+| # | 事项 | 本地完成 | 服务器验证 |
+|---|------|----------|-----------|
+| 1 | 代码推送到 GitHub | ✅ 本地 commit & push | `git pull` |
+| 2 | 测试样本上传 | `data/samples/` 就绪 | 检查路径 |
+| 3 | 预下载模型 | 通过 HF mirror 缓存 | 检查 `~/.cache/huggingface` |
+| 4 | 虚拟环境配置 | `requirements-base.txt` 锁定版本 | `pip install` 验证 |
+| 5 | 评测问题集 | `eval/questions.jsonl` 就绪 | 路径验证 |
+| 6 | 自建文档集 | `data/self_built/` 就绪 | 路径验证 |
+| 7 | 环境变量设置 | 确认 `HF_ENDPOINT` 等 | `check_env.py` 验证 |
+| 8 | GPU 可用性 | — | `nvidia-smi` + `torch.cuda.is_available()` |
+| 9 | visual 依赖检查 | — | `check_env.py --visual` |
+| 10 | 端到端冒烟测试 | — | `bash scripts/loopback_test.sh` |
 
 ---
 
@@ -312,6 +616,9 @@ python scripts/eval/eval_qa.py \
 ```
 
 ### 5b.4 纯文本 vs 多模态对比评测
+
+> DocVQA 上推荐使用 text-aware fusion 对比，详见 `docs/TEXT_AWARE_FUSION.md`。
+
 ```bash
 python scripts/bench/compare_rag.py \
   --questions eval/questions.example.jsonl \
@@ -364,7 +671,7 @@ python scripts/qa/doc_qa.py \
 - `--model-id`
 - `--load-in-4bit`
 - `--max-new-tokens`
-- `--retriever-type`（阶段9新增：`hybrid|visual|fusion|text`）
+- `--retriever-type`（阶段9新增：`hybrid|visual|fusion`）
 - `--visual-index-dir`（visual/fusion 时）
 
 注意：`text` 检索模式请使用专用脚本 `scripts/qa/text_qa.py`，它仅基于 OCR 文本无需页面图像。
@@ -513,54 +820,133 @@ suite 根目录包含：
 
 ---
 
-## 3. 阶段 9：可选增强（Visual / Fusion 检索）
+## 3. 阶段 9：可选增强（Visual / Text-aware Fusion 检索）
 
-支持三种检索模式：
-- `hybrid`：主线模式，摘要 + OCR
-- `visual`：Byaldi/ColPali 页面视觉检索
-- `fusion`：hybrid + visual 的 RRF 融合排序，当前 Demo 默认使用
+支持三种多模态检索模式：
+- `hybrid`：页面级摘要 + OCR 检索，是无 visual 依赖时的主线模式。
+- `visual`：Byaldi/ColPali 页面视觉检索，用于图表、版面和视觉证据对照。
+- `fusion`：传入 `--text-index-dir` 后启用 text-aware fusion，将 OCR chunk 级 `text`、页面级 `hybrid`、页面视觉 `visual` 按加权 RRF 混合。
 
-### 9.1 构建 visual index
+当前推荐先做检索层消融，再做 QA 小样本验证。最新实验结论见 `docs/TEXT_AWARE_FUSION.md`。
+
+### 9.1 构建三路索引
 ```bash
+python scripts/retrieve/build_text_index.py \
+  --ocr data/outputs/demo_pages/ocr.jsonl \
+  --index-dir data/indexes/demo_text
+
+python scripts/retrieve/build_hybrid_index.py \
+  --manifest data/outputs/demo_pages/manifest.json \
+  --ocr data/outputs/demo_pages/ocr.jsonl \
+  --summaries data/outputs/demo_pages/page_summaries.jsonl \
+  --index-dir data/indexes/demo_hybrid \
+  --text-mode ocr_only \
+  --lexical-weight 0.2
+
 python scripts/retrieve/build_visual_index.py \
   --manifest data/outputs/demo_pages/manifest.json \
   --index-dir data/indexes/demo_visual
 ```
 
-### 9.2 visual 问答
+### 9.2 text / hybrid / fusion 单次问答
 ```bash
+# text 基线
+python scripts/qa/text_qa.py \
+  --index-dir data/indexes/demo_text \
+  --question "这个文档有多少张图片？" \
+  --top-k 5
+
+# hybrid 页面级问答
 python scripts/qa/doc_qa.py \
   --index-dir data/indexes/demo_hybrid \
-  --visual-index-dir data/indexes/demo_visual \
-  --retriever-type visual \
+  --retriever-type hybrid \
   --question "这个文档有多少张图片？" \
   --top-k 3
-```
 
-### 9.3 fusion 问答
-```bash
+# text-aware fusion: DocVQA 推荐 text=0.2, hybrid=5.0, visual=0.01
 python scripts/qa/doc_qa.py \
   --index-dir data/indexes/demo_hybrid \
   --visual-index-dir data/indexes/demo_visual \
+  --text-index-dir data/indexes/demo_text \
   --retriever-type fusion \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 0.01 \
+  --fusion-text-candidates 50 \
+  --fusion-hybrid-candidates 10 \
+  --fusion-visual-candidates 10 \
   --question "这个文档有多少张图片？" \
   --top-k 3
 ```
 
-### 9.4 benchmark 切换检索器
+### 9.3 benchmark 检索消融
+
+DocVQA 推荐配置：
 ```bash
 python scripts/bench/run_benchmark_suite.py \
-  --name docvqa_small \
+  --name docvqa_fusion_t02_h5_v001 \
   --manifest data/bench/docvqa_small/manifest.json \
   --questions data/bench/docvqa_small/questions.jsonl \
   --out-root data/bench_runs \
-  --retriever-type fusion
+  --retriever-type fusion \
+  --hybrid-text-mode ocr_only \
+  --hybrid-lexical-weight 0.2 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 0.01 \
+  --fusion-text-candidates 50 \
+  --fusion-hybrid-candidates 10 \
+  --fusion-visual-candidates 10 \
+  --retrieval-top-k 10 \
+  --skip-qa
+```
+
+ChartQA 推荐配置：
+```bash
+python scripts/bench/run_benchmark_suite.py \
+  --name chartqa_fusion_t1_h5_v002 \
+  --manifest data/bench/chartqa_small/manifest.json \
+  --questions data/bench/chartqa_small/questions.jsonl \
+  --out-root data/bench_runs \
+  --retriever-type fusion \
+  --hybrid-text-mode ocr_only \
+  --hybrid-lexical-weight 0.2 \
+  --fusion-text-weight 1.0 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 0.02 \
+  --fusion-text-candidates 50 \
+  --fusion-hybrid-candidates 10 \
+  --fusion-visual-candidates 10 \
+  --retrieval-top-k 10 \
+  --skip-qa
+```
+
+### 9.4 QA 小样本验证
+```bash
+python scripts/bench/run_benchmark_suite.py \
+  --name docvqa_fusion_t02_h5_v001_qa10 \
+  --manifest data/bench/docvqa_small/manifest.json \
+  --questions data/bench/docvqa_small/questions.jsonl \
+  --out-root data/bench_runs \
+  --retriever-type fusion \
+  --hybrid-text-mode ocr_only \
+  --hybrid-lexical-weight 0.2 \
+  --fusion-text-weight 0.2 \
+  --fusion-hybrid-weight 5.0 \
+  --fusion-visual-weight 0.01 \
+  --fusion-text-candidates 50 \
+  --fusion-hybrid-candidates 10 \
+  --fusion-visual-candidates 10 \
+  --qa-model-id Qwen/Qwen2.5-VL-3B-Instruct \
+  --qa-top-k 5 \
+  --qa-limit 10 \
+  --retrieval-top-k 10
 ```
 
 ### 9.5 纯文本基线 benchmark
 ```bash
 python scripts/bench/run_benchmark_suite.py \
-  --name docvqa_small \
+  --name docvqa_text \
   --manifest data/bench/docvqa_small/manifest.json \
   --questions data/bench/docvqa_small/questions.jsonl \
   --out-root data/bench_runs \
@@ -575,23 +961,14 @@ python scripts/bench/run_benchmark_suite.py \
 这是可选增强依赖冲突。先保证 hybrid 主线可用。
 
 建议：
-1. 把依赖版本固定到 Dockerfile / requirements 后重建镜像
-2. visual/fusion 仅用于对比实验时启用
+1. 先确认基础依赖和 `requirements-visual.txt` 已安装。
+2. visual/fusion 仅用于对比实验时启用。
 
 ### Q2：benchmark 数据集加载失败
 优先检查：
 - HF 镜像与网络
 - `datasets` 是否安装
 - split 是否正确（可尝试 `--split train`）
-
-### Q3：为什么推荐虚拟环境而不是 Docker
-当前项目主线已经支持直接使用 `python -m venv` 安装运行：
-
-- 环境更轻，便于调试和增量安装
-- 本地缓存和模型目录更容易复用
-- 文档里的命令可以直接在仓库根目录执行
-
-如果你仍然需要容器化部署，可以保留 Dockerfile 作为可选方案，但开发、调试和实验默认推荐虚拟环境。
 
 ---
 

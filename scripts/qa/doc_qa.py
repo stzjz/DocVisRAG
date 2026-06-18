@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -25,11 +25,26 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional visual index directory. Required for visual/fusion when it cannot be inferred.",
     )
+    parser.add_argument(
+        "--text-index-dir",
+        default=None,
+        help="Optional text index directory. When passed with fusion, OCR chunk hits are fused into page ranking.",
+    )
+    parser.add_argument("--fusion-text-weight", type=float, default=2.0, help="Text branch RRF weight for fusion.")
+    parser.add_argument("--fusion-hybrid-weight", type=float, default=0.3, help="Hybrid branch RRF weight for fusion.")
+    parser.add_argument("--fusion-visual-weight", type=float, default=0.1, help="Visual branch RRF weight for fusion.")
+    parser.add_argument("--fusion-text-candidates", type=int, default=None, help="Text branch candidate depth for fusion.")
+    parser.add_argument("--fusion-hybrid-candidates", type=int, default=None, help="Hybrid branch candidate depth for fusion.")
+    parser.add_argument("--fusion-visual-candidates", type=int, default=None, help="Visual branch candidate depth for fusion.")
     parser.add_argument("--question", required=True, help="User question.")
     parser.add_argument("--top-k", type=int, default=3, help="Top-k pages for retrieval.")
     parser.add_argument("--model-id", default=None, help="Optional VLM model id override.")
     parser.add_argument("--load-in-4bit", action="store_true", help="Enable 4-bit model loading.")
     parser.add_argument("--max-new-tokens", type=int, default=512, help="Max new tokens.")
+    parser.add_argument(
+        "--layout", default=None,
+        help="可选 layout JSONL 路径（用于图/表编号引用）。",
+    )
     return parser
 
 
@@ -43,6 +58,14 @@ def main() -> int:
             load_in_4bit=args.load_in_4bit,
             retriever_type=args.retriever_type,
             visual_index_dir=args.visual_index_dir,
+            layout_jsonl=args.layout,
+            text_index_dir=args.text_index_dir,
+            fusion_text_weight=args.fusion_text_weight,
+            fusion_hybrid_weight=args.fusion_hybrid_weight,
+            fusion_visual_weight=args.fusion_visual_weight,
+            fusion_text_candidates=args.fusion_text_candidates,
+            fusion_hybrid_candidates=args.fusion_hybrid_candidates,
+            fusion_visual_candidates=args.fusion_visual_candidates,
         )
         engine.max_new_tokens = args.max_new_tokens
         result = engine.answer(args.question)
@@ -61,7 +84,9 @@ def main() -> int:
                 f"score={ev['score']:.4f} image={ev['image_path']}"
             )
             print(f"summary={ev['summary']}")
-            print(f"ocr_text_preview={ev['ocr_text_preview']}")
+            print(f"ocr_text_preview={ev.get('ocr_text_preview', '')}")
+            if ev.get("text_matches"):
+                print(f"text_matches={ev['text_matches']}")
     else:
         print("依据：无")
 

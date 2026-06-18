@@ -6,7 +6,7 @@ import traceback
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import gradio as gr
 from PIL import Image, ImageDraw
@@ -19,7 +19,7 @@ from src.docvisrag.ingest import (
     save_manifest,
 )
 from src.docvisrag.qa import DocQAEngine
-from src.docvisrag.retrieve import HybridPageIndex, VisualPageIndex
+from src.docvisrag.retrieve import BM25Index, HybridPageIndex, TextIndex, VisualPageIndex
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -72,10 +72,14 @@ def _copy_uploaded_file(uploaded_path: str, dst_dir: Path) -> Path:
 def _session_paths(session_id: str) -> Dict[str, Path]:
     output_dir = OUTPUT_ROOT / session_id
     hybrid_index_dir = INDEX_ROOT / session_id
+    text_index_dir = hybrid_index_dir / "text_index"
+    bm25_index_dir = hybrid_index_dir / "bm25_index"
     visual_index_dir = hybrid_index_dir / "visual_index"
     return {
         "output_dir": output_dir,
         "hybrid_index_dir": hybrid_index_dir,
+        "text_index_dir": text_index_dir,
+        "bm25_index_dir": bm25_index_dir,
         "visual_index_dir": visual_index_dir,
         "manifest": output_dir / "manifest.json",
         "ocr": output_dir / "ocr.jsonl",
@@ -352,6 +356,29 @@ def build_index(
         stage_times["page_summaries"] = _elapsed_seconds(stage_start)
         status_lines.append(f"页面摘要已完成：{paths['summaries']}（{_format_seconds(stage_times['page_summaries'])}）")
 
+        # ★ P0 改进：构建 text_index（块级 Dense）+ BM25 索引（块级 Sparse）
+        stage_start = time.perf_counter()
+        text_idx = TextIndex()
+        text_idx.build_from_ocr_jsonl(
+            ocr_jsonl=str(paths["ocr"]),
+            index_dir=str(paths["text_index_dir"]),
+        )
+        stage_times["text_index"] = _elapsed_seconds(stage_start)
+        status_lines.append(f"Text 索引构建完成：{paths['text_index_dir']}（{_format_seconds(stage_times['text_index'])}）")
+
+        stage_start = time.perf_counter()
+        try:
+            bm25_idx = BM25Index()
+            bm25_idx.build_from_ocr_jsonl(
+                ocr_jsonl=str(paths["ocr"]),
+                index_dir=str(paths["bm25_index_dir"]),
+            )
+            stage_times["bm25_index"] = _elapsed_seconds(stage_start)
+            status_lines.append(f"BM25 索引构建完成：{paths['bm25_index_dir']}（{_format_seconds(stage_times['bm25_index'])}）")
+        except Exception:
+            stage_times["bm25_index"] = _elapsed_seconds(stage_start)
+            status_lines.append(f"BM25 索引构建跳过（rank_bm25 未安装）")
+
         stage_start = time.perf_counter()
         hybrid = HybridPageIndex()
         hybrid.build(
@@ -406,6 +433,8 @@ def build_index(
                 "ocr": str(paths["ocr"]),
                 "summaries": str(paths["summaries"]),
                 "hybrid_index_dir": str(paths["hybrid_index_dir"]),
+                "text_index_dir": str(paths["text_index_dir"]),
+                "bm25_index_dir": str(paths["bm25_index_dir"]),
                 "visual_index_dir": str(paths["visual_index_dir"]),
             },
             "ocr_summary": ocr_summary,
@@ -425,6 +454,8 @@ def build_index(
             "source_file": str(source_file),
             "output_dir": str(paths["output_dir"]),
             "index_dir": str(paths["hybrid_index_dir"]),
+            "text_index_dir": str(paths["text_index_dir"]),
+            "bm25_index_dir": str(paths["bm25_index_dir"]),
             "visual_index_dir": str(paths["visual_index_dir"]),
             "visual_ready": visual_ready,
             "visual_error": visual_error,
@@ -485,6 +516,10 @@ def ask_question(
             load_in_4bit=bool(state.get("load_in_4bit", False)),
             retriever_type=retriever_type,
             visual_index_dir=str(state.get("visual_index_dir", "")) if state.get("visual_index_dir") else None,
+            text_index_dir=str(state.get("text_index_dir", "")) if state.get("text_index_dir") else None,
+            manifest_path=str(state.get("manifest_path", "")) if state.get("manifest_path") else None,
+            summary_jsonl=str(state.get("summary_path", "")) if state.get("summary_path") else None,
+            layout_jsonl=str(state.get("layout_path", "")) if state.get("layout_path") else None,
         )
         result = engine.answer(question.strip())
 
@@ -518,43 +553,52 @@ def ask_question(
 
 def build_demo() -> gr.Blocks:
     with gr.Blocks(title="DocVisRAG Demo") as demo:
-        gr.Markdown("## DocVisRAG Demo")
-        gr.Markdown("上传 PDF/图片，构建索引后提问，查看答案与检索页面预览。")
+        gr.Markdown("## DocVisRAG Demo 🚀")
+        gr.Markdown("上传 PDF/图片 → 自动渲染+OCR+摘要+索引 → 多模态问答。采用 **P0 改进架构**：块级 Dense 检索 + VLM 多图生成。ColPali 视觉通道可用（约需额外 9GB 显存）。")
 
         session_state = gr.State({"ready": False})
 
         with gr.Row():
-            file_input = gr.File(
-                label="上传文档（PDF/PNG/JPG/JPEG/WEBP）",
-                type="filepath",
-                file_types=[".pdf", ".png", ".jpg", ".jpeg", ".webp"],
-            )
-            dpi_input = gr.Number(label="DPI", value=180, precision=0)
-            load_in_4bit_input = gr.Checkbox(label="4bit 量化", value=False)
-            max_pages_input = gr.Slider(label="Max Pages", minimum=1, maximum=30, step=1, value=10)
-            ocr_backend_input = gr.Dropdown(
-                label="OCR Backend",
-                choices=["auto", "paddle", "tesseract"],
-                value="auto",
-            )
-            visual_mode_input = gr.Dropdown(
-                label="Visual Build Mode",
-                choices=["required", "auto", "skip"],
-                value="required",
-            )
-            build_btn = gr.Button("构建索引", variant="primary")
+            with gr.Column(scale=2):
+                file_input = gr.File(
+                    label="📄 上传文档（PDF/PNG/JPG/JPEG/WEBP）",
+                    type="filepath",
+                    file_types=[".pdf", ".png", ".jpg", ".jpeg", ".webp"],
+                )
+            with gr.Column(scale=1):
+                dpi_input = gr.Number(label="DPI（渲染分辨率）", value=180, precision=0,
+                                      info="越高越清晰，但文件越大、处理越慢")
+                load_in_4bit_input = gr.Checkbox(label="4bit 量化（省显存）", value=False,
+                                                  info="约节省 60% 显存，推理略慢")
+                max_pages_input = gr.Slider(label="最大页数", minimum=1, maximum=30, step=1, value=10)
+            with gr.Column(scale=1):
+                ocr_backend_input = gr.Dropdown(
+                    label="OCR 后端",
+                    choices=["auto", "paddle", "tesseract"],
+                    value="auto",
+                    info="auto=优先PaddleOCR，失败回退Tesseract",
+                )
+                visual_mode_input = gr.Dropdown(
+                    label="ColPali 视觉索引",
+                    choices=["auto", "skip", "required"],
+                    value="auto",
+                    info="auto=有模型则构建；skip=跳过；required=强制（失败则报错）",
+                )
+                build_btn = gr.Button("🚀 构建索引", variant="primary")
 
-        build_status = gr.Textbox(label="构建日志", lines=12)
+        build_status = gr.Textbox(label="构建日志", lines=14)
 
         with gr.Row():
-            question_input = gr.Textbox(label="问题", placeholder="请输入你的问题")
+            question_input = gr.Textbox(label="💬 问题", placeholder="请输入你的问题", scale=3)
             retriever_dropdown = gr.Dropdown(
-                label="Retriever",
+                label="检索引擎",
                 choices=["hybrid", "visual", "fusion"],
-                value="fusion",
+                value="hybrid",
+                info="hybrid=块级检索+VLM | visual=ColPali视觉 | fusion=两者RRF融合",
             )
-            topk_slider = gr.Slider(label="top_k", minimum=1, maximum=5, step=1, value=3)
-            ask_btn = gr.Button("提问", variant="primary")
+            topk_slider = gr.Slider(label="Top-K 页面数", minimum=1, maximum=5, step=1, value=3,
+                                     info="检索返回给 VLM 的候选页面数")
+            ask_btn = gr.Button("🤖 提问", variant="primary")
 
         answer_output = gr.Textbox(label="答案", lines=8)
         evidence_output = gr.Textbox(label="检索证据", lines=16)

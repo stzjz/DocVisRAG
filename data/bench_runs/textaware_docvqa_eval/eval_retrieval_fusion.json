@@ -1,0 +1,2527 @@
+{
+  "questions_file": "data/bench/docvqa_small/questions.jsonl",
+  "index_dir": "data/bench_runs/textaware_docvqa_eval/hybrid_index",
+  "retriever_type": "fusion",
+  "visual_index_dir": "data/bench_runs/textaware_docvqa_eval/visual_index",
+  "text_index_dir": "data/bench_runs/textaware_docvqa_eval/text_index",
+  "overall": {
+    "num_questions": 100,
+    "recall@1": 0.41,
+    "recall@3": 0.72,
+    "recall@5": 0.8,
+    "mrr": 0.5769801587301587,
+    "ndcg@5": 0.6234543028076713
+  },
+  "by_type": {
+    "text": {
+      "count": 100,
+      "recall@1": 0.41,
+      "recall@3": 0.72,
+      "recall@5": 0.8,
+      "mrr": 0.5769801587301587,
+      "ndcg@5": 0.6234543028076713
+    }
+  },
+  "details": [
+    {
+      "id": "26167",
+      "type": "text",
+      "question": "what is the page no or page mentioned ?",
+      "gold_pages": [
+        1
+      ],
+      "retrieved_pages": [
+        10,
+        9,
+        24,
+        1,
+        25,
+        11,
+        12,
+        17,
+        4,
+        16
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "59443",
+      "type": "text",
+      "question": "What is the name of the University?",
+      "gold_pages": [
+        2
+      ],
+      "retrieved_pages": [
+        2,
+        13,
+        19,
+        11,
+        24,
+        12,
+        23,
+        1,
+        16,
+        10
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "21700",
+      "type": "text",
+      "question": "What is the Expenses for Salaries for 1986?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        3,
+        16,
+        23,
+        24,
+        9,
+        6,
+        25,
+        26,
+        11,
+        17
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "21704",
+      "type": "text",
+      "question": "What is the Expenses for Publications for 1987?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        3,
+        16,
+        1,
+        25,
+        6,
+        24,
+        23,
+        11,
+        7,
+        10
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "21705",
+      "type": "text",
+      "question": "What is the Expenses for Publications for 1986?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        3,
+        23,
+        25,
+        16,
+        24,
+        6,
+        7,
+        10,
+        11,
+        8
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "21699",
+      "type": "text",
+      "question": "What is the Expenses for Salaries for 1987?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        3,
+        16,
+        1,
+        6,
+        9,
+        25,
+        17,
+        24,
+        23,
+        11
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "21702",
+      "type": "text",
+      "question": "What is the Expenses for Employee Benefits for 1987?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        3,
+        1,
+        7,
+        11,
+        16,
+        6,
+        24,
+        25,
+        21,
+        14
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "21703",
+      "type": "text",
+      "question": "What is the Expenses for Employee Benefits for 1986?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        3,
+        1,
+        24,
+        11,
+        7,
+        25,
+        6,
+        16,
+        21,
+        14
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "21707",
+      "type": "text",
+      "question": "What is the Expenses for Rent for 1987?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        3,
+        16,
+        7,
+        1,
+        6,
+        8,
+        5,
+        23,
+        9,
+        11
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "21708",
+      "type": "text",
+      "question": "What is the Expenses for Rent for 1986?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        3,
+        16,
+        7,
+        6,
+        23,
+        8,
+        5,
+        1,
+        24,
+        25
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "21710",
+      "type": "text",
+      "question": "What is the Expenses for legal for 1987?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        1,
+        3,
+        16,
+        6,
+        7,
+        11,
+        24,
+        9,
+        8,
+        23
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "21711",
+      "type": "text",
+      "question": "What is the Expenses for legal for 1986?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        3,
+        1,
+        24,
+        16,
+        23,
+        6,
+        10,
+        7,
+        11,
+        8
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "18611",
+      "type": "text",
+      "question": "What is the PD ?",
+      "gold_pages": [
+        4
+      ],
+      "retrieved_pages": [
+        9,
+        10,
+        11,
+        6,
+        8,
+        1,
+        2,
+        16,
+        23,
+        15
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "18612",
+      "type": "text",
+      "question": "What is the CSF?",
+      "gold_pages": [
+        4
+      ],
+      "retrieved_pages": [
+        5,
+        4,
+        9,
+        11,
+        10,
+        1,
+        24,
+        6,
+        2,
+        8
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "18617",
+      "type": "text",
+      "question": "What is the Net Pound Infeed?",
+      "gold_pages": [
+        4
+      ],
+      "retrieved_pages": [
+        4,
+        16,
+        5,
+        1,
+        24,
+        6,
+        7,
+        10,
+        17,
+        26
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "18619",
+      "type": "text",
+      "question": "What is the Net Pounds Out ?",
+      "gold_pages": [
+        4
+      ],
+      "retrieved_pages": [
+        5,
+        16,
+        25,
+        4,
+        6,
+        17,
+        7,
+        2,
+        11,
+        8
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "18621",
+      "type": "text",
+      "question": "What is the heading of the document ?",
+      "gold_pages": [
+        4
+      ],
+      "retrieved_pages": [
+        3,
+        10,
+        11,
+        14,
+        25,
+        8,
+        24,
+        9,
+        1,
+        2
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "58700",
+      "type": "text",
+      "question": "What is the PD?",
+      "gold_pages": [
+        5
+      ],
+      "retrieved_pages": [
+        10,
+        9,
+        11,
+        6,
+        8,
+        1,
+        2,
+        16,
+        23,
+        4
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "58702",
+      "type": "text",
+      "question": "What is the percentage of net pounds out over net pounds infeed (handwritten)?",
+      "gold_pages": [
+        5
+      ],
+      "retrieved_pages": [
+        4,
+        16,
+        5,
+        6,
+        11,
+        17,
+        7,
+        26,
+        10,
+        24
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "58696",
+      "type": "text",
+      "question": "What is the Net pounds Out?",
+      "gold_pages": [
+        5
+      ],
+      "retrieved_pages": [
+        5,
+        16,
+        4,
+        6,
+        25,
+        17,
+        7,
+        11,
+        2,
+        24
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "58697",
+      "type": "text",
+      "question": "What is the Net pounds Infeed?",
+      "gold_pages": [
+        5
+      ],
+      "retrieved_pages": [
+        4,
+        16,
+        5,
+        6,
+        24,
+        11,
+        7,
+        26,
+        9,
+        1
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "58699",
+      "type": "text",
+      "question": "What is the CSF?",
+      "gold_pages": [
+        5
+      ],
+      "retrieved_pages": [
+        5,
+        4,
+        9,
+        11,
+        10,
+        1,
+        24,
+        6,
+        2,
+        8
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "58703",
+      "type": "text",
+      "question": "What should be done prior to B-3?",
+      "gold_pages": [
+        5
+      ],
+      "retrieved_pages": [
+        10,
+        25,
+        16,
+        12,
+        13,
+        11,
+        1,
+        3,
+        19,
+        17
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "50467",
+      "type": "text",
+      "question": "What is the figure number?",
+      "gold_pages": [
+        6
+      ],
+      "retrieved_pages": [
+        17,
+        13,
+        8,
+        11,
+        3,
+        6,
+        7,
+        10,
+        24,
+        9
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "50468",
+      "type": "text",
+      "question": "What is the footnote of the table in fig. 2?",
+      "gold_pages": [
+        6
+      ],
+      "retrieved_pages": [
+        13,
+        25,
+        11,
+        8,
+        6,
+        24,
+        3,
+        20,
+        17,
+        16
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "50469",
+      "type": "text",
+      "question": "What type of plant is SCGP 1?",
+      "gold_pages": [
+        6
+      ],
+      "retrieved_pages": [
+        11,
+        6,
+        16,
+        23,
+        1,
+        8,
+        25,
+        19,
+        7,
+        2
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "43118",
+      "type": "text",
+      "question": "what is the 'sales to customers' in 2010?",
+      "gold_pages": [
+        7
+      ],
+      "retrieved_pages": [
+        26,
+        7,
+        23,
+        10,
+        25,
+        3,
+        8,
+        24,
+        17,
+        6
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "43122",
+      "type": "text",
+      "question": "What is the 'net earnings' for the year 2009?",
+      "gold_pages": [
+        7
+      ],
+      "retrieved_pages": [
+        3,
+        8,
+        7,
+        19,
+        26,
+        9,
+        23,
+        11,
+        24,
+        17
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "43110",
+      "type": "text",
+      "question": "What is the name of the company mentioned at the top of the page?",
+      "gold_pages": [
+        7
+      ],
+      "retrieved_pages": [
+        10,
+        1,
+        25,
+        12,
+        23,
+        9,
+        24,
+        8,
+        11,
+        14
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "43131",
+      "type": "text",
+      "question": "what was the amount incurred for 'restructuring' in 2009?",
+      "gold_pages": [
+        7
+      ],
+      "retrieved_pages": [
+        23,
+        7,
+        26,
+        1,
+        17,
+        6,
+        14,
+        24,
+        3,
+        8
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "43134",
+      "type": "text",
+      "question": "Which year shows a higher 'gross profit' ?",
+      "gold_pages": [
+        7
+      ],
+      "retrieved_pages": [
+        26,
+        22,
+        3,
+        7,
+        8,
+        1,
+        12,
+        25,
+        6,
+        23
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "43136",
+      "type": "text",
+      "question": "How much was the 'research and development expense' for the year 2009?",
+      "gold_pages": [
+        7
+      ],
+      "retrieved_pages": [
+        11,
+        3,
+        16,
+        6,
+        7,
+        9,
+        21,
+        24,
+        17,
+        23
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "43144",
+      "type": "text",
+      "question": "how much did the company earn in 2010 in terms of 'gross profits'?",
+      "gold_pages": [
+        7
+      ],
+      "retrieved_pages": [
+        25,
+        7,
+        23,
+        26,
+        8,
+        1,
+        12,
+        16,
+        3,
+        6
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "43163",
+      "type": "text",
+      "question": "What is the year of 'Annual Report' mentioned at the bottom right of the statement?",
+      "gold_pages": [
+        7
+      ],
+      "retrieved_pages": [
+        23,
+        3,
+        21,
+        10,
+        19,
+        14,
+        16,
+        24,
+        25,
+        7
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "43167",
+      "type": "text",
+      "question": "which year shows a higher 'diluted average shares outstanding' when compared to 2009?",
+      "gold_pages": [
+        7
+      ],
+      "retrieved_pages": [
+        3,
+        26,
+        8,
+        16,
+        21,
+        7,
+        22,
+        19,
+        24,
+        17
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "42115",
+      "type": "text",
+      "question": "What is the total intrinsic value of options exercised in 2010?",
+      "gold_pages": [
+        8
+      ],
+      "retrieved_pages": [
+        8,
+        11,
+        1,
+        7,
+        16,
+        6,
+        24,
+        26,
+        17,
+        25
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "42121",
+      "type": "text",
+      "question": "What is the total intrinsic value of options exercised in 2009?",
+      "gold_pages": [
+        8
+      ],
+      "retrieved_pages": [
+        1,
+        11,
+        8,
+        26,
+        16,
+        6,
+        7,
+        24,
+        17,
+        9
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "42128",
+      "type": "text",
+      "question": "What is the total intrinsic value of options exercised in 2008?",
+      "gold_pages": [
+        8
+      ],
+      "retrieved_pages": [
+        8,
+        11,
+        1,
+        7,
+        6,
+        16,
+        21,
+        3,
+        10,
+        24
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "62001",
+      "type": "text",
+      "question": "What is the page number?",
+      "gold_pages": [
+        9
+      ],
+      "retrieved_pages": [
+        9,
+        10,
+        12,
+        25,
+        1,
+        11,
+        17,
+        13,
+        24,
+        8
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "62005",
+      "type": "text",
+      "question": "Regarding what can they ask additional information on?",
+      "gold_pages": [
+        9
+      ],
+      "retrieved_pages": [
+        9,
+        11,
+        17,
+        25,
+        10,
+        1,
+        14,
+        6,
+        24,
+        16
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "52622",
+      "type": "text",
+      "question": "What is the full form for NCCIU?",
+      "gold_pages": [
+        10
+      ],
+      "retrieved_pages": [
+        10,
+        13,
+        11,
+        19,
+        16,
+        3,
+        24,
+        17,
+        6,
+        5
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "52625",
+      "type": "text",
+      "question": "Where are the delegates coming from?",
+      "gold_pages": [
+        10
+      ],
+      "retrieved_pages": [
+        15,
+        10,
+        1,
+        25,
+        19,
+        23,
+        12,
+        17,
+        6,
+        11
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "52629",
+      "type": "text",
+      "question": "What date should the gift products be received by?",
+      "gold_pages": [
+        10
+      ],
+      "retrieved_pages": [
+        14,
+        24,
+        16,
+        19,
+        5,
+        23,
+        26,
+        8,
+        10,
+        12
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "52637",
+      "type": "text",
+      "question": "What is the total pages scanned?",
+      "gold_pages": [
+        10
+      ],
+      "retrieved_pages": [
+        11,
+        10,
+        9,
+        1,
+        25,
+        12,
+        24,
+        16,
+        6,
+        8
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "52678",
+      "type": "text",
+      "question": "What does EC stand for?",
+      "gold_pages": [
+        10
+      ],
+      "retrieved_pages": [
+        11,
+        25,
+        10,
+        7,
+        6,
+        23,
+        1,
+        17,
+        24,
+        14
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "52685",
+      "type": "text",
+      "question": "How many cartons of Camels should the gift package contain?",
+      "gold_pages": [
+        10
+      ],
+      "retrieved_pages": [
+        17,
+        10,
+        2,
+        11,
+        6,
+        1,
+        19,
+        24,
+        3,
+        14
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "6044",
+      "type": "text",
+      "question": "What type of research is conducted?",
+      "gold_pages": [
+        11
+      ],
+      "retrieved_pages": [
+        11,
+        16,
+        10,
+        7,
+        12,
+        3,
+        1,
+        6,
+        2,
+        23
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "6020",
+      "type": "text",
+      "question": "what is the individual or corporate name?",
+      "gold_pages": [
+        12
+      ],
+      "retrieved_pages": [
+        12,
+        15,
+        24,
+        11,
+        1,
+        18,
+        6,
+        10,
+        14,
+        19
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "6024",
+      "type": "text",
+      "question": "what is the effective date on the profile?",
+      "gold_pages": [
+        12
+      ],
+      "retrieved_pages": [
+        24,
+        14,
+        16,
+        23,
+        19,
+        1,
+        12,
+        11,
+        5,
+        25
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.14285714285714285,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "6028",
+      "type": "text",
+      "question": "what is the mailing address of the individual?",
+      "gold_pages": [
+        12
+      ],
+      "retrieved_pages": [
+        12,
+        9,
+        14,
+        10,
+        15,
+        6,
+        25,
+        1,
+        11,
+        19
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "6032",
+      "type": "text",
+      "question": "what is the zipcode?",
+      "gold_pages": [
+        12
+      ],
+      "retrieved_pages": [
+        19,
+        24,
+        16,
+        15,
+        1,
+        14,
+        11,
+        8,
+        9,
+        7
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "6035",
+      "type": "text",
+      "question": "what is home telephone number of the individual?",
+      "gold_pages": [
+        12
+      ],
+      "retrieved_pages": [
+        12,
+        19,
+        3,
+        17,
+        24,
+        13,
+        10,
+        23,
+        9,
+        11
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "63685",
+      "type": "text",
+      "question": "What is the table number?",
+      "gold_pages": [
+        13
+      ],
+      "retrieved_pages": [
+        17,
+        13,
+        11,
+        1,
+        15,
+        24,
+        8,
+        10,
+        6,
+        16
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "63686",
+      "type": "text",
+      "question": "Which is clinical center A ?",
+      "gold_pages": [
+        13
+      ],
+      "retrieved_pages": [
+        13,
+        23,
+        10,
+        24,
+        1,
+        3,
+        2,
+        15,
+        6,
+        11
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "63687",
+      "type": "text",
+      "question": "What is the no.of UC participants lost to follow-up in New York?",
+      "gold_pages": [
+        13
+      ],
+      "retrieved_pages": [
+        13,
+        2,
+        11,
+        24,
+        10,
+        19,
+        15,
+        8,
+        17,
+        25
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "63688",
+      "type": "text",
+      "question": "What is the total number of participants lost to follow-up in Baltimore?",
+      "gold_pages": [
+        13
+      ],
+      "retrieved_pages": [
+        13,
+        17,
+        10,
+        1,
+        11,
+        24,
+        6,
+        25,
+        19,
+        9
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "64701",
+      "type": "text",
+      "question": "What type of report is this?",
+      "gold_pages": [
+        14
+      ],
+      "retrieved_pages": [
+        10,
+        16,
+        23,
+        14,
+        11,
+        3,
+        21,
+        1,
+        25,
+        19
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "64702",
+      "type": "text",
+      "question": "Who should sign?",
+      "gold_pages": [
+        14
+      ],
+      "retrieved_pages": [
+        10,
+        1,
+        14,
+        17,
+        11,
+        23,
+        12,
+        25,
+        24,
+        6
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "64703",
+      "type": "text",
+      "question": "What is the heading of the first column?",
+      "gold_pages": [
+        14
+      ],
+      "retrieved_pages": [
+        26,
+        11,
+        9,
+        14,
+        1,
+        17,
+        6,
+        10,
+        24,
+        8
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "51506",
+      "type": "text",
+      "question": "Whose name is written in the sheet?",
+      "gold_pages": [
+        15
+      ],
+      "retrieved_pages": [
+        4,
+        12,
+        10,
+        24,
+        5,
+        1,
+        11,
+        25,
+        16,
+        9
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "51508",
+      "type": "text",
+      "question": "Which ‘federation’ is mentioned in the sheet?",
+      "gold_pages": [
+        15
+      ],
+      "retrieved_pages": [
+        4,
+        5,
+        15,
+        10,
+        3,
+        16,
+        25,
+        17,
+        1,
+        24
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "1693",
+      "type": "text",
+      "question": "What is the date mentioned in the heading?",
+      "gold_pages": [
+        16
+      ],
+      "retrieved_pages": [
+        14,
+        24,
+        16,
+        23,
+        3,
+        19,
+        9,
+        26,
+        25,
+        8
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "1695",
+      "type": "text",
+      "question": "Are there any names mentioned in the Witness?",
+      "gold_pages": [
+        16
+      ],
+      "retrieved_pages": [
+        12,
+        10,
+        1,
+        19,
+        17,
+        24,
+        16,
+        15,
+        9,
+        2
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.14285714285714285,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "1696",
+      "type": "text",
+      "question": "What is the first HOT ISSUE mentioned?",
+      "gold_pages": [
+        16
+      ],
+      "retrieved_pages": [
+        16,
+        11,
+        1,
+        17,
+        26,
+        25,
+        3,
+        6,
+        10,
+        8
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "63045",
+      "type": "text",
+      "question": "What is the name of the bank advertised?",
+      "gold_pages": [
+        17
+      ],
+      "retrieved_pages": [
+        17,
+        12,
+        24,
+        3,
+        19,
+        1,
+        7,
+        25,
+        23,
+        16
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "63046",
+      "type": "text",
+      "question": "How many locations does the bank have?",
+      "gold_pages": [
+        17
+      ],
+      "retrieved_pages": [
+        17,
+        24,
+        7,
+        19,
+        23,
+        1,
+        10,
+        11,
+        25,
+        6
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "40788",
+      "type": "text",
+      "question": "What is the order number?",
+      "gold_pages": [
+        18
+      ],
+      "retrieved_pages": [
+        17,
+        16,
+        8,
+        1,
+        10,
+        5,
+        23,
+        13,
+        14,
+        11
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "61131",
+      "type": "text",
+      "question": "What is the name of the company?",
+      "gold_pages": [
+        19
+      ],
+      "retrieved_pages": [
+        25,
+        12,
+        23,
+        1,
+        24,
+        8,
+        10,
+        19,
+        6,
+        17
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.125,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "61133",
+      "type": "text",
+      "question": "Who is the client?",
+      "gold_pages": [
+        19
+      ],
+      "retrieved_pages": [
+        10,
+        24,
+        1,
+        11,
+        9,
+        8,
+        2,
+        6,
+        12,
+        25
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "61135",
+      "type": "text",
+      "question": "What type of maps do they specialize in?",
+      "gold_pages": [
+        19
+      ],
+      "retrieved_pages": [
+        11,
+        19,
+        24,
+        10,
+        1,
+        16,
+        6,
+        12,
+        17,
+        9
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "51753",
+      "type": "text",
+      "question": "What is ‘table 2’ ?",
+      "gold_pages": [
+        20
+      ],
+      "retrieved_pages": [
+        11,
+        1,
+        13,
+        23,
+        16,
+        22,
+        20,
+        17,
+        8,
+        25
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.14285714285714285,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "51765",
+      "type": "text",
+      "question": "Among dieters and weight watchers, how many persons used sweetner ‘1-5 times’ ?",
+      "gold_pages": [
+        20
+      ],
+      "retrieved_pages": [
+        20,
+        26,
+        2,
+        16,
+        6,
+        8,
+        3,
+        22,
+        11,
+        17
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "51768",
+      "type": "text",
+      "question": "Among dieters and weight watchers, how many persons used ‘31 or more times’ ?",
+      "gold_pages": [
+        20
+      ],
+      "retrieved_pages": [
+        26,
+        20,
+        16,
+        3,
+        17,
+        7,
+        22,
+        8,
+        11,
+        24
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "51769",
+      "type": "text",
+      "question": "Among dieters and weight watchers, how many  persons used ‘21-30 times’ ?",
+      "gold_pages": [
+        20
+      ],
+      "retrieved_pages": [
+        26,
+        20,
+        17,
+        3,
+        16,
+        8,
+        7,
+        22,
+        10,
+        11
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "51770",
+      "type": "text",
+      "question": "Among dieters and weight watchers, how many  persons used ‘11-20 times’ ?",
+      "gold_pages": [
+        20
+      ],
+      "retrieved_pages": [
+        20,
+        26,
+        23,
+        17,
+        16,
+        24,
+        5,
+        3,
+        8,
+        1
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "51771",
+      "type": "text",
+      "question": "Among dieters and weight watchers, how many persons used ‘6-10 times’ ?",
+      "gold_pages": [
+        20
+      ],
+      "retrieved_pages": [
+        20,
+        26,
+        17,
+        5,
+        2,
+        3,
+        16,
+        11,
+        8,
+        1
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "43790",
+      "type": "text",
+      "question": "What is the year of review of pinnacle ultamet experience?",
+      "gold_pages": [
+        21
+      ],
+      "retrieved_pages": [
+        21,
+        3,
+        6,
+        16,
+        10,
+        17,
+        24,
+        23,
+        1,
+        22
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "43796",
+      "type": "text",
+      "question": "What are the ‘dates implanted’?",
+      "gold_pages": [
+        21
+      ],
+      "retrieved_pages": [
+        14,
+        23,
+        24,
+        16,
+        19,
+        9,
+        8,
+        5,
+        25,
+        21
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "43800",
+      "type": "text",
+      "question": "How many ‘total implanted’?",
+      "gold_pages": [
+        21
+      ],
+      "retrieved_pages": [
+        10,
+        21,
+        11,
+        1,
+        26,
+        6,
+        3,
+        16,
+        19,
+        17
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "43803",
+      "type": "text",
+      "question": "How many’ no reported revisions’?",
+      "gold_pages": [
+        21
+      ],
+      "retrieved_pages": [
+        3,
+        21,
+        23,
+        16,
+        26,
+        24,
+        8,
+        11,
+        7,
+        19
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "43805",
+      "type": "text",
+      "question": "How many ‘ no reported metal reaction revisions’?",
+      "gold_pages": [
+        21
+      ],
+      "retrieved_pages": [
+        21,
+        26,
+        3,
+        16,
+        11,
+        24,
+        7,
+        5,
+        8,
+        25
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "43813",
+      "type": "text",
+      "question": "What is the percentage shown under ‘no reported revisions’?",
+      "gold_pages": [
+        21
+      ],
+      "retrieved_pages": [
+        3,
+        16,
+        23,
+        21,
+        11,
+        24,
+        1,
+        8,
+        10,
+        17
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "43815",
+      "type": "text",
+      "question": "What is the percentage shown under ‘no reported metal reaction revisions’?",
+      "gold_pages": [
+        21
+      ],
+      "retrieved_pages": [
+        16,
+        11,
+        21,
+        24,
+        3,
+        1,
+        26,
+        19,
+        8,
+        6
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "56775",
+      "type": "text",
+      "question": "What is the first month plotted along the x axis?",
+      "gold_pages": [
+        22
+      ],
+      "retrieved_pages": [
+        23,
+        9,
+        6,
+        14,
+        10,
+        17,
+        24,
+        16,
+        26,
+        8
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "56776",
+      "type": "text",
+      "question": "What is the last month plotted along the x axis?",
+      "gold_pages": [
+        22
+      ],
+      "retrieved_pages": [
+        1,
+        23,
+        9,
+        10,
+        14,
+        16,
+        24,
+        17,
+        6,
+        22
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "56777",
+      "type": "text",
+      "question": "What is the share of high market in dec?",
+      "gold_pages": [
+        22
+      ],
+      "retrieved_pages": [
+        22,
+        8,
+        7,
+        25,
+        11,
+        1,
+        24,
+        23,
+        10,
+        3
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "21035",
+      "type": "text",
+      "question": "Who is the chairman for the 1981 Budget Update event at 12:00 noon?",
+      "gold_pages": [
+        23
+      ],
+      "retrieved_pages": [
+        1,
+        23,
+        9,
+        24,
+        22,
+        19,
+        16,
+        3,
+        6,
+        11
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "21036",
+      "type": "text",
+      "question": "Who is the acting chairman?",
+      "gold_pages": [
+        23
+      ],
+      "retrieved_pages": [
+        1,
+        10,
+        23,
+        25,
+        11,
+        24,
+        19,
+        16,
+        17,
+        3
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "4962",
+      "type": "text",
+      "question": "What is the Venue Name?",
+      "gold_pages": [
+        24
+      ],
+      "retrieved_pages": [
+        12,
+        1,
+        24,
+        19,
+        10,
+        17,
+        16,
+        25,
+        6,
+        13
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "4963",
+      "type": "text",
+      "question": "What is the Venue Code?",
+      "gold_pages": [
+        24
+      ],
+      "retrieved_pages": [
+        24,
+        1,
+        10,
+        17,
+        19,
+        9,
+        16,
+        6,
+        11,
+        8
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "674",
+      "type": "text",
+      "question": "what is the name of the company in the letter head?",
+      "gold_pages": [
+        25
+      ],
+      "retrieved_pages": [
+        25,
+        12,
+        23,
+        10,
+        24,
+        8,
+        9,
+        1,
+        17,
+        19
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "675",
+      "type": "text",
+      "question": "what is this notice about",
+      "gold_pages": [
+        25
+      ],
+      "retrieved_pages": [
+        25,
+        19,
+        10,
+        24,
+        1,
+        9,
+        11,
+        17,
+        16,
+        8
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "676",
+      "type": "text",
+      "question": "who is the secretary of the company ?",
+      "gold_pages": [
+        25
+      ],
+      "retrieved_pages": [
+        25,
+        23,
+        12,
+        10,
+        11,
+        24,
+        8,
+        9,
+        17,
+        6
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "677",
+      "type": "text",
+      "question": "when is the meeting held ?",
+      "gold_pages": [
+        25
+      ],
+      "retrieved_pages": [
+        25,
+        23,
+        3,
+        16,
+        10,
+        9,
+        11,
+        8,
+        1,
+        24
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "678",
+      "type": "text",
+      "question": "Where is the pepsico head quatered?",
+      "gold_pages": [
+        25
+      ],
+      "retrieved_pages": [
+        3,
+        25,
+        1,
+        24,
+        10,
+        16,
+        22,
+        17,
+        23,
+        9
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "42295",
+      "type": "text",
+      "question": "what is the sales in 2004?",
+      "gold_pages": [
+        26
+      ],
+      "retrieved_pages": [
+        7,
+        26,
+        10,
+        6,
+        11,
+        24,
+        21,
+        9,
+        17,
+        25
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "42297",
+      "type": "text",
+      "question": "what is the sales in 2006?",
+      "gold_pages": [
+        26
+      ],
+      "retrieved_pages": [
+        19,
+        7,
+        26,
+        10,
+        25,
+        23,
+        1,
+        6,
+        8,
+        11
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "42300",
+      "type": "text",
+      "question": "what is the sales in 2009?",
+      "gold_pages": [
+        26
+      ],
+      "retrieved_pages": [
+        26,
+        7,
+        10,
+        3,
+        11,
+        6,
+        8,
+        1,
+        24,
+        16
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "42303",
+      "type": "text",
+      "question": "what is the sales in 2012?",
+      "gold_pages": [
+        26
+      ],
+      "retrieved_pages": [
+        26,
+        7,
+        10,
+        23,
+        24,
+        6,
+        25,
+        16,
+        9,
+        11
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "42304",
+      "type": "text",
+      "question": "what is the sales in 2013?",
+      "gold_pages": [
+        26
+      ],
+      "retrieved_pages": [
+        7,
+        26,
+        23,
+        10,
+        1,
+        6,
+        24,
+        25,
+        11,
+        16
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    }
+  ]
+}

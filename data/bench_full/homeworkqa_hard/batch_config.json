@@ -1,0 +1,84 @@
+{
+  "benchmarks": [
+    {
+      "name": "homeworkqa_hard_公益服务证明",
+      "benchmark": "homeworkqa_hard",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/公益服务证明/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_hard/questions_by_pdf/公益服务证明.jsonl",
+      "dataset_id": "local_homeworkqa_hard",
+      "split": "custom_10pdf_20q_each"
+    },
+    {
+      "name": "homeworkqa_hard_圆顶",
+      "benchmark": "homeworkqa_hard",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/圆顶/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_hard/questions_by_pdf/圆顶.jsonl",
+      "dataset_id": "local_homeworkqa_hard",
+      "split": "custom_10pdf_20q_each"
+    },
+    {
+      "name": "homeworkqa_hard_大学物理",
+      "benchmark": "homeworkqa_hard",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/大学物理/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_hard/questions_by_pdf/大学物理.jsonl",
+      "dataset_id": "local_homeworkqa_hard",
+      "split": "custom_10pdf_20q_each"
+    },
+    {
+      "name": "homeworkqa_hard_大数据",
+      "benchmark": "homeworkqa_hard",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/大数据/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_hard/questions_by_pdf/大数据.jsonl",
+      "dataset_id": "local_homeworkqa_hard",
+      "split": "custom_10pdf_20q_each"
+    },
+    {
+      "name": "homeworkqa_hard_并行计算",
+      "benchmark": "homeworkqa_hard",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/并行计算/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_hard/questions_by_pdf/并行计算.jsonl",
+      "dataset_id": "local_homeworkqa_hard",
+      "split": "custom_10pdf_20q_each"
+    },
+    {
+      "name": "homeworkqa_hard_推荐系统",
+      "benchmark": "homeworkqa_hard",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/推荐系统/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_hard/questions_by_pdf/推荐系统.jsonl",
+      "dataset_id": "local_homeworkqa_hard",
+      "split": "custom_10pdf_20q_each"
+    },
+    {
+      "name": "homeworkqa_hard_数字电路",
+      "benchmark": "homeworkqa_hard",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/数字电路/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_hard/questions_by_pdf/数字电路.jsonl",
+      "dataset_id": "local_homeworkqa_hard",
+      "split": "custom_10pdf_20q_each"
+    },
+    {
+      "name": "homeworkqa_hard_数字电路2",
+      "benchmark": "homeworkqa_hard",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/数字电路2/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_hard/questions_by_pdf/数字电路2.jsonl",
+      "dataset_id": "local_homeworkqa_hard",
+      "split": "custom_10pdf_20q_each"
+    },
+    {
+      "name": "homeworkqa_hard_数据结构",
+      "benchmark": "homeworkqa_hard",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/数据结构/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_hard/questions_by_pdf/数据结构.jsonl",
+      "dataset_id": "local_homeworkqa_hard",
+      "split": "custom_10pdf_20q_each"
+    },
+    {
+      "name": "homeworkqa_hard_编译原理",
+      "benchmark": "homeworkqa_hard",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/编译原理/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_hard/questions_by_pdf/编译原理.jsonl",
+      "dataset_id": "local_homeworkqa_hard",
+      "split": "custom_10pdf_20q_each"
+    }
+  ]
+}

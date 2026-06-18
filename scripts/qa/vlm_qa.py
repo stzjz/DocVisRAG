@@ -37,7 +37,7 @@ def main() -> int:
     )
     args = build_parser().parse_args()
 
-    model_id = args.model_id or "Qwen/Qwen2.5-VL-3B-Instruct"
+    model_id = args.model_id or "Qwen/Qwen2.5-VL-7B-Instruct"
 
     try:
         client = QwenVLClient(

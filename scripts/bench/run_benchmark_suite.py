@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 import json
 import shutil
 import subprocess
@@ -381,7 +381,9 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
     )
 
     if args.retriever_type == "text":
-        # 纯文本基线：仅构建 text index，跳过摘要和 hybrid index
+        cmd_summary = [sys.executable, "scripts/ingest/build_page_summaries.py", "--manifest", str(manifest_src), "--out", str(summaries_jsonl)]
+        if args.summary_model_id: cmd_summary += ["--model-id", args.summary_model_id]
+        _run_cmd(cmd_summary, log_file)
         _run_cmd(
             [
                 sys.executable,
@@ -395,6 +397,8 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
             ],
             log_file,
         )
+        bm25_index_dir = inter_dir / "bm25_index"
+        _run_cmd([sys.executable, "scripts/retrieve/build_bm25_index.py", "--ocr", str(ocr_jsonl), "--index-dir", str(bm25_index_dir)], log_file)
         eval_index_dir = str(text_index_dir)
     else:
         cmd_summary = [
@@ -409,6 +413,8 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
             cmd_summary += ["--model-id", args.summary_model_id]
         _run_cmd(cmd_summary, log_file)
 
+        _run_cmd([sys.executable, "scripts/retrieve/build_text_index.py", "--ocr", str(ocr_jsonl), "--index-dir", str(text_index_dir), "--model-name", args.index_model_name], log_file)
+        _run_cmd([sys.executable, "scripts/retrieve/build_bm25_index.py", "--ocr", str(ocr_jsonl), "--index-dir", str(inter_dir / "bm25_index")], log_file)
         _run_cmd(
             [
                 sys.executable,
@@ -423,6 +429,10 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
                 str(index_dir),
                 "--model-name",
                 args.index_model_name,
+                "--text-mode",
+                args.hybrid_text_mode,
+                "--lexical-weight",
+                str(args.hybrid_lexical_weight),
             ],
             log_file,
         )
@@ -458,6 +468,9 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
     ]
     if args.retriever_type in {"visual", "fusion"}:
         cmd_eval_retrieval += ["--visual-index-dir", str(visual_index_dir)]
+    if args.retriever_type == "fusion":
+        cmd_eval_retrieval += ["--text-index-dir", str(text_index_dir)]
+        cmd_eval_retrieval += _fusion_cli_args(args)
     _run_cmd(cmd_eval_retrieval, log_file)
 
     qa_success = True
@@ -480,6 +493,9 @@ def _run_single_benchmark(spec: BenchSpec, args: argparse.Namespace, suite_dir: 
         ]
         if args.retriever_type in {"visual", "fusion"}:
             cmd_qa += ["--visual-index-dir", str(visual_index_dir)]
+        if args.retriever_type == "fusion":
+            cmd_qa += ["--text-index-dir", str(text_index_dir)]
+            cmd_qa += _fusion_cli_args(args)
         if args.qa_limit is not None:
             cmd_qa += ["--limit", str(args.qa_limit)]
         if args.qa_model_id:
@@ -605,6 +621,24 @@ def _write_suite_format_readme(suite_dir: Path) -> None:
     _write_markdown(suite_dir / "README.md", lines)
 
 
+def _fusion_cli_args(args: argparse.Namespace) -> List[str]:
+    cmd = [
+        "--fusion-text-weight",
+        str(args.fusion_text_weight),
+        "--fusion-hybrid-weight",
+        str(args.fusion_hybrid_weight),
+        "--fusion-visual-weight",
+        str(args.fusion_visual_weight),
+    ]
+    if args.fusion_text_candidates is not None:
+        cmd += ["--fusion-text-candidates", str(args.fusion_text_candidates)]
+    if args.fusion_hybrid_candidates is not None:
+        cmd += ["--fusion-hybrid-candidates", str(args.fusion_hybrid_candidates)]
+    if args.fusion_visual_candidates is not None:
+        cmd += ["--fusion-visual-candidates", str(args.fusion_visual_candidates)]
+    return cmd
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run end-to-end benchmark pipeline and keep all intermediates/results in one clean subdirectory."
@@ -620,6 +654,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--suite-name", default=None, help="Suite directory name")
 
     parser.add_argument("--index-model-name", default="BAAI/bge-small-zh-v1.5")
+    parser.add_argument(
+        "--hybrid-text-mode",
+        default="summary_ocr",
+        choices=["summary_ocr", "ocr_summary", "ocr_only", "summary_only"],
+        help="How build_hybrid_index combines summaries and OCR text.",
+    )
+    parser.add_argument(
+        "--hybrid-lexical-weight",
+        type=float,
+        default=0.0,
+        help="Lexical rerank weight passed to build_hybrid_index.",
+    )
     parser.add_argument("--summary-model-id", default=None)
     parser.add_argument(
         "--retriever-type",
@@ -641,6 +687,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--skip-qa", action="store_true")
 
     parser.add_argument("--retrieval-top-k", type=int, default=5)
+    parser.add_argument("--fusion-text-weight", type=float, default=2.0, help="Text branch RRF weight for fusion.")
+    parser.add_argument("--fusion-hybrid-weight", type=float, default=0.3, help="Hybrid branch RRF weight for fusion.")
+    parser.add_argument("--fusion-visual-weight", type=float, default=0.1, help="Visual branch RRF weight for fusion.")
+    parser.add_argument("--fusion-text-candidates", type=int, default=None, help="Text branch candidate depth for fusion.")
+    parser.add_argument("--fusion-hybrid-candidates", type=int, default=None, help="Hybrid branch candidate depth for fusion.")
+    parser.add_argument("--fusion-visual-candidates", type=int, default=None, help="Visual branch candidate depth for fusion.")
 
     parser.add_argument("--auto-prepare-missing", action="store_true", default=True)
     parser.add_argument("--no-auto-prepare-missing", action="store_false", dest="auto_prepare_missing")

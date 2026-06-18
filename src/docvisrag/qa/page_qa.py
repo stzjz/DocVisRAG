@@ -7,7 +7,7 @@ from src.docvisrag.vlm import QwenVLClient
 
 class PageQAEngine:
     def __init__(self, model_id: Optional[str] = None, load_in_4bit: bool = False) -> None:
-        self.model_id = model_id or "Qwen/Qwen2.5-VL-3B-Instruct"
+        self.model_id = model_id or "Qwen/Qwen2.5-VL-7B-Instruct"
         self.load_in_4bit = load_in_4bit
         self.max_new_tokens = 512
         self.vlm = QwenVLClient(

@@ -81,8 +81,8 @@ class VisualPageIndex(BaseRetriever):
             raise RuntimeError(
                 "VisualPageIndex requires `peft` but import failed. "
                 f"Detected dependency versions: {deps}. "
-                "Rebuild with visual dependencies, e.g. "
-                "`docker build --build-arg INSTALL_VISUAL=true -t docvisrag:cu124 .`"
+                "Install visual dependencies in the active virtualenv, e.g. "
+                "`python -m pip install -r requirements-visual.txt`"
             ) from exc
 
         if not hasattr(peft_save_and_load, "_maybe_shard_state_dict_for_tp"):
@@ -102,7 +102,7 @@ class VisualPageIndex(BaseRetriever):
                 "VisualPageIndex requires optional visual retrieval dependency `byaldi`.\n"
                 f"Detected dependency versions: {deps}\n"
                 "Install suggestions:\n"
-                "1) rebuild with `docker build --build-arg INSTALL_VISUAL=true -t docvisrag:cu124 .`\n"
+                "1) install `requirements-visual.txt` in the active virtualenv.\n"
                 "2) verify model compatibility for ColPali/Byaldi."
             ) from exc
         return RAGMultiModalModel

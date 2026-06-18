@@ -21,6 +21,18 @@ def build_parser() -> argparse.ArgumentParser:
         default="BAAI/bge-small-zh-v1.5",
         help="Embedding model name for sentence-transformers",
     )
+    parser.add_argument(
+        "--text-mode",
+        default="summary_ocr",
+        choices=["summary_ocr", "ocr_summary", "ocr_only", "summary_only"],
+        help="How to combine page summary and OCR text for hybrid embedding.",
+    )
+    parser.add_argument(
+        "--lexical-weight",
+        type=float,
+        default=0.0,
+        help="Optional lexical rerank weight over stored page search_text.",
+    )
     return parser
 
 
@@ -34,6 +46,8 @@ def main() -> int:
             summary_jsonl=args.summaries,
             index_dir=args.index_dir,
             model_name=args.model_name,
+            text_mode=args.text_mode,
+            lexical_weight=args.lexical_weight,
         )
     except Exception as exc:  # noqa: BLE001
         print(f"[ERROR] Build hybrid index failed: {exc}")

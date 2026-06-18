@@ -1,0 +1,2537 @@
+{
+  "questions_file": "data/bench/chartqa_small/questions.jsonl",
+  "index_dir": "data/bench_runs/chartqa_textaware_eval/hybrid_index_tesseract",
+  "retriever_type": "hybrid",
+  "visual_index_dir": null,
+  "text_index_dir": null,
+  "fusion_weights": {
+    "text": 2.0,
+    "hybrid": 0.3,
+    "visual": 0.1
+  },
+  "fusion_candidate_depths": {
+    "text": null,
+    "hybrid": null,
+    "visual": null
+  },
+  "overall": {
+    "num_questions": 100,
+    "recall@1": 0.12,
+    "recall@3": 0.24,
+    "recall@5": 0.36,
+    "mrr": 0.21940079365079365,
+    "ndcg@5": 0.23690754713276355
+  },
+  "by_type": {
+    "chart": {
+      "count": 100,
+      "recall@1": 0.12,
+      "recall@3": 0.24,
+      "recall@5": 0.36,
+      "mrr": 0.21940079365079365,
+      "ndcg@5": 0.23690754713276355
+    }
+  },
+  "details": [
+    {
+      "id": "chartqa_val_000000",
+      "type": "chart",
+      "question": "What's the color of graph with 56 as the highest value?",
+      "gold_pages": [
+        1
+      ],
+      "retrieved_pages": [
+        2,
+        36,
+        6,
+        4,
+        12,
+        8,
+        15,
+        21,
+        7,
+        37
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000001",
+      "type": "chart",
+      "question": "In which year the difference between blue and green graph 1?",
+      "gold_pages": [
+        1
+      ],
+      "retrieved_pages": [
+        2,
+        36,
+        8,
+        21,
+        26,
+        6,
+        7,
+        41,
+        1,
+        3
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000002",
+      "type": "chart",
+      "question": "What does the blue line represent?",
+      "gold_pages": [
+        2
+      ],
+      "retrieved_pages": [
+        2,
+        6,
+        4,
+        12,
+        36,
+        16,
+        15,
+        1,
+        9,
+        8
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "chartqa_val_000003",
+      "type": "chart",
+      "question": "What is the max value of blue line?",
+      "gold_pages": [
+        2
+      ],
+      "retrieved_pages": [
+        2,
+        6,
+        7,
+        8,
+        9,
+        36,
+        46,
+        12,
+        21,
+        10
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "chartqa_val_000004",
+      "type": "chart",
+      "question": "What's the percentage of respondents who say Job is a top priority for the president and Congress in 2016?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        3,
+        5,
+        4,
+        47,
+        15,
+        36,
+        17,
+        16,
+        20,
+        43
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "chartqa_val_000005",
+      "type": "chart",
+      "question": "Which line has the lowest value of 71%?",
+      "gold_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        2,
+        6,
+        3,
+        7,
+        8,
+        9,
+        4,
+        45,
+        21,
+        5
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "chartqa_val_000006",
+      "type": "chart",
+      "question": "What is the unfavourable value in 2014?",
+      "gold_pages": [
+        4
+      ],
+      "retrieved_pages": [
+        36,
+        3,
+        4,
+        8,
+        2,
+        47,
+        5,
+        43,
+        9,
+        23
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "chartqa_val_000007",
+      "type": "chart",
+      "question": "What is the median value of favourable line in the graph?",
+      "gold_pages": [
+        4
+      ],
+      "retrieved_pages": [
+        6,
+        2,
+        36,
+        15,
+        8,
+        7,
+        9,
+        3,
+        4,
+        12
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000008",
+      "type": "chart",
+      "question": "Which answer response has the highest value on this graph?",
+      "gold_pages": [
+        5
+      ],
+      "retrieved_pages": [
+        36,
+        2,
+        4,
+        6,
+        3,
+        21,
+        15,
+        8,
+        10,
+        9
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000009",
+      "type": "chart",
+      "question": "How many data points on the disapprove line are above 50?",
+      "gold_pages": [
+        5
+      ],
+      "retrieved_pages": [
+        6,
+        2,
+        21,
+        45,
+        12,
+        5,
+        9,
+        35,
+        8,
+        25
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000010",
+      "type": "chart",
+      "question": "Which indicator remains all time lowest from Dec. 2008 to Sep. 2011?",
+      "gold_pages": [
+        6
+      ],
+      "retrieved_pages": [
+        8,
+        7,
+        9,
+        4,
+        6,
+        3,
+        43,
+        2,
+        36,
+        10
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "chartqa_val_000011",
+      "type": "chart",
+      "question": "How much value of 'Mostly bad news' increased from Jan. 2011 to Sept. 2011?",
+      "gold_pages": [
+        6
+      ],
+      "retrieved_pages": [
+        8,
+        6,
+        7,
+        9,
+        4,
+        15,
+        3,
+        23,
+        43,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "chartqa_val_000012",
+      "type": "chart",
+      "question": "When does the red line reach the peak?",
+      "gold_pages": [
+        7
+      ],
+      "retrieved_pages": [
+        4,
+        12,
+        6,
+        2,
+        9,
+        7,
+        8,
+        17,
+        5,
+        21
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000013",
+      "type": "chart",
+      "question": "What's the total sum of peak points of all three lines?",
+      "gold_pages": [
+        7
+      ],
+      "retrieved_pages": [
+        12,
+        7,
+        2,
+        6,
+        21,
+        45,
+        9,
+        18,
+        4,
+        46
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "chartqa_val_000014",
+      "type": "chart",
+      "question": "When does the yellow line reach the peak?",
+      "gold_pages": [
+        8
+      ],
+      "retrieved_pages": [
+        2,
+        4,
+        6,
+        9,
+        12,
+        8,
+        7,
+        35,
+        16,
+        5
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000015",
+      "type": "chart",
+      "question": "What's the total sum of peak points of green and red lines?",
+      "gold_pages": [
+        8
+      ],
+      "retrieved_pages": [
+        2,
+        4,
+        6,
+        12,
+        9,
+        46,
+        7,
+        21,
+        8,
+        18
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000016",
+      "type": "chart",
+      "question": "What's the lowest value of yellow line?",
+      "gold_pages": [
+        9
+      ],
+      "retrieved_pages": [
+        2,
+        6,
+        7,
+        4,
+        9,
+        8,
+        35,
+        36,
+        21,
+        26
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "chartqa_val_000017",
+      "type": "chart",
+      "question": "What's the difference of value of highiest value of red and lowest value of green line?",
+      "gold_pages": [
+        9
+      ],
+      "retrieved_pages": [
+        6,
+        2,
+        4,
+        9,
+        7,
+        36,
+        8,
+        21,
+        46,
+        47
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "chartqa_val_000018",
+      "type": "chart",
+      "question": "What is the colour of oppose in the graph?",
+      "gold_pages": [
+        10
+      ],
+      "retrieved_pages": [
+        36,
+        25,
+        6,
+        2,
+        21,
+        8,
+        17,
+        4,
+        45,
+        47
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000019",
+      "type": "chart",
+      "question": "How many times there is 44 value in the Favor?",
+      "gold_pages": [
+        10
+      ],
+      "retrieved_pages": [
+        23,
+        21,
+        45,
+        36,
+        39,
+        18,
+        46,
+        3,
+        25,
+        8
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000020",
+      "type": "chart",
+      "question": "What is the percentage of people who are dissatisfied with Spain's democracy?",
+      "gold_pages": [
+        11
+      ],
+      "retrieved_pages": [
+        12,
+        15,
+        20,
+        17,
+        11,
+        36,
+        14,
+        16,
+        4,
+        46
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "chartqa_val_000021",
+      "type": "chart",
+      "question": "What is the ratio of people who are dissatisfied and satisfied with Spain's democracy?",
+      "gold_pages": [
+        11
+      ],
+      "retrieved_pages": [
+        17,
+        20,
+        36,
+        12,
+        15,
+        14,
+        4,
+        11,
+        5,
+        16
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.125,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000022",
+      "type": "chart",
+      "question": "Is the Pie chart divided into 3 segment?",
+      "gold_pages": [
+        12
+      ],
+      "retrieved_pages": [
+        21,
+        37,
+        7,
+        12,
+        45,
+        22,
+        15,
+        43,
+        3,
+        47
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "chartqa_val_000023",
+      "type": "chart",
+      "question": "IS the value of No more then sum of Yes and Dk?",
+      "gold_pages": [
+        12
+      ],
+      "retrieved_pages": [
+        21,
+        45,
+        36,
+        46,
+        15,
+        17,
+        6,
+        12,
+        18,
+        8
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.125,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000024",
+      "type": "chart",
+      "question": "What is the percentage of Iraqi dependents citizen?",
+      "gold_pages": [
+        13
+      ],
+      "retrieved_pages": [
+        46,
+        17,
+        8,
+        20,
+        2,
+        26,
+        11,
+        15,
+        43,
+        6
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000025",
+      "type": "chart",
+      "question": "What is the total percentage of Afghan applicants and Iraqi applicants?",
+      "gold_pages": [
+        13
+      ],
+      "retrieved_pages": [
+        43,
+        12,
+        46,
+        16,
+        8,
+        15,
+        47,
+        6,
+        13,
+        20
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000026",
+      "type": "chart",
+      "question": "Is the color of 53% segment light green?",
+      "gold_pages": [
+        14
+      ],
+      "retrieved_pages": [
+        2,
+        32,
+        7,
+        10,
+        8,
+        6,
+        46,
+        9,
+        4,
+        12
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000027",
+      "type": "chart",
+      "question": "What's the ratio of Lean Republican segment and Republican segment?",
+      "gold_pages": [
+        14
+      ],
+      "retrieved_pages": [
+        36,
+        17,
+        20,
+        32,
+        46,
+        14,
+        26,
+        16,
+        4,
+        11
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000028",
+      "type": "chart",
+      "question": "What segment represent by dark grey color?",
+      "gold_pages": [
+        15
+      ],
+      "retrieved_pages": [
+        6,
+        4,
+        15,
+        9,
+        2,
+        7,
+        8,
+        21,
+        16,
+        36
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "chartqa_val_000029",
+      "type": "chart",
+      "question": "What is the percentage of both and don't know?",
+      "gold_pages": [
+        15
+      ],
+      "retrieved_pages": [
+        9,
+        18,
+        6,
+        4,
+        46,
+        36,
+        26,
+        12,
+        2,
+        43
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000030",
+      "type": "chart",
+      "question": "What's the value of leftmost bar in the bottom?",
+      "gold_pages": [
+        16
+      ],
+      "retrieved_pages": [
+        7,
+        4,
+        6,
+        46,
+        36,
+        17,
+        8,
+        9,
+        18,
+        47
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000031",
+      "type": "chart",
+      "question": "What is the largest value of dark green bar?",
+      "gold_pages": [
+        16
+      ],
+      "retrieved_pages": [
+        46,
+        6,
+        8,
+        15,
+        7,
+        2,
+        37,
+        9,
+        17,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000032",
+      "type": "chart",
+      "question": "Which country data analysed here?",
+      "gold_pages": [
+        17
+      ],
+      "retrieved_pages": [
+        46,
+        3,
+        2,
+        6,
+        8,
+        9,
+        37,
+        32,
+        7,
+        34
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000033",
+      "type": "chart",
+      "question": "What is the maximum value of dark brown bar?",
+      "gold_pages": [
+        17
+      ],
+      "retrieved_pages": [
+        15,
+        6,
+        7,
+        8,
+        17,
+        9,
+        37,
+        12,
+        4,
+        21
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "chartqa_val_000034",
+      "type": "chart",
+      "question": "What's the percentage of very important bar for healthy eating habits?",
+      "gold_pages": [
+        18
+      ],
+      "retrieved_pages": [
+        18,
+        46,
+        49,
+        40,
+        45,
+        32,
+        43,
+        26,
+        37,
+        47
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "chartqa_val_000035",
+      "type": "chart",
+      "question": "What's the average of green bar median and light blue bar median?",
+      "gold_pages": [
+        18
+      ],
+      "retrieved_pages": [
+        6,
+        8,
+        7,
+        2,
+        15,
+        9,
+        4,
+        46,
+        36,
+        32
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000036",
+      "type": "chart",
+      "question": "What does dark blue bar represents?",
+      "gold_pages": [
+        18
+      ],
+      "retrieved_pages": [
+        15,
+        2,
+        6,
+        12,
+        16,
+        17,
+        4,
+        21,
+        45,
+        7
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000037",
+      "type": "chart",
+      "question": "What's the average value of all dark blue bars?",
+      "gold_pages": [
+        18
+      ],
+      "retrieved_pages": [
+        6,
+        46,
+        7,
+        8,
+        15,
+        21,
+        2,
+        9,
+        36,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000038",
+      "type": "chart",
+      "question": "What does the color green indicate?",
+      "gold_pages": [
+        19
+      ],
+      "retrieved_pages": [
+        2,
+        6,
+        8,
+        4,
+        9,
+        7,
+        32,
+        46,
+        12,
+        17
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000039",
+      "type": "chart",
+      "question": "What is the difference between the longest and the shortest green bar?",
+      "gold_pages": [
+        19
+      ],
+      "retrieved_pages": [
+        18,
+        46,
+        9,
+        2,
+        6,
+        8,
+        7,
+        21,
+        36,
+        43
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000040",
+      "type": "chart",
+      "question": "Which country has the highest percentage value of \"a lot\"?",
+      "gold_pages": [
+        20
+      ],
+      "retrieved_pages": [
+        8,
+        36,
+        46,
+        3,
+        20,
+        7,
+        4,
+        9,
+        6,
+        2
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "chartqa_val_000041",
+      "type": "chart",
+      "question": "What is the maximum value of \"a lot\" among countries?",
+      "gold_pages": [
+        20
+      ],
+      "retrieved_pages": [
+        46,
+        8,
+        36,
+        32,
+        7,
+        6,
+        3,
+        20,
+        47,
+        9
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.125,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000042",
+      "type": "chart",
+      "question": "How many bars are there in the graph?",
+      "gold_pages": [
+        21
+      ],
+      "retrieved_pages": [
+        36,
+        46,
+        25,
+        17,
+        37,
+        26,
+        21,
+        15,
+        45,
+        18
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.14285714285714285,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000043",
+      "type": "chart",
+      "question": "What is the total sum of both the bars?",
+      "gold_pages": [
+        21
+      ],
+      "retrieved_pages": [
+        18,
+        46,
+        17,
+        21,
+        12,
+        45,
+        47,
+        43,
+        37,
+        36
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "chartqa_val_000044",
+      "type": "chart",
+      "question": "What's the value of United States?",
+      "gold_pages": [
+        22
+      ],
+      "retrieved_pages": [
+        46,
+        36,
+        32,
+        2,
+        20,
+        17,
+        3,
+        12,
+        27,
+        8
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000045",
+      "type": "chart",
+      "question": "What's the average value of Canada, Belgium and France?",
+      "gold_pages": [
+        22
+      ],
+      "retrieved_pages": [
+        32,
+        46,
+        36,
+        20,
+        11,
+        17,
+        26,
+        3,
+        2,
+        25
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000046",
+      "type": "chart",
+      "question": "What is the death rate in the age group 5-14 years old?",
+      "gold_pages": [
+        23
+      ],
+      "retrieved_pages": [
+        39,
+        23,
+        45,
+        24,
+        21,
+        49,
+        36,
+        29,
+        25,
+        41
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "chartqa_val_000047",
+      "type": "chart",
+      "question": "Find the median value of all the bars?",
+      "gold_pages": [
+        23
+      ],
+      "retrieved_pages": [
+        6,
+        15,
+        8,
+        12,
+        46,
+        7,
+        37,
+        9,
+        21,
+        40
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000048",
+      "type": "chart",
+      "question": "Which place shows the highest death rate?",
+      "gold_pages": [
+        24
+      ],
+      "retrieved_pages": [
+        45,
+        23,
+        24,
+        39,
+        41,
+        3,
+        9,
+        36,
+        21,
+        4
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "chartqa_val_000049",
+      "type": "chart",
+      "question": "Is the value of death rate in Denmark more then Croatia?",
+      "gold_pages": [
+        24
+      ],
+      "retrieved_pages": [
+        24,
+        45,
+        23,
+        39,
+        41,
+        21,
+        40,
+        8,
+        26,
+        28
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "chartqa_val_000050",
+      "type": "chart",
+      "question": "How many categories are there in the chart?",
+      "gold_pages": [
+        25
+      ],
+      "retrieved_pages": [
+        46,
+        25,
+        36,
+        15,
+        47,
+        21,
+        6,
+        3,
+        43,
+        17
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "chartqa_val_000051",
+      "type": "chart",
+      "question": "What's the average of two smallest bar?",
+      "gold_pages": [
+        25
+      ],
+      "retrieved_pages": [
+        46,
+        18,
+        7,
+        25,
+        43,
+        6,
+        17,
+        26,
+        45,
+        9
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "chartqa_val_000052",
+      "type": "chart",
+      "question": "How many bars are there in the graph?",
+      "gold_pages": [
+        26
+      ],
+      "retrieved_pages": [
+        36,
+        46,
+        25,
+        17,
+        37,
+        26,
+        21,
+        15,
+        45,
+        18
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000053",
+      "type": "chart",
+      "question": "What is the total add up value of Both the bars?",
+      "gold_pages": [
+        26
+      ],
+      "retrieved_pages": [
+        18,
+        46,
+        21,
+        17,
+        37,
+        8,
+        6,
+        12,
+        15,
+        3
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000054",
+      "type": "chart",
+      "question": "What denotes the light blue color bar?",
+      "gold_pages": [
+        27
+      ],
+      "retrieved_pages": [
+        6,
+        2,
+        7,
+        8,
+        26,
+        15,
+        12,
+        4,
+        9,
+        10
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000055",
+      "type": "chart",
+      "question": "What's the average value of all bars in the chart?",
+      "gold_pages": [
+        27
+      ],
+      "retrieved_pages": [
+        46,
+        47,
+        43,
+        5,
+        18,
+        6,
+        9,
+        7,
+        3,
+        37
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000056",
+      "type": "chart",
+      "question": "What does the value 2122 represent?",
+      "gold_pages": [
+        28
+      ],
+      "retrieved_pages": [
+        28,
+        6,
+        21,
+        4,
+        15,
+        36,
+        3,
+        2,
+        8,
+        5
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "chartqa_val_000057",
+      "type": "chart",
+      "question": "What is the difference in the value between Incidence and Prevalence?",
+      "gold_pages": [
+        28
+      ],
+      "retrieved_pages": [
+        36,
+        21,
+        6,
+        15,
+        5,
+        8,
+        43,
+        9,
+        3,
+        18
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000058",
+      "type": "chart",
+      "question": "Which age group has the highest value?",
+      "gold_pages": [
+        29
+      ],
+      "retrieved_pages": [
+        36,
+        15,
+        23,
+        3,
+        2,
+        46,
+        8,
+        25,
+        43,
+        49
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000059",
+      "type": "chart",
+      "question": "Find the average of the percentage value of bars greater than 1?",
+      "gold_pages": [
+        29
+      ],
+      "retrieved_pages": [
+        46,
+        47,
+        5,
+        37,
+        18,
+        8,
+        26,
+        15,
+        43,
+        6
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000060",
+      "type": "chart",
+      "question": "Which state shows the highest fertility rate?",
+      "gold_pages": [
+        30
+      ],
+      "retrieved_pages": [
+        9,
+        6,
+        3,
+        4,
+        2,
+        8,
+        7,
+        36,
+        5,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000061",
+      "type": "chart",
+      "question": "Is the value of Malawi greater then sum of Netherlands and Africa?",
+      "gold_pages": [
+        30
+      ],
+      "retrieved_pages": [
+        46,
+        20,
+        32,
+        36,
+        12,
+        25,
+        47,
+        43,
+        17,
+        45
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000062",
+      "type": "chart",
+      "question": "What is the value of the largest bar?",
+      "gold_pages": [
+        31
+      ],
+      "retrieved_pages": [
+        46,
+        18,
+        17,
+        47,
+        25,
+        36,
+        6,
+        37,
+        26,
+        21
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000063",
+      "type": "chart",
+      "question": "What is the difference between the largest bar and the smallest bar?",
+      "gold_pages": [
+        31
+      ],
+      "retrieved_pages": [
+        43,
+        18,
+        17,
+        46,
+        6,
+        47,
+        36,
+        25,
+        7,
+        9
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000064",
+      "type": "chart",
+      "question": "Which country has its value 5.97%?",
+      "gold_pages": [
+        32
+      ],
+      "retrieved_pages": [
+        8,
+        3,
+        2,
+        6,
+        7,
+        32,
+        46,
+        9,
+        21,
+        5
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000065",
+      "type": "chart",
+      "question": "Find the total percentage of the three countries having values lower than India?",
+      "gold_pages": [
+        32
+      ],
+      "retrieved_pages": [
+        46,
+        32,
+        45,
+        47,
+        21,
+        12,
+        7,
+        43,
+        23,
+        37
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "chartqa_val_000066",
+      "type": "chart",
+      "question": "What is the value of longest bar?",
+      "gold_pages": [
+        33
+      ],
+      "retrieved_pages": [
+        46,
+        18,
+        25,
+        9,
+        17,
+        6,
+        5,
+        45,
+        47,
+        23
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000067",
+      "type": "chart",
+      "question": "How many bars have value less then 1?",
+      "gold_pages": [
+        33
+      ],
+      "retrieved_pages": [
+        21,
+        46,
+        6,
+        37,
+        8,
+        18,
+        17,
+        7,
+        45,
+        43
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000068",
+      "type": "chart",
+      "question": "Which country represent by pink bar?",
+      "gold_pages": [
+        34
+      ],
+      "retrieved_pages": [
+        2,
+        6,
+        4,
+        7,
+        8,
+        15,
+        17,
+        36,
+        32,
+        22
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000069",
+      "type": "chart",
+      "question": "What is the difference between red and blue bar?",
+      "gold_pages": [
+        34
+      ],
+      "retrieved_pages": [
+        6,
+        21,
+        2,
+        9,
+        7,
+        36,
+        17,
+        8,
+        1,
+        12
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000070",
+      "type": "chart",
+      "question": "How many response options are below 150 n mi?",
+      "gold_pages": [
+        35
+      ],
+      "retrieved_pages": [
+        21,
+        6,
+        26,
+        8,
+        25,
+        45,
+        9,
+        23,
+        12,
+        36
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000071",
+      "type": "chart",
+      "question": "What is the average of '24 hours' and '48 hours'?",
+      "gold_pages": [
+        35
+      ],
+      "retrieved_pages": [
+        18,
+        25,
+        35,
+        47,
+        46,
+        43,
+        36,
+        3,
+        39,
+        6
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "chartqa_val_000072",
+      "type": "chart",
+      "question": "Which year mentioned in the heading of the chart?",
+      "gold_pages": [
+        36
+      ],
+      "retrieved_pages": [
+        47,
+        43,
+        3,
+        36,
+        23,
+        25,
+        8,
+        6,
+        21,
+        18
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "chartqa_val_000073",
+      "type": "chart",
+      "question": "How many times political competition data bigger than political participation?",
+      "gold_pages": [
+        36
+      ],
+      "retrieved_pages": [
+        36,
+        6,
+        8,
+        2,
+        15,
+        3,
+        7,
+        26,
+        9,
+        12
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "chartqa_val_000074",
+      "type": "chart",
+      "question": "Find the value of green bar?",
+      "gold_pages": [
+        37
+      ],
+      "retrieved_pages": [
+        46,
+        37,
+        6,
+        8,
+        7,
+        18,
+        2,
+        26,
+        4,
+        9
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.5,
+      "ndcg@5": 0.6309297535714575
+    },
+    {
+      "id": "chartqa_val_000075",
+      "type": "chart",
+      "question": "How many times green bar greater than Agriculture bar?",
+      "gold_pages": [
+        37
+      ],
+      "retrieved_pages": [
+        46,
+        34,
+        47,
+        8,
+        37,
+        7,
+        26,
+        6,
+        32,
+        17
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2,
+      "ndcg@5": 0.38685280723454163
+    },
+    {
+      "id": "chartqa_val_000076",
+      "type": "chart",
+      "question": "What is the value shown for Australia?",
+      "gold_pages": [
+        38
+      ],
+      "retrieved_pages": [
+        46,
+        6,
+        36,
+        8,
+        25,
+        9,
+        2,
+        7,
+        4,
+        47
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000077",
+      "type": "chart",
+      "question": "What is the average of bottom three bars?",
+      "gold_pages": [
+        38
+      ],
+      "retrieved_pages": [
+        7,
+        46,
+        18,
+        6,
+        17,
+        49,
+        9,
+        43,
+        36,
+        22
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000078",
+      "type": "chart",
+      "question": "What is color of the Age-standardized?",
+      "gold_pages": [
+        39
+      ],
+      "retrieved_pages": [
+        2,
+        36,
+        23,
+        15,
+        25,
+        6,
+        21,
+        16,
+        39,
+        18
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.1111111111111111,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000079",
+      "type": "chart",
+      "question": "What is the value of the 50-69 years old?",
+      "gold_pages": [
+        39
+      ],
+      "retrieved_pages": [
+        23,
+        25,
+        39,
+        21,
+        45,
+        18,
+        9,
+        41,
+        36,
+        3
+      ],
+      "recall@1": 0.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 0.3333333333333333,
+      "ndcg@5": 0.5
+    },
+    {
+      "id": "chartqa_val_000080",
+      "type": "chart",
+      "question": "The value is 40.49, find the category?",
+      "gold_pages": [
+        40
+      ],
+      "retrieved_pages": [
+        23,
+        21,
+        45,
+        25,
+        6,
+        8,
+        36,
+        2,
+        38,
+        28
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000081",
+      "type": "chart",
+      "question": "How many times stomach cancer bigger than Kidney cancer data?",
+      "gold_pages": [
+        40
+      ],
+      "retrieved_pages": [
+        40,
+        18,
+        45,
+        28,
+        21,
+        48,
+        15,
+        24,
+        49,
+        31
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "chartqa_val_000082",
+      "type": "chart",
+      "question": "Which two places mentioned in the chart?",
+      "gold_pages": [
+        41
+      ],
+      "retrieved_pages": [
+        36,
+        47,
+        43,
+        46,
+        21,
+        12,
+        18,
+        25,
+        13,
+        1
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000083",
+      "type": "chart",
+      "question": "How much times Madagascar greater than Central europe data?",
+      "gold_pages": [
+        41
+      ],
+      "retrieved_pages": [
+        6,
+        8,
+        7,
+        9,
+        26,
+        12,
+        46,
+        36,
+        27,
+        11
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000084",
+      "type": "chart",
+      "question": "What is the average maize yield in Syria?",
+      "gold_pages": [
+        42
+      ],
+      "retrieved_pages": [
+        43,
+        45,
+        9,
+        6,
+        30,
+        36,
+        21,
+        46,
+        5,
+        2
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000085",
+      "type": "chart",
+      "question": "Find the ratio of highest value and average of two lowest values?",
+      "gold_pages": [
+        42
+      ],
+      "retrieved_pages": [
+        21,
+        45,
+        36,
+        6,
+        23,
+        7,
+        9,
+        8,
+        4,
+        5
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000086",
+      "type": "chart",
+      "question": "What is Female-to-male ratio to time devoted to unpaid care work in Italy?",
+      "gold_pages": [
+        43
+      ],
+      "retrieved_pages": [
+        43,
+        18,
+        45,
+        39,
+        47,
+        5,
+        49,
+        29,
+        36,
+        12
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "chartqa_val_000087",
+      "type": "chart",
+      "question": "What is the average of the values lower than 3 and greater than 2?",
+      "gold_pages": [
+        43
+      ],
+      "retrieved_pages": [
+        7,
+        9,
+        36,
+        43,
+        6,
+        3,
+        21,
+        4,
+        47,
+        46
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.25,
+      "ndcg@5": 0.43067655807339306
+    },
+    {
+      "id": "chartqa_val_000088",
+      "type": "chart",
+      "question": "What is the value of largest bar?",
+      "gold_pages": [
+        44
+      ],
+      "retrieved_pages": [
+        46,
+        18,
+        17,
+        6,
+        47,
+        25,
+        37,
+        8,
+        26,
+        43
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000089",
+      "type": "chart",
+      "question": "Is the add up value of Comoros,Nicargua,Australia,Belgium is gretaer then Laos?",
+      "gold_pages": [
+        44
+      ],
+      "retrieved_pages": [
+        46,
+        17,
+        27,
+        11,
+        28,
+        38,
+        20,
+        32,
+        42,
+        2
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000090",
+      "type": "chart",
+      "question": "Which country has longest bar?",
+      "gold_pages": [
+        45
+      ],
+      "retrieved_pages": [
+        46,
+        17,
+        25,
+        8,
+        7,
+        5,
+        9,
+        36,
+        34,
+        6
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000091",
+      "type": "chart",
+      "question": "What is the difference of Sweden and Malta?",
+      "gold_pages": [
+        45
+      ],
+      "retrieved_pages": [
+        6,
+        43,
+        15,
+        9,
+        7,
+        45,
+        8,
+        12,
+        25,
+        4
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.16666666666666666,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000092",
+      "type": "chart",
+      "question": "How many colors are used in the graph?",
+      "gold_pages": [
+        46
+      ],
+      "retrieved_pages": [
+        2,
+        36,
+        15,
+        6,
+        21,
+        10,
+        12,
+        8,
+        26,
+        7
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000093",
+      "type": "chart",
+      "question": "What is the sum of largest and smallest bar?",
+      "gold_pages": [
+        46
+      ],
+      "retrieved_pages": [
+        46,
+        25,
+        43,
+        18,
+        17,
+        47,
+        22,
+        26,
+        45,
+        34
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "chartqa_val_000094",
+      "type": "chart",
+      "question": "How many colors are represented in the bar??",
+      "gold_pages": [
+        47
+      ],
+      "retrieved_pages": [
+        6,
+        15,
+        2,
+        4,
+        36,
+        26,
+        7,
+        8,
+        17,
+        9
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000095",
+      "type": "chart",
+      "question": "What is the difference between Industry employment percentage in Iran and Kenya??",
+      "gold_pages": [
+        47
+      ],
+      "retrieved_pages": [
+        47,
+        43,
+        26,
+        34,
+        46,
+        37,
+        19,
+        5,
+        17,
+        12
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "chartqa_val_000096",
+      "type": "chart",
+      "question": "Which place shows the highest cases of guinea worm?",
+      "gold_pages": [
+        48
+      ],
+      "retrieved_pages": [
+        48,
+        4,
+        45,
+        24,
+        15,
+        43,
+        35,
+        33,
+        32,
+        31
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "ndcg@5": 1.0
+    },
+    {
+      "id": "chartqa_val_000097",
+      "type": "chart",
+      "question": "Is the sum of Senegal and Central African Republic more then Chad?",
+      "gold_pages": [
+        48
+      ],
+      "retrieved_pages": [
+        32,
+        46,
+        34,
+        17,
+        20,
+        12,
+        42,
+        16,
+        36,
+        43
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000098",
+      "type": "chart",
+      "question": "How many colors are represented in the bar??",
+      "gold_pages": [
+        49
+      ],
+      "retrieved_pages": [
+        6,
+        15,
+        2,
+        4,
+        36,
+        26,
+        7,
+        8,
+        17,
+        9
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    },
+    {
+      "id": "chartqa_val_000099",
+      "type": "chart",
+      "question": "What's the average value of first two bars in the chart??",
+      "gold_pages": [
+        49
+      ],
+      "retrieved_pages": [
+        26,
+        36,
+        46,
+        47,
+        7,
+        43,
+        5,
+        18,
+        3,
+        21
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@5": 0.0
+    }
+  ]
+}

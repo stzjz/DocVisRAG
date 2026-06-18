@@ -10,10 +10,10 @@ LOGGER = logging.getLogger(__name__)
 class QwenVLClient:
     def __init__(
         self,
-        model_id: str = "Qwen/Qwen2.5-VL-3B-Instruct",
+        model_id: str = "Qwen/Qwen2.5-VL-7B-Instruct",
         device_map: str = "auto",
         load_in_4bit: bool = False,
-        max_pixels: Optional[int] = None,
+        max_pixels: Optional[int] = 1003520,
     ) -> None:
         env_model_id = os.getenv("DOCVISRAG_MODEL_ID")
         self.model_id = env_model_id or model_id

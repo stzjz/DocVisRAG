@@ -19,6 +19,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--model-id", default=None, help="可选 LLM model id 覆盖。")
     parser.add_argument("--load-in-4bit", action="store_true", help="启用 4-bit 模型加载。")
     parser.add_argument("--max-new-tokens", type=int, default=512, help="最大生成 token 数。")
+    parser.add_argument(
+        "--layout", default=None,
+        help="可选 layout JSONL 路径（用于图/表编号引用）。",
+    )
+    parser.add_argument("--manifest", default=None, help="可选 manifest.json 路径。")
+    parser.add_argument("--summaries", default=None, help="可选 page_summaries.jsonl 路径。")
     return parser
 
 
@@ -30,6 +36,9 @@ def main() -> int:
             model_id=args.model_id,
             top_k=args.top_k,
             load_in_4bit=args.load_in_4bit,
+            layout_jsonl=args.layout,
+            manifest_path=args.manifest,
+            summary_jsonl=args.summaries,
         )
         engine.max_new_tokens = args.max_new_tokens
         result = engine.answer(args.question)

@@ -11,12 +11,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 SUMMARY_PROMPT = (
-    "请阅读这页文档图像，用中文概括页面内容。重点描述：\n"
-    "1. 标题和主题\n"
-    "2. 主要段落内容\n"
-    "3. 表格、图表、公式或图片区域\n"
-    "4. 可能适合回答的问题类型\n"
-    "要求 100-200 字，不要编造看不见的信息。"
+    "请阅读这页文档图像，用中文概括页面内容。\n"
+    "必须包含以下信息：\n"
+    "1. 标题和文档类型（报告/发票/表格/信件等）\n"
+    "2. 页面中出现的所有具体数字、金额、日期、百分比（逐项列出，不要省略）\n"
+    "3. 页面中出现的人名、公司名、地名、专有名词\n"
+    "4. 表格、图表、公式或图片的描述\n"
+    "5. 可能适合回答的问题类型（如：数值查询/日期查询/实体识别/比较判断）\n"
+    "要求 100-200 字，优先保留数字和专有名词，不要编造看不见的信息。"
 )
 
 
@@ -53,8 +55,8 @@ def summarize_page_with_vlm(
     model_id: str | None = None,
     load_in_4bit: bool = False,
 ) -> str:
-    model = model_id or "Qwen/Qwen2.5-VL-3B-Instruct"
-    client = QwenVLClient(model_id=model, load_in_4bit=load_in_4bit)
+    model = model_id or "Qwen/Qwen2.5-VL-7B-Instruct"
+    client = QwenVLClient(model_id=model, load_in_4bit=load_in_4bit, max_pixels=1003520)
     question = f"{SUMMARY_PROMPT}\n当前是第 {page_index} 页。"
     summary = client.answer_image(image_path=image_path, question=question, max_new_tokens=320)
     return _normalize_summary(summary)
@@ -70,8 +72,8 @@ def build_page_summaries(
     out_file = Path(output_jsonl)
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
-    model = model_id or "Qwen/Qwen2.5-VL-3B-Instruct"
-    client = QwenVLClient(model_id=model, load_in_4bit=load_in_4bit)
+    model = model_id or "Qwen/Qwen2.5-VL-7B-Instruct"
+    client = QwenVLClient(model_id=model, load_in_4bit=load_in_4bit, max_pixels=1003520)
 
     with out_file.open("w", encoding="utf-8") as f:
         for page in pages:
