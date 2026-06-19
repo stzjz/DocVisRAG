@@ -354,14 +354,15 @@ nohup bash ~/run_experiments.sh > ~/experiment_final.log 2>&1 &
 
 ## 7. 后续工作
 
+最新实验状态以 [EXPERIMENTS.md](EXPERIMENTS.md) 为准。本节仅保留服务器侧待办。
+
 | 优先级 | 任务 | 状态 |
 |--------|------|:--:|
-| P0 | 自建课程文档集（8-12份，60-120 QA） | ⬜ |
-| P0 | 错误案例分析（挑选 TEXT vs HYBRID 典型 case） | ⬜ |
-| P1 | TextVQA 评测（网络恢复后） | ⬜ |
-| P1 | Relaxed Accuracy 指标（图表数值容差） | ⬜ |
+| P0 | 自建 HomeworkQA / HomeworkQA-MC 全量评估 | ✅ |
+| P0 | 错误案例分析（挑选 text / hybrid / visual / fusion 典型 case） | 🔶 |
+| P1 | HomeworkQA-MC 重平衡后消融重跑 | 🔶 |
+| P1 | TextVQA 更强 OCR 后完整 QA | ⬜ |
 | P1 | 人工评分（30题抽检） | ⬜ |
-| P1 | FUSION 跑 ChartQA（visual 索引已有，只需跑 benchmark） | 🔶 |
 | P2 | 多模型对比（Llama 3.2 Vision） | ⬜ |
 | P2 | RAGAS 忠实度自动评测 | ⬜ |
-| P2 | EM 后处理（截断短答案、去除解释性文字） | ⬜ |
+| P2 | EM 后处理（截断短答案、去除解释性文字） | 🔶 |

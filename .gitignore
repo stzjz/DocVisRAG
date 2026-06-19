@@ -11,6 +11,31 @@ env/
 data/indexes/
 data/outputs/
 data/bench/
+data/bench_runs/
+
+# Large/generated benchmark artifacts
+data/bench_full/**/.work/
+data/bench_full/**/archive/
+data/bench_full/**/indexes/
+data/bench_full/**/outputs/
+*.faiss
+*.index
+*.npy
+*.npz
+
+# Keep curated in-house evaluation sets trackable.
+!data/bench_full/
+!data/bench_full/homeworkqa/
+!data/bench_full/homeworkqa/**
+!data/bench_full/homeworkqa_mc/
+!data/bench_full/homeworkqa_mc/**
+
+# But still exclude generated artifacts inside the curated datasets.
+data/bench_full/homeworkqa/.work/
+data/bench_full/homeworkqa_mc/.work/
+data/bench_full/homeworkqa/archive/
+data/bench_full/homeworkqa_mc/archive/
+data/bench_full/**/questions.before_*.jsonl
 
 # OS/IDE
 .DS_Store
