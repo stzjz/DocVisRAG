@@ -1,12 +1,20 @@
 {
   "benchmarks": [
     {
+      "name": "homeworkqa_mc_中国共产党入党志愿书",
+      "benchmark": "homeworkqa_mc",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/中国共产党入党志愿书/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/中国共产党入党志愿书.jsonl",
+      "dataset_id": "local_homeworkqa_mc",
+      "split": "custom_16pdf_updated_20260616"
+    },
+    {
       "name": "homeworkqa_mc_公益服务证明",
       "benchmark": "homeworkqa_mc",
       "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/公益服务证明/manifest.json",
       "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/公益服务证明.jsonl",
       "dataset_id": "local_homeworkqa_mc",
-      "split": "custom_10pdf_20q_each"
+      "split": "custom_16pdf_updated_20260616"
     },
     {
       "name": "homeworkqa_mc_圆顶",
@@ -14,7 +22,7 @@
       "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/圆顶/manifest.json",
       "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/圆顶.jsonl",
       "dataset_id": "local_homeworkqa_mc",
-      "split": "custom_10pdf_20q_each"
+      "split": "custom_16pdf_updated_20260616"
     },
     {
       "name": "homeworkqa_mc_大学物理",
@@ -22,7 +30,7 @@
       "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/大学物理/manifest.json",
       "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/大学物理.jsonl",
       "dataset_id": "local_homeworkqa_mc",
-      "split": "custom_10pdf_20q_each"
+      "split": "custom_16pdf_updated_20260616"
     },
     {
       "name": "homeworkqa_mc_大数据",
@@ -30,7 +38,15 @@
       "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/大数据/manifest.json",
       "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/大数据.jsonl",
       "dataset_id": "local_homeworkqa_mc",
-      "split": "custom_10pdf_20q_each"
+      "split": "custom_16pdf_updated_20260616"
+    },
+    {
+      "name": "homeworkqa_mc_大数据2",
+      "benchmark": "homeworkqa_mc",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/大数据2/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/大数据2.jsonl",
+      "dataset_id": "local_homeworkqa_mc",
+      "split": "custom_16pdf_updated_20260616"
     },
     {
       "name": "homeworkqa_mc_并行计算",
@@ -38,7 +54,7 @@
       "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/并行计算/manifest.json",
       "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/并行计算.jsonl",
       "dataset_id": "local_homeworkqa_mc",
-      "split": "custom_10pdf_20q_each"
+      "split": "custom_16pdf_updated_20260616"
     },
     {
       "name": "homeworkqa_mc_推荐系统",
@@ -46,7 +62,7 @@
       "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/推荐系统/manifest.json",
       "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/推荐系统.jsonl",
       "dataset_id": "local_homeworkqa_mc",
-      "split": "custom_10pdf_20q_each"
+      "split": "custom_16pdf_updated_20260616"
     },
     {
       "name": "homeworkqa_mc_数字电路",
@@ -54,7 +70,7 @@
       "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/数字电路/manifest.json",
       "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/数字电路.jsonl",
       "dataset_id": "local_homeworkqa_mc",
-      "split": "custom_10pdf_20q_each"
+      "split": "custom_16pdf_updated_20260616"
     },
     {
       "name": "homeworkqa_mc_数字电路2",
@@ -62,15 +78,23 @@
       "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/数字电路2/manifest.json",
       "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/数字电路2.jsonl",
       "dataset_id": "local_homeworkqa_mc",
-      "split": "custom_10pdf_20q_each"
+      "split": "custom_16pdf_updated_20260616"
     },
     {
-      "name": "homeworkqa_mc_数据结构",
+      "name": "homeworkqa_mc_数字电路3",
       "benchmark": "homeworkqa_mc",
-      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/数据结构/manifest.json",
-      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/数据结构.jsonl",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/数字电路3/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/数字电路3.jsonl",
       "dataset_id": "local_homeworkqa_mc",
-      "split": "custom_10pdf_20q_each"
+      "split": "custom_16pdf_updated_20260616"
+    },
+    {
+      "name": "homeworkqa_mc_程序设计竞赛题",
+      "benchmark": "homeworkqa_mc",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/程序设计竞赛题/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/程序设计竞赛题.jsonl",
+      "dataset_id": "local_homeworkqa_mc",
+      "split": "custom_16pdf_updated_20260616"
     },
     {
       "name": "homeworkqa_mc_编译原理",
@@ -78,7 +102,31 @@
       "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/编译原理/manifest.json",
       "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/编译原理.jsonl",
       "dataset_id": "local_homeworkqa_mc",
-      "split": "custom_10pdf_20q_each"
+      "split": "custom_16pdf_updated_20260616"
+    },
+    {
+      "name": "homeworkqa_mc_编译原理2",
+      "benchmark": "homeworkqa_mc",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/编译原理2/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/编译原理2.jsonl",
+      "dataset_id": "local_homeworkqa_mc",
+      "split": "custom_16pdf_updated_20260616"
+    },
+    {
+      "name": "homeworkqa_mc_编译原理3",
+      "benchmark": "homeworkqa_mc",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/编译原理3/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/编译原理3.jsonl",
+      "dataset_id": "local_homeworkqa_mc",
+      "split": "custom_16pdf_updated_20260616"
+    },
+    {
+      "name": "homeworkqa_mc_长跑月",
+      "benchmark": "homeworkqa_mc",
+      "manifest": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa/.work/rendered/长跑月/manifest.json",
+      "questions": "/data1/home/zengjian/DocVisRAG/data/bench_full/homeworkqa_mc/questions_by_pdf/长跑月.jsonl",
+      "dataset_id": "local_homeworkqa_mc",
+      "split": "custom_16pdf_updated_20260616"
     }
   ]
 }
