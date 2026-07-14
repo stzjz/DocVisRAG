@@ -1,7 +1,0 @@
-{
-  "backend": "byaldi",
-  "model_id": "vidore/colqwen2-v1.0",
-  "index_name": "docvisrag_visual",
-  "index_root": "/data1/home/zengjian/DocVisRAG/data/bench_runs/textvqa_textaware_eval/visual_index/byaldi_index",
-  "num_pages": 64
-}
